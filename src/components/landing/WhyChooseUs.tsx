@@ -103,7 +103,7 @@ export function WhyChooseUs() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-cebu-red/10 text-cebu-red px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-coral/10 text-coral px-4 py-2 rounded-full text-sm font-medium mb-4">
             Why EasyRides?
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
@@ -119,7 +119,7 @@ export function WhyChooseUs() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {reasons.map((reason, index) => (
             <div key={index} className="flex gap-4">
-              <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-cebu-red flex-shrink-0">
+              <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-coral flex-shrink-0">
                 {reason.icon}
               </div>
               <div>
@@ -134,16 +134,16 @@ export function WhyChooseUs() {
         <div className="mt-16 bg-white rounded-2xl p-8 shadow-sm">
           <div className="grid sm:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-cebu-red mb-2">500+</div>
+              <div className="text-4xl font-bold text-coral mb-2">500+</div>
               <div className="text-slate-600">Happy Customers</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-cebu-red mb-2">4.9</div>
+              <div className="text-4xl font-bold text-coral mb-2">4.9</div>
               <div className="flex items-center justify-center gap-1 mb-1">
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className="w-5 h-5 text-cebu-gold"
+                    className="w-5 h-5 text-mango"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -154,7 +154,7 @@ export function WhyChooseUs() {
               <div className="text-slate-600">Average Rating</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-cebu-red mb-2">5+</div>
+              <div className="text-4xl font-bold text-coral mb-2">5+</div>
               <div className="text-slate-600">Years of Service</div>
             </div>
           </div>

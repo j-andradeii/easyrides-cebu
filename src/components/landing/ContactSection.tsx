@@ -63,7 +63,7 @@ export function ContactSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-cebu-sky/30 text-cebu-sky-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-papaya/30 text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4">
             Get In Touch
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
@@ -96,7 +96,7 @@ export function ContactSection() {
                       value={formData.fullName}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cebu-red focus:border-transparent text-slate-700 bg-white"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
                       placeholder="Juan dela Cruz"
                     />
                   </div>
@@ -114,7 +114,7 @@ export function ContactSection() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cebu-red focus:border-transparent text-slate-700 bg-white"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
                       placeholder="juan@email.com"
                     />
                   </div>
@@ -136,7 +136,7 @@ export function ContactSection() {
                       value={formData.phone}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cebu-red focus:border-transparent text-slate-700 bg-white"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
                       placeholder="+63 9XX XXX XXXX"
                     />
                   </div>
@@ -153,7 +153,7 @@ export function ContactSection() {
                       value={formData.serviceType}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cebu-red focus:border-transparent text-slate-700 bg-white"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
                     >
                       <option value="">Select a service</option>
                       <option value="car-rental">Car Rental</option>
@@ -179,7 +179,7 @@ export function ContactSection() {
                     value={formData.preferredDate}
                     onChange={handleChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cebu-red focus:border-transparent text-slate-700 bg-white"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
                   />
                 </div>
 
@@ -197,7 +197,7 @@ export function ContactSection() {
                     value={formData.message}
                     onChange={handleChange}
                     rows={4}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cebu-red focus:border-transparent text-slate-700 bg-white resize-none"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white resize-none"
                     placeholder="Tell us about your trip - number of passengers, destinations, special requirements..."
                   />
                 </div>
@@ -233,7 +233,7 @@ export function ContactSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-cebu-red hover:bg-cebu-red-dark disabled:bg-cebu-red/70 text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-coral hover:bg-coral-dark disabled:bg-coral/70 text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -280,7 +280,7 @@ export function ContactSection() {
           {/* Contact Info & Direct Contact */}
           <div className="lg:col-span-2 space-y-6">
             {/* Direct Contact Options */}
-            <div className="bg-gradient-to-br from-cebu-red to-cebu-red-dark rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-coral to-coral-dark rounded-2xl p-6 text-white">
               <h3 className="text-xl font-bold mb-4">Prefer Direct Contact?</h3>
               <p className="text-white/80 mb-6">
                 Get instant responses through our messaging channels or give us a call.

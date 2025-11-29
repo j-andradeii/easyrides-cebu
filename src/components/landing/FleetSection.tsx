@@ -34,7 +34,7 @@ export function FleetSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-cebu-sky/30 text-cebu-sky-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-papaya/30 text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4">
             Our Fleet
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
@@ -52,12 +52,12 @@ export function FleetSection() {
             <div
               key={index}
               className={`relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 ${
-                vehicle.popular ? 'ring-2 ring-cebu-red' : ''
+                vehicle.popular ? 'ring-2 ring-coral' : ''
               }`}
             >
               {/* Popular Badge */}
               {vehicle.popular && (
-                <div className="absolute top-4 right-4 bg-cebu-red text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                <div className="absolute top-4 right-4 bg-coral text-white text-xs font-bold px-3 py-1 rounded-full z-10">
                   POPULAR
                 </div>
               )}
@@ -108,7 +108,7 @@ export function FleetSection() {
                   {vehicle.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-sm text-slate-600">
                       <svg
-                        className="w-4 h-4 text-cebu-green"
+                        className="w-4 h-4 text-palm"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -136,7 +136,7 @@ export function FleetSection() {
                     href="#contact"
                     className={`block w-full text-center py-3 rounded-lg font-semibold transition-colors ${
                       vehicle.popular
-                        ? 'bg-cebu-red hover:bg-cebu-red-dark text-white'
+                        ? 'bg-coral hover:bg-coral-dark text-white'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     }`}
                   >
@@ -149,7 +149,7 @@ export function FleetSection() {
         </div>
 
         {/* Discount Note */}
-        <div className="mt-12 bg-gradient-to-r from-cebu-red to-cebu-gold rounded-2xl p-8 text-center text-white">
+        <div className="mt-12 bg-gradient-to-r from-coral to-mango rounded-2xl p-8 text-center text-white">
           <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -169,7 +169,7 @@ export function FleetSection() {
           </p>
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 bg-white text-cebu-red hover:bg-white/90 px-6 py-3 rounded-lg font-semibold transition-colors"
+            className="inline-flex items-center gap-2 bg-white text-coral hover:bg-white/90 px-6 py-3 rounded-lg font-semibold transition-colors"
           >
             Inquire Now
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,25 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FFF8E7;
+  --foreground: #2D3748;
 
-  /* Cebu/Sinulog Color Palette */
-  --cebu-sky: #A0D2DB;
-  --cebu-sky-light: #C5E4EA;
-  --cebu-sky-dark: #7BBDC9;
+  /* Tropical Adventure Color Palette */
+  --coral: #FF6B5B;
+  --coral-light: #FF8A7D;
+  --coral-dark: #E55A4A;
 
-  --cebu-red: #ED2224;
-  --cebu-red-light: #FF4D4F;
-  --cebu-red-dark: #C41E20;
+  --mango: #FF9F45;
+  --mango-light: #FFB76B;
+  --mango-dark: #E88A30;
 
-  --cebu-gold: #FFC100;
-  --cebu-gold-light: #FFD54F;
-  --cebu-gold-dark: #E5AD00;
+  --golden: #F4D03F;
+  --golden-light: #F7DC6F;
+  --golden-dark: #D4B02F;
 
-  --cebu-green: #658C58;
-  --cebu-green-light: #A5D620;
-  --cebu-green-dark: #31694E;
+  --papaya: #FFAB76;
+  --papaya-light: #FFBF94;
+  --papaya-dark: #E89560;
+
+  --terracotta: #E07A5F;
+  --terracotta-light: #E99680;
+  --terracotta-dark: #C96A50;
+
+  --palm: #2D6A4F;
+  --palm-light: #40916C;
+  --palm-dark: #1B4332;
+
+  --cream: #FFF8E7;
+  --cream-light: #FFFDF7;
+  --cream-dark: #F5EDD8;
+
+  --hibiscus: #C94C4C;
+  --hibiscus-light: #D86B6B;
+  --hibiscus-dark: #A83D3D;
 }
 
 @theme inline {
@@ -28,28 +44,44 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Cebu Color Theme */
-  --color-cebu-sky: var(--cebu-sky);
-  --color-cebu-sky-light: var(--cebu-sky-light);
-  --color-cebu-sky-dark: var(--cebu-sky-dark);
+  /* Tropical Adventure Theme */
+  --color-coral: var(--coral);
+  --color-coral-light: var(--coral-light);
+  --color-coral-dark: var(--coral-dark);
 
-  --color-cebu-red: var(--cebu-red);
-  --color-cebu-red-light: var(--cebu-red-light);
-  --color-cebu-red-dark: var(--cebu-red-dark);
+  --color-mango: var(--mango);
+  --color-mango-light: var(--mango-light);
+  --color-mango-dark: var(--mango-dark);
 
-  --color-cebu-gold: var(--cebu-gold);
-  --color-cebu-gold-light: var(--cebu-gold-light);
-  --color-cebu-gold-dark: var(--cebu-gold-dark);
+  --color-golden: var(--golden);
+  --color-golden-light: var(--golden-light);
+  --color-golden-dark: var(--golden-dark);
 
-  --color-cebu-green: var(--cebu-green);
-  --color-cebu-green-light: var(--cebu-green-light);
-  --color-cebu-green-dark: var(--cebu-green-dark);
+  --color-papaya: var(--papaya);
+  --color-papaya-light: var(--papaya-light);
+  --color-papaya-dark: var(--papaya-dark);
+
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-light: var(--terracotta-light);
+  --color-terracotta-dark: var(--terracotta-dark);
+
+  --color-palm: var(--palm);
+  --color-palm-light: var(--palm-light);
+  --color-palm-dark: var(--palm-dark);
+
+  --color-cream: var(--cream);
+  --color-cream-light: var(--cream-light);
+  --color-cream-dark: var(--cream-dark);
+
+  --color-hibiscus: var(--hibiscus);
+  --color-hibiscus-light: var(--hibiscus-light);
+  --color-hibiscus-dark: var(--hibiscus-dark);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1a1a2e;
+    --foreground: #FFF8E7;
   }
 }
 

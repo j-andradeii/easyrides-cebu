@@ -44,39 +44,39 @@ const tourPackages = [
 
 const colorClasses = {
   cyan: {
-    badge: 'bg-cebu-sky/30 text-cebu-sky-dark',
-    border: 'hover:border-cebu-sky',
-    button: 'bg-cebu-sky-dark hover:bg-cebu-sky',
+    badge: 'bg-papaya/30 text-terracotta',
+    border: 'hover:border-papaya',
+    button: 'bg-terracotta hover:bg-terracotta-dark',
   },
   emerald: {
-    badge: 'bg-cebu-green-light/30 text-cebu-green-dark',
-    border: 'hover:border-cebu-green-light',
-    button: 'bg-cebu-green hover:bg-cebu-green-dark',
+    badge: 'bg-palm-light/30 text-palm-dark',
+    border: 'hover:border-palm-light',
+    button: 'bg-palm hover:bg-palm-dark',
   },
   violet: {
-    badge: 'bg-cebu-red/10 text-cebu-red',
-    border: 'hover:border-cebu-red/50',
-    button: 'bg-cebu-red hover:bg-cebu-red-dark',
+    badge: 'bg-coral/10 text-coral',
+    border: 'hover:border-coral/50',
+    button: 'bg-coral hover:bg-coral-dark',
   },
   orange: {
-    badge: 'bg-cebu-gold/30 text-cebu-gold-dark',
-    border: 'hover:border-cebu-gold',
-    button: 'bg-cebu-gold hover:bg-cebu-gold-dark text-slate-900',
+    badge: 'bg-mango/30 text-mango-dark',
+    border: 'hover:border-mango',
+    button: 'bg-mango hover:bg-mango-dark text-slate-900',
   },
   rose: {
-    badge: 'bg-cebu-red/20 text-cebu-red-dark',
-    border: 'hover:border-cebu-red',
-    button: 'bg-cebu-red hover:bg-cebu-red-dark',
+    badge: 'bg-hibiscus/20 text-hibiscus-dark',
+    border: 'hover:border-hibiscus',
+    button: 'bg-hibiscus hover:bg-hibiscus-dark',
   },
 };
 
 export function ToursSection() {
   return (
-    <section id="tours" className="py-20 bg-gradient-to-b from-white to-cebu-sky/20">
+    <section id="tours" className="py-20 bg-gradient-to-b from-white to-cream-dark/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-cebu-green-light/30 text-cebu-green-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-palm-light/30 text-palm-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -104,11 +104,11 @@ export function ToursSection() {
               <div
                 key={index}
                 className={`relative bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-all duration-300 ${colors.border} ${
-                  tour.featured ? 'ring-2 ring-cebu-red' : ''
+                  tour.featured ? 'ring-2 ring-coral' : ''
                 }`}
               >
                 {tour.featured && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-cebu-red text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-coral text-white text-xs font-bold px-3 py-1 rounded-full">
                     BEST VALUE
                   </div>
                 )}
@@ -129,7 +129,7 @@ export function ToursSection() {
                 <ul className="space-y-2 mb-6">
                   {tour.highlights.map((highlight, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-sm text-slate-500">
-                      <svg className="w-4 h-4 text-cebu-green" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-palm" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -156,9 +156,9 @@ export function ToursSection() {
         {/* Custom Tour CTA */}
         <div className="mt-16 text-center">
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 max-w-2xl mx-auto">
-            <div className="w-16 h-16 bg-cebu-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-mango/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-8 h-8 text-cebu-gold-dark"
+                className="w-8 h-8 text-mango-dark"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -178,7 +178,7 @@ export function ToursSection() {
             </p>
             <a
               href="#contact"
-              className="inline-flex items-center gap-2 bg-cebu-red hover:bg-cebu-red-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              className="inline-flex items-center gap-2 bg-coral hover:bg-coral-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path

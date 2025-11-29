@@ -53,7 +53,7 @@ export function TransferRatesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-cebu-gold/30 text-cebu-gold-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-mango/30 text-mango-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -80,12 +80,12 @@ export function TransferRatesSection() {
               key={index}
               className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 ${
                 transfer.popular
-                  ? 'border-cebu-red shadow-lg'
+                  ? 'border-coral shadow-lg'
                   : 'border-slate-100 hover:border-slate-200 hover:shadow-md'
               }`}
             >
               {transfer.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-cebu-red text-white text-xs font-bold px-3 py-1 rounded-full">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-coral text-white text-xs font-bold px-3 py-1 rounded-full">
                   MOST BOOKED
                 </div>
               )}
@@ -93,7 +93,7 @@ export function TransferRatesSection() {
               {/* Icon */}
               <div
                 className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
-                  transfer.popular ? 'bg-cebu-red/10 text-cebu-red' : 'bg-slate-100 text-slate-600'
+                  transfer.popular ? 'bg-coral/10 text-coral' : 'bg-slate-100 text-slate-600'
                 }`}
               >
                 {transfer.icon}
@@ -112,7 +112,7 @@ export function TransferRatesSection() {
               <div className="border-t border-slate-100 pt-4">
                 <div className="flex items-end gap-1 mb-4">
                   <span
-                    className={`text-3xl font-bold ${transfer.popular ? 'text-cebu-red' : 'text-slate-900'}`}
+                    className={`text-3xl font-bold ${transfer.popular ? 'text-coral' : 'text-slate-900'}`}
                   >
                     ₱{transfer.rate.toLocaleString()}
                   </span>
@@ -123,7 +123,7 @@ export function TransferRatesSection() {
                   href="#contact"
                   className={`block w-full text-center py-3 rounded-lg font-semibold transition-colors ${
                     transfer.popular
-                      ? 'bg-cebu-red hover:bg-cebu-red-dark text-white'
+                      ? 'bg-coral hover:bg-coral-dark text-white'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -138,8 +138,8 @@ export function TransferRatesSection() {
         <div className="mt-12 max-w-2xl mx-auto">
           <div className="bg-slate-50 rounded-xl p-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-cebu-sky/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-cebu-sky-dark" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-papaya/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-terracotta" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
@@ -161,9 +161,9 @@ export function TransferRatesSection() {
         {/* Features */}
         <div className="mt-12 grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
           <div className="text-center">
-            <div className="w-12 h-12 bg-cebu-green-light/30 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 bg-palm-light/30 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg
-                className="w-6 h-6 text-cebu-green"
+                className="w-6 h-6 text-palm"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -180,9 +180,9 @@ export function TransferRatesSection() {
             <p className="text-sm text-slate-500">We monitor your flight for any delays</p>
           </div>
           <div className="text-center">
-            <div className="w-12 h-12 bg-cebu-sky/30 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 bg-papaya/30 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg
-                className="w-6 h-6 text-cebu-sky-dark"
+                className="w-6 h-6 text-terracotta"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -199,9 +199,9 @@ export function TransferRatesSection() {
             <p className="text-sm text-slate-500">No surge pricing or hidden fees</p>
           </div>
           <div className="text-center">
-            <div className="w-12 h-12 bg-cebu-gold/30 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 bg-mango/30 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg
-                className="w-6 h-6 text-cebu-gold-dark"
+                className="w-6 h-6 text-mango-dark"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
