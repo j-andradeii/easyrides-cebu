@@ -71,7 +71,7 @@ export const entitySchema = z.object({
   category: z.string().min(1, 'Category is required'),
   status: z.enum(['draft', 'published', 'archived']),
   tags: z.array(z.string()).min(1, 'At least one tag is required'),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type EntityFormData = z.infer<typeof entitySchema>;
