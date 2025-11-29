@@ -45,18 +45,19 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-orange-50" />
+      {/* Background Gradient - Tropical Ocean to Sunset */}
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-cyan-50 to-amber-50" />
 
-      {/* Decorative Elements */}
-      <div className="absolute top-20 right-0 w-96 h-96 bg-cyan-200/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-0 w-80 h-80 bg-orange-200/30 rounded-full blur-3xl" />
+      {/* Decorative Elements - Vibrant Tropical Blurs */}
+      <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-teal-300/40 to-emerald-300/30 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-0 w-80 h-80 bg-gradient-to-tr from-amber-300/40 to-orange-300/30 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-cyan-200/20 rounded-full blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-cyan-100 text-cyan-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-100 to-emerald-100 text-teal-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -69,7 +70,7 @@ export function HeroSection() {
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
               Explore Cebu
-              <span className="block text-cyan-600">Your Way</span>
+              <span className="block bg-gradient-to-r from-teal-500 to-emerald-500 bg-clip-text text-transparent">Your Way</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0">
@@ -80,15 +81,15 @@ export function HeroSection() {
             {/* Quick Stats */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-8 mb-8">
               <div>
-                <div className="text-3xl font-bold text-cyan-600">500+</div>
+                <div className="text-3xl font-bold text-teal-600">500+</div>
                 <div className="text-sm text-slate-500">Happy Customers</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-cyan-600">15+</div>
+                <div className="text-3xl font-bold text-emerald-600">15+</div>
                 <div className="text-sm text-slate-500">Vehicles</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-cyan-600">5</div>
+                <div className="text-3xl font-bold text-amber-600">5</div>
                 <div className="text-sm text-slate-500">Tour Packages</div>
               </div>
             </div>
@@ -97,7 +98,7 @@ export function HeroSection() {
             <div className="flex flex-wrap justify-center lg:justify-start gap-4">
               <a
                 href="#tours"
-                className="inline-flex items-center gap-2 bg-white border-2 border-cyan-600 text-cyan-600 hover:bg-cyan-50 px-6 py-3 rounded-lg font-semibold transition-colors"
+                className="inline-flex items-center gap-2 bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-50 px-6 py-3 rounded-lg font-semibold transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -111,7 +112,7 @@ export function HeroSection() {
               </a>
               <a
                 href="tel:+639123456789"
-                className="inline-flex items-center gap-2 text-slate-600 hover:text-cyan-600 px-6 py-3 font-semibold transition-colors"
+                className="inline-flex items-center gap-2 text-slate-600 hover:text-teal-600 px-6 py-3 font-semibold transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -150,8 +151,8 @@ export function HeroSection() {
                         onClick={() => setServiceType(option.value as ServiceType)}
                         className={`p-3 rounded-lg border-2 text-center transition-all ${
                           serviceType === option.value
-                            ? 'border-cyan-600 bg-cyan-50 text-cyan-700'
-                            : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                            ? 'border-teal-500 bg-teal-50 text-teal-700'
+                            : 'border-slate-200 hover:border-teal-300 text-slate-600'
                         }`}
                       >
                         <div className="text-xl mb-1">{option.icon}</div>
@@ -170,7 +171,7 @@ export function HeroSection() {
                     <select
                       value={vehicleType}
                       onChange={(e) => setVehicleType(e.target.value as VehicleType)}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-slate-700"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-slate-700"
                     >
                       <option value="sedan">Sedan (5-seater) - ₱1,500/day</option>
                       <option value="suv">SUV (7-seater) - ₱2,500/day</option>
@@ -213,7 +214,7 @@ export function HeroSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:from-teal-400 disabled:to-emerald-400 text-white py-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-teal-500/25"
                 >
                   {isSubmitting ? (
                     <>
@@ -295,7 +296,7 @@ export function HeroSection() {
 
       {/* Scroll Indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <a href="#services" className="text-slate-400 hover:text-cyan-600 transition-colors">
+        <a href="#services" className="text-slate-400 hover:text-teal-500 transition-colors">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"

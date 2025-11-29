@@ -23,7 +23,7 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -48,7 +48,7 @@ export function Footer() {
             <div className="flex gap-4">
               <a
                 href="#"
-                className="w-10 h-10 bg-slate-800 hover:bg-cyan-600 rounded-full flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-slate-800 hover:bg-teal-500 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Facebook"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@ export function Footer() {
               </a>
               <a
                 href="#"
-                className="w-10 h-10 bg-slate-800 hover:bg-cyan-600 rounded-full flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-slate-800 hover:bg-gradient-to-br hover:from-amber-500 hover:to-orange-500 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ export function Footer() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="text-slate-400 hover:text-cyan-400 transition-colors text-sm"
+                    className="text-slate-400 hover:text-teal-400 transition-colors text-sm"
                   >
                     {link.label}
                   </a>
@@ -111,7 +111,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <svg
-                  className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0"
+                  className="w-5 h-5 text-teal-400 mt-0.5 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -134,10 +134,10 @@ export function Footer() {
               <li>
                 <a
                   href="tel:+639123456789"
-                  className="flex items-start gap-3 text-slate-400 hover:text-cyan-400 transition-colors"
+                  className="flex items-start gap-3 text-slate-400 hover:text-teal-400 transition-colors"
                 >
                   <svg
-                    className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-teal-400 mt-0.5 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -155,10 +155,10 @@ export function Footer() {
               <li>
                 <a
                   href="mailto:hello@easyrides.ph"
-                  className="flex items-start gap-3 text-slate-400 hover:text-cyan-400 transition-colors"
+                  className="flex items-start gap-3 text-slate-400 hover:text-teal-400 transition-colors"
                 >
                   <svg
-                    className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-teal-400 mt-0.5 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
