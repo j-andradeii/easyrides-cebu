@@ -3,6 +3,23 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Cebu/Sinulog Color Palette */
+  --cebu-sky: #A0D2DB;
+  --cebu-sky-light: #C5E4EA;
+  --cebu-sky-dark: #7BBDC9;
+
+  --cebu-red: #ED2224;
+  --cebu-red-light: #FF4D4F;
+  --cebu-red-dark: #C41E20;
+
+  --cebu-gold: #FFC100;
+  --cebu-gold-light: #FFD54F;
+  --cebu-gold-dark: #E5AD00;
+
+  --cebu-green: #658C58;
+  --cebu-green-light: #A5D620;
+  --cebu-green-dark: #31694E;
 }
 
 @theme inline {
@@ -10,6 +27,23 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Cebu Color Theme */
+  --color-cebu-sky: var(--cebu-sky);
+  --color-cebu-sky-light: var(--cebu-sky-light);
+  --color-cebu-sky-dark: var(--cebu-sky-dark);
+
+  --color-cebu-red: var(--cebu-red);
+  --color-cebu-red-light: var(--cebu-red-light);
+  --color-cebu-red-dark: var(--cebu-red-dark);
+
+  --color-cebu-gold: var(--cebu-gold);
+  --color-cebu-gold-light: var(--cebu-gold-light);
+  --color-cebu-gold-dark: var(--cebu-gold-dark);
+
+  --color-cebu-green: var(--cebu-green);
+  --color-cebu-green-light: var(--cebu-green-light);
+  --color-cebu-green-dark: var(--cebu-green-dark);
 }
 
 @media (prefers-color-scheme: dark) {

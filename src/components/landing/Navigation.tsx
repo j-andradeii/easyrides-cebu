@@ -19,7 +19,7 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-cebu-red to-cebu-gold rounded-lg flex items-center justify-center">
               <svg
                 className="w-6 h-6 text-white"
                 fill="none"
@@ -43,7 +43,7 @@ export function Navigation() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-slate-600 hover:text-teal-600 font-medium transition-colors"
+                className="text-slate-600 hover:text-cebu-red font-medium transition-colors"
               >
                 {link.label}
               </a>
@@ -54,7 +54,7 @@ export function Navigation() {
           <div className="hidden md:flex items-center gap-4">
             <a
               href="tel:+639123456789"
-              className="flex items-center gap-2 text-slate-600 hover:text-teal-600 transition-colors"
+              className="flex items-center gap-2 text-slate-600 hover:text-cebu-red transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -68,7 +68,7 @@ export function Navigation() {
             </a>
             <a
               href="#contact"
-              className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md shadow-teal-500/20"
+              className="bg-gradient-to-r from-cebu-red to-cebu-gold hover:from-cebu-red-dark hover:to-cebu-gold-dark text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md shadow-cebu-red/20"
             >
               Book Now
             </a>
@@ -100,7 +100,7 @@ export function Navigation() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-slate-600 hover:text-teal-600 font-medium transition-colors py-2"
+                  className="text-slate-600 hover:text-cebu-red font-medium transition-colors py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
@@ -109,7 +109,7 @@ export function Navigation() {
               <div className="flex gap-4 pt-4 border-t border-slate-100">
                 <a
                   href="tel:+639123456789"
-                  className="flex-1 flex items-center justify-center gap-2 border-2 border-teal-500 text-teal-600 px-4 py-2.5 rounded-lg font-semibold"
+                  className="flex-1 flex items-center justify-center gap-2 border-2 border-cebu-red text-cebu-red px-4 py-2.5 rounded-lg font-semibold"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -123,7 +123,7 @@ export function Navigation() {
                 </a>
                 <a
                   href="#contact"
-                  className="flex-1 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white px-4 py-2.5 rounded-lg font-semibold text-center transition-all"
+                  className="flex-1 bg-gradient-to-r from-cebu-red to-cebu-gold hover:from-cebu-red-dark hover:to-cebu-gold-dark text-white px-4 py-2.5 rounded-lg font-semibold text-center transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Book Now

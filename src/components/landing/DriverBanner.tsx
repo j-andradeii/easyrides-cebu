@@ -6,7 +6,7 @@ export function DriverBanner() {
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Content */}
             <div className="p-8 lg:p-12">
-              <div className="inline-flex items-center gap-2 bg-orange-500/20 text-orange-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-cebu-gold/20 text-cebu-gold px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -29,14 +29,14 @@ export function DriverBanner() {
               {/* Pricing */}
               <div className="grid sm:grid-cols-2 gap-4 mb-8">
                 <div className="bg-white/10 rounded-xl p-4">
-                  <div className="text-orange-400 text-sm font-medium mb-1">Driver Fee</div>
+                  <div className="text-cebu-gold text-sm font-medium mb-1">Driver Fee</div>
                   <div className="flex items-end gap-1">
                     <span className="text-3xl font-bold text-white">₱850</span>
                     <span className="text-slate-400 mb-1">/ 8 hours</span>
                   </div>
                 </div>
                 <div className="bg-white/10 rounded-xl p-4">
-                  <div className="text-orange-400 text-sm font-medium mb-1">Overtime Rate</div>
+                  <div className="text-cebu-gold text-sm font-medium mb-1">Overtime Rate</div>
                   <div className="flex items-end gap-1">
                     <span className="text-3xl font-bold text-white">₱250</span>
                     <span className="text-slate-400 mb-1">/ hour</span>
@@ -48,7 +48,7 @@ export function DriverBanner() {
               <div className="bg-white/5 rounded-xl p-4 mb-8">
                 <div className="flex items-start gap-3">
                   <svg
-                    className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-cebu-sky mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -68,7 +68,7 @@ export function DriverBanner() {
               {/* CTA */}
               <a
                 href="#contact"
-                className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                className="inline-flex items-center gap-2 bg-cebu-gold hover:bg-cebu-gold-dark text-slate-900 px-6 py-3 rounded-lg font-semibold transition-colors"
               >
                 Add Driver to Booking
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,8 +86,8 @@ export function DriverBanner() {
             <div className="hidden lg:flex items-center justify-center p-8">
               <div className="relative">
                 {/* Driver Icon/Illustration Placeholder */}
-                <div className="w-64 h-64 bg-gradient-to-br from-cyan-500/20 to-orange-500/20 rounded-full flex items-center justify-center">
-                  <div className="w-48 h-48 bg-gradient-to-br from-cyan-500/30 to-orange-500/30 rounded-full flex items-center justify-center">
+                <div className="w-64 h-64 bg-gradient-to-br from-cebu-sky/20 to-cebu-gold/20 rounded-full flex items-center justify-center">
+                  <div className="w-48 h-48 bg-gradient-to-br from-cebu-sky/30 to-cebu-gold/30 rounded-full flex items-center justify-center">
                     <svg
                       className="w-24 h-24 text-white/80"
                       fill="none"
@@ -107,9 +107,9 @@ export function DriverBanner() {
                 {/* Floating badges */}
                 <div className="absolute -top-4 -right-4 bg-white rounded-xl p-3 shadow-lg">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-cebu-green-light/30 rounded-full flex items-center justify-center">
                       <svg
-                        className="w-4 h-4 text-green-600"
+                        className="w-4 h-4 text-cebu-green"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -126,9 +126,9 @@ export function DriverBanner() {
 
                 <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-3 shadow-lg">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-cebu-sky/30 rounded-full flex items-center justify-center">
                       <svg
-                        className="w-4 h-4 text-cyan-600"
+                        className="w-4 h-4 text-cebu-sky-dark"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >

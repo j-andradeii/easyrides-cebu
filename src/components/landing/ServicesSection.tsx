@@ -100,29 +100,29 @@ const services = [
 
 const colorClasses = {
   cyan: {
-    bg: 'bg-cyan-50',
-    icon: 'text-cyan-600',
-    border: 'group-hover:border-cyan-200',
+    bg: 'bg-cebu-sky/20',
+    icon: 'text-cebu-sky-dark',
+    border: 'group-hover:border-cebu-sky',
   },
   orange: {
-    bg: 'bg-orange-50',
-    icon: 'text-orange-600',
-    border: 'group-hover:border-orange-200',
+    bg: 'bg-cebu-gold/20',
+    icon: 'text-cebu-gold-dark',
+    border: 'group-hover:border-cebu-gold',
   },
   emerald: {
-    bg: 'bg-emerald-50',
-    icon: 'text-emerald-600',
-    border: 'group-hover:border-emerald-200',
+    bg: 'bg-cebu-green-light/20',
+    icon: 'text-cebu-green',
+    border: 'group-hover:border-cebu-green-light',
   },
   violet: {
-    bg: 'bg-violet-50',
-    icon: 'text-violet-600',
-    border: 'group-hover:border-violet-200',
+    bg: 'bg-cebu-red/10',
+    icon: 'text-cebu-red',
+    border: 'group-hover:border-cebu-red/50',
   },
   rose: {
-    bg: 'bg-rose-50',
-    icon: 'text-rose-600',
-    border: 'group-hover:border-rose-200',
+    bg: 'bg-cebu-red/20',
+    icon: 'text-cebu-red-dark',
+    border: 'group-hover:border-cebu-red',
   },
 };
 
@@ -132,7 +132,7 @@ export function ServicesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-cyan-100 text-cyan-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-cebu-sky/30 text-cebu-sky-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
             Our Services
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
@@ -192,7 +192,7 @@ export function ServicesSection() {
         <div className="text-center mt-12">
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-4 rounded-lg font-semibold transition-colors"
+            className="inline-flex items-center gap-2 bg-cebu-red hover:bg-cebu-red-dark text-white px-8 py-4 rounded-lg font-semibold transition-colors"
           >
             Get Started
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
