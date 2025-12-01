@@ -37,6 +37,7 @@ export const bookingSubmissionSchema = z.object({
   vehicleType: z.enum(['sedan', 'suv', 'van']).optional(),
   preferredDate: z.string().optional(),
   message: z.string().optional(),
+  addDriver: z.boolean().optional(),
 });
 
 export type BookingSubmissionData = z.infer<typeof bookingSubmissionSchema>;
