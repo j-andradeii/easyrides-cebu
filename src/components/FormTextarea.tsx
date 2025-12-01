@@ -1,48 +1,101 @@
 /**
  * FormTextarea Component
  *
- * Reusable textarea component integrated with react-hook-form
- * Displays validation errors automatically
+ * Reusable textarea component integrated with react-hook-form using Controller
+ * Supports PrimeReact InputTextarea with validation
  */
 
 'use client';
 
-import { TextareaHTMLAttributes, forwardRef } from 'react';
-import { FieldError } from 'react-hook-form';
+import { InputTextarea } from 'primereact/inputtextarea';
+import { Controller, useFormContext } from 'react-hook-form';
+import { FormError } from './FormError';
 
-interface FormTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface FormTextareaProps {
+  name: string;
   label?: string;
-  error?: FieldError;
+  placeholder?: string;
+  rows?: number;
+  readonly?: boolean;
+  disabled?: boolean;
+  showRequired?: boolean;
+  showLabel?: boolean;
+  maxLength?: number;
+  className?: string;
+  inputClassName?: string;
 }
 
-export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
-  ({ label, error, className = '', ...props }, ref) => {
-    return (
-      <div className="mb-4">
-        {label && (
-          <label
-            htmlFor={props.id}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {label}
-          </label>
-        )}
-        <textarea
-          ref={ref}
-          className={`
-            w-full px-3 py-2 border rounded-md
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            ${error ? 'border-red-500' : 'border-gray-300'}
-            ${className}
-          `}
-          {...props}
-        />
-        {error && (
-          <p className="mt-1 text-sm text-red-600">{error.message}</p>
-        )}
-      </div>
-    );
-  }
-);
+export const FormTextarea: React.FC<FormTextareaProps> = ({
+  name,
+  label,
+  placeholder,
+  rows = 4,
+  readonly = false,
+  disabled = false,
+  showRequired = false,
+  showLabel = true,
+  maxLength,
+  className = '',
+  inputClassName = '',
+}) => {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
 
-FormTextarea.displayName = 'FormTextarea';
+  // Get nested error for this field
+  const getNestedError = (errors: Record<string, unknown>, path: string): string | undefined => {
+    const parts = path.split('.');
+    let current: Record<string, unknown> = errors;
+
+    for (const part of parts) {
+      if (!current[part]) return undefined;
+      current = current[part] as Record<string, unknown>;
+    }
+
+    return current.message as string | undefined;
+  };
+
+  const error = getNestedError(errors, name);
+  const uniqueId = `${name}-${Math.random().toString(36).substr(2, 9)}`;
+
+  return (
+    <div className={`mb-4 ${className}`}>
+      {showLabel && label && (
+        <label htmlFor={uniqueId} className="block text-sm font-medium text-slate-700 mb-2">
+          {label}
+          {showRequired && <span className="text-cebu-red ml-1">*</span>}
+        </label>
+      )}
+
+      <Controller
+        name={name}
+        control={control}
+        render={({ field, fieldState }) => (
+          <div className="w-full">
+            <InputTextarea
+              id={uniqueId}
+              rows={rows}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white transition-colors resize-none
+                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-200'}
+                ${disabled || readonly ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
+                ${inputClassName}
+              `}
+              value={field.value || ''}
+              onChange={(e) => field.onChange(e.target.value)}
+              onBlur={field.onBlur}
+              placeholder={placeholder}
+              readOnly={readonly}
+              disabled={disabled}
+              maxLength={maxLength}
+              autoComplete="off"
+            />
+            {error && <FormError error={error} />}
+          </div>
+        )}
+      />
+    </div>
+  );
+};
+
+export default FormTextarea;

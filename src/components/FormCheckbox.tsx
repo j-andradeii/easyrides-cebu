@@ -1,56 +1,88 @@
 /**
  * FormCheckbox Component
  *
- * Reusable checkbox component integrated with react-hook-form
- * Displays validation errors automatically
+ * Reusable checkbox component integrated with react-hook-form using Controller
+ * Supports PrimeReact Checkbox with validation
  */
 
 'use client';
 
-import { InputHTMLAttributes, forwardRef } from 'react';
-import { FieldError } from 'react-hook-form';
+import { Checkbox } from 'primereact/checkbox';
+import { Controller, useFormContext } from 'react-hook-form';
+import { FormError } from './FormError';
 
-interface FormCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface FormCheckboxProps {
+  name: string;
   label?: string;
   description?: string;
-  error?: FieldError;
+  readonly?: boolean;
+  disabled?: boolean;
+  className?: string;
 }
 
-export const FormCheckbox = forwardRef<HTMLInputElement, FormCheckboxProps>(
-  ({ label, description, error, className = '', ...props }, ref) => {
-    return (
-      <div className="mb-4">
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            ref={ref}
-            type="checkbox"
-            className={`
-              mt-1 w-4 h-4 border rounded
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              ${error ? 'border-red-500' : 'border-gray-300'}
-              ${className}
-            `}
-            {...props}
+export const FormCheckbox: React.FC<FormCheckboxProps> = ({
+  name,
+  label,
+  description,
+  readonly = false,
+  disabled = false,
+  className = '',
+}) => {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
+
+  // Get nested error for this field
+  const getNestedError = (errors: Record<string, unknown>, path: string): string | undefined => {
+    const parts = path.split('.');
+    let current: Record<string, unknown> = errors;
+
+    for (const part of parts) {
+      if (!current[part]) return undefined;
+      current = current[part] as Record<string, unknown>;
+    }
+
+    return current.message as string | undefined;
+  };
+
+  const error = getNestedError(errors, name);
+  const uniqueId = `${name}-${Math.random().toString(36).substr(2, 9)}`;
+
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <div className={`flex items-start gap-3 ${className}`}>
+          <Checkbox
+            inputId={uniqueId}
+            checked={field.value || false}
+            onChange={(e) => field.onChange(e.checked)}
+            onBlur={field.onBlur}
+            disabled={disabled || readonly}
+            className="mt-0.5"
           />
           <div className="flex-1">
             {label && (
-              <span className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor={uniqueId}
+                className={`block text-sm font-medium text-slate-700 cursor-pointer ${
+                  disabled || readonly ? 'cursor-not-allowed opacity-60' : ''
+                }`}
+              >
                 {label}
-              </span>
+              </label>
             )}
             {description && (
-              <span className="block text-xs text-gray-500 mt-0.5">
-                {description}
-              </span>
+              <p className="text-sm text-slate-500 mt-0.5">{description}</p>
             )}
+            {error && <FormError error={error} />}
           </div>
-        </label>
-        {error && (
-          <p className="mt-1 text-sm text-red-600">{error.message}</p>
-        )}
-      </div>
-    );
-  }
-);
+        </div>
+      )}
+    />
+  );
+};
 
-FormCheckbox.displayName = 'FormCheckbox';
+export default FormCheckbox;

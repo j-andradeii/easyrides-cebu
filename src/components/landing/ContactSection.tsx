@@ -1,32 +1,52 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { FormInput } from '@/components/FormInput';
-import { FormSelect } from '@/components/FormSelect';
-import { FormTextarea } from '@/components/FormTextarea';
-import { FormCheckbox } from '@/components/FormCheckbox';
+import { useForm, FormProvider } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { Button } from 'primereact/button';
+import { FormInput, FormSelect, FormTextarea, FormCheckbox, FormCalendar } from '@/components';
+import { FORM_CONST } from '@/core/constants';
+import FORM_MESSAGES from '@/core/form-messages';
 
 type Toast = {
   message: string;
   type: 'success' | 'error';
 } | null;
 
-const contactFormSchema = z.object({
-  fullName: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Please enter a valid phone number'),
-  serviceType: z.enum(['car-rental', 'airport-transfer', 'tour', 'custom'], {
-    error: 'Please select a service type',
-  }),
-  preferredDate: z.string().min(1, 'Please select a preferred date'),
-  message: z.string().optional(),
-  addDriver: z.boolean().optional(),
+// Yup validation schema
+const contactFormSchema = yup.object().shape({
+  fullName: yup
+    .string()
+    .required(FORM_MESSAGES.NAME_REQUIRED)
+    .min(FORM_CONST.NAME_MIN_LENGTH, FORM_MESSAGES.NAME_MIN.replace('${min}', String(FORM_CONST.NAME_MIN_LENGTH)))
+    .max(FORM_CONST.NAME_MAX_LENGTH, FORM_MESSAGES.NAME_MAX.replace('${max}', String(FORM_CONST.NAME_MAX_LENGTH))),
+  email: yup
+    .string()
+    .required(FORM_MESSAGES.EMAIL_REQUIRED)
+    .matches(FORM_CONST.EMAIL_REGEX, FORM_MESSAGES.EMAIL_INVALID),
+  phone: yup
+    .string()
+    .required(FORM_MESSAGES.PHONE_REQUIRED)
+    .min(FORM_CONST.PHONE_MIN_LENGTH, FORM_MESSAGES.PHONE_MIN.replace('${min}', String(FORM_CONST.PHONE_MIN_LENGTH))),
+  serviceType: yup
+    .string()
+    .required(FORM_MESSAGES.SELECT_REQUIRED)
+    .oneOf(['car-rental', 'airport-transfer', 'tour', 'custom'], FORM_MESSAGES.SELECT_REQUIRED),
+  preferredDate: yup
+    .date()
+    .required(FORM_MESSAGES.DATE_REQUIRED)
+    .min(new Date(new Date().setHours(0, 0, 0, 0)), FORM_MESSAGES.DATE_PAST)
+    .nullable()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)),
+  message: yup
+    .string()
+    .max(FORM_CONST.MESSAGE_MAX_LENGTH, FORM_MESSAGES.MESSAGE_MAX.replace('${max}', String(FORM_CONST.MESSAGE_MAX_LENGTH)))
+    .optional(),
+  addDriver: yup.boolean().optional(),
 });
 
-type ContactFormData = z.infer<typeof contactFormSchema>;
+type ContactFormData = yup.InferType<typeof contactFormSchema>;
 
 const serviceOptions = [
   { value: 'car-rental', label: 'Car Rental' },
@@ -45,26 +65,27 @@ export function ContactSection() {
     }
   }, [toast]);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<ContactFormData>({
-    resolver: zodResolver(contactFormSchema),
+  const methods = useForm<ContactFormData>({
+    resolver: yupResolver(contactFormSchema),
     mode: 'onChange',
     defaultValues: {
       fullName: '',
       email: '',
       phone: '',
       serviceType: undefined,
-      preferredDate: '',
+      preferredDate: undefined,
       message: '',
       addDriver: false,
     },
   });
+
+  const {
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = methods;
 
   const addDriver = watch('addDriver');
 
@@ -80,11 +101,6 @@ export function ContactSection() {
     };
   }, [setValue]);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    setValue('phone', value);
-  };
-
   const onSubmit = async (data: ContactFormData) => {
     try {
       const response = await fetch('/api/submit-booking', {
@@ -92,6 +108,7 @@ export function ContactSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
+          preferredDate: data.preferredDate?.toISOString(),
           source: 'contact-form',
         }),
       });
@@ -169,135 +186,89 @@ export function ContactSection() {
           {/* Contact Form */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Name & Email */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <FormInput
-                    label="Full Name *"
-                    id="fullName"
-                    placeholder="Juan dela Cruz"
-                    error={errors.fullName}
-                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
-                    {...register('fullName')}
-                  />
-                  <FormInput
-                    label="Email Address *"
-                    id="email"
-                    type="email"
-                    placeholder="juan@email.com"
-                    error={errors.email}
-                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
-                    {...register('email')}
-                  />
-                </div>
+              <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Name & Email */}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <FormInput
+                      name="fullName"
+                      label="Full Name"
+                      placeholder="Juan dela Cruz"
+                      showRequired
+                    />
+                    <FormInput
+                      name="email"
+                      label="Email Address"
+                      type="email"
+                      placeholder="juan@email.com"
+                      showRequired
+                    />
+                  </div>
 
-                {/* Phone & Service Type */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <FormInput
-                    label="Phone / WhatsApp *"
-                    id="phone"
-                    type="tel"
-                    placeholder="+63 9XX XXX XXXX"
-                    error={errors.phone}
-                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
-                    {...register('phone')}
-                    onChange={handlePhoneChange}
+                  {/* Phone & Service Type */}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <FormInput
+                      name="phone"
+                      label="Phone / WhatsApp"
+                      placeholder="+63 9XX XXX XXXX"
+                      enablePhoneNumberFormat
+                      showRequired
+                    />
+                    <FormSelect
+                      name="serviceType"
+                      label="Service Type"
+                      options={serviceOptions}
+                      placeholder="Select a service"
+                      showRequired
+                    />
+                  </div>
+
+                  {/* Preferred Date */}
+                  <FormCalendar
+                    name="preferredDate"
+                    label="Preferred Date"
+                    placeholder="Select a date"
+                    minDate={new Date()}
+                    showRequired
                   />
-                  <FormSelect
-                    label="Service Type *"
-                    id="serviceType"
-                    options={serviceOptions}
-                    placeholder="Select a service"
-                    error={errors.serviceType}
-                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
-                    {...register('serviceType')}
+
+                  {/* Message */}
+                  <FormTextarea
+                    name="message"
+                    label="Message / Special Requests"
+                    rows={4}
+                    placeholder="Tell us about your trip - number of passengers, destinations, special requirements..."
+                    maxLength={FORM_CONST.MESSAGE_MAX_LENGTH}
                   />
-                </div>
 
-                {/* Preferred Date */}
-                <FormInput
-                  label="Preferred Date *"
-                  id="preferredDate"
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  error={errors.preferredDate}
-                  className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
-                  {...register('preferredDate')}
-                />
+                  {/* Add Driver Option */}
+                  <div className={`p-4 rounded-xl border-2 transition-all ${addDriver ? 'bg-mango/10 border-mango' : 'bg-slate-50 border-slate-200 hover:border-mango/50'}`}>
+                    <div className="flex items-center justify-between">
+                      <FormCheckbox
+                        name="addDriver"
+                        label="Add Driver to Booking"
+                        description="Professional driver for ₱850/day (8 hours)"
+                      />
+                      {addDriver && (
+                        <svg className="w-5 h-5 text-mango shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
 
-                {/* Message */}
-                <FormTextarea
-                  label="Message / Special Requests"
-                  id="message"
-                  rows={4}
-                  placeholder="Tell us about your trip - number of passengers, destinations, special requirements..."
-                  error={errors.message}
-                  className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white resize-none"
-                  {...register('message')}
-                />
-
-                {/* Add Driver Option */}
-                <div className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${addDriver ? 'bg-mango/10 border-mango' : 'bg-slate-50 border-slate-200 hover:border-mango/50'}`}>
-                  <FormCheckbox
-                    id="addDriver"
-                    label="Add Driver to Booking"
-                    description="Professional driver for ₱850/day (8 hours)"
-                    error={errors.addDriver}
-                    className="w-5 h-5 text-mango bg-white border-slate-300 focus:ring-mango"
-                    {...register('addDriver')}
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
+                    className="w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5 border-0"
+                    label={isSubmitting ? 'Sending...' : 'Send Inquiry'}
+                    icon={isSubmitting ? 'pi pi-spin pi-spinner' : 'pi pi-send'}
+                    iconPos="right"
                   />
-                  {addDriver && (
-                    <svg className="w-5 h-5 text-mango" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="group w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      Send Inquiry
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                        />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </form>
+                </form>
+              </FormProvider>
             </div>
           </div>
 

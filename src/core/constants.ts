@@ -69,3 +69,16 @@ export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 10,
   PAGE_SIZE_OPTIONS: [10, 20, 50, 100],
 } as const;
+
+/**
+ * Form Constants
+ */
+export const FORM_CONST = {
+  EMAIL_REGEX: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  PHONE_REGEX: /^\+?[0-9\s\-()]{10,20}$/,
+  NAME_MIN_LENGTH: 2,
+  NAME_MAX_LENGTH: 80,
+  MESSAGE_MAX_LENGTH: 1000,
+  PHONE_MIN_LENGTH: 10,
+  PHONE_MAX_LENGTH: 20,
+} as const;

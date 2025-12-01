@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins, DM_Sans } from "next/font/google";
+import { PrimeReactProvider } from "primereact/api";
+import "primereact/resources/themes/lara-light-blue/theme.css";
+import "primeicons/primeicons.css";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -55,7 +58,9 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${dmSans.variable} antialiased`}
       >
-        {children}
+        <PrimeReactProvider>
+          {children}
+        </PrimeReactProvider>
       </body>
     </html>
   );

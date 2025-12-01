@@ -1,45 +1,44 @@
 /**
- * FormSelect Component
+ * FormCalendar Component
  *
- * Reusable select component integrated with react-hook-form using Controller
- * Supports PrimeReact Dropdown with validation
+ * Reusable date picker component integrated with react-hook-form using Controller
+ * Supports PrimeReact Calendar with validation
  */
 
 'use client';
 
-import { Dropdown } from 'primereact/dropdown';
+import { Calendar } from 'primereact/calendar';
 import { Controller, useFormContext } from 'react-hook-form';
 import { FormError } from './FormError';
 
-interface SelectOption {
-  value: string;
-  label: string;
-}
-
-interface FormSelectProps {
+interface FormCalendarProps {
   name: string;
   label?: string;
   placeholder?: string;
-  options: SelectOption[];
+  minDate?: Date;
+  maxDate?: Date;
   readonly?: boolean;
   disabled?: boolean;
   showRequired?: boolean;
   showLabel?: boolean;
-  filter?: boolean;
+  showTime?: boolean;
+  dateFormat?: string;
   className?: string;
   inputClassName?: string;
 }
 
-export const FormSelect: React.FC<FormSelectProps> = ({
+export const FormCalendar: React.FC<FormCalendarProps> = ({
   name,
   label,
-  placeholder = 'Select an option',
-  options,
+  placeholder = 'Select a date',
+  minDate,
+  maxDate,
   readonly = false,
   disabled = false,
   showRequired = false,
   showLabel = true,
-  filter = false,
+  showTime = false,
+  dateFormat = 'mm/dd/yy',
   className = '',
   inputClassName = '',
 }) => {
@@ -78,18 +77,20 @@ export const FormSelect: React.FC<FormSelectProps> = ({
         control={control}
         render={({ field, fieldState }) => (
           <div className="w-full">
-            <Dropdown
+            <Calendar
               id={uniqueId}
               value={field.value}
               onChange={(e) => field.onChange(e.value)}
               onBlur={field.onBlur}
-              options={options}
-              optionLabel="label"
-              optionValue="value"
               placeholder={placeholder}
+              minDate={minDate}
+              maxDate={maxDate}
               disabled={disabled || readonly}
-              filter={filter}
-              className={`w-full border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent transition-colors
+              showTime={showTime}
+              dateFormat={dateFormat}
+              showIcon
+              className={`w-full`}
+              inputClassName={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white transition-colors
                 ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-200'}
                 ${disabled || readonly ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
                 ${inputClassName}
@@ -104,4 +105,4 @@ export const FormSelect: React.FC<FormSelectProps> = ({
   );
 };
 
-export default FormSelect;
+export default FormCalendar;
