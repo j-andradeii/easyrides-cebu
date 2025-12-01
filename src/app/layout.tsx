@@ -19,6 +19,11 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "EasyRideCebu - Car Rentals and Tour Services",
   description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
+  icons: {
+    icon: "/logo.jpg",
+    shortcut: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
   openGraph: {
     title: "EasyRideCebu - Car Rentals and Tour Services",
     description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
