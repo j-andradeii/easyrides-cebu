@@ -10,6 +10,7 @@ export function HeroSection() {
   const [vehicleType, setVehicleType] = useState<VehicleType>('sedan');
   const [pickupDate, setPickupDate] = useState('');
   const [phone, setPhone] = useState('');
+  const [addDriver, setAddDriver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleQuickBooking = async (e: React.FormEvent) => {
@@ -25,6 +26,7 @@ export function HeroSection() {
           vehicleType: serviceType === 'car-rental' ? vehicleType : undefined,
           preferredDate: pickupDate,
           phone,
+          addDriver,
           source: 'hero-quick-form',
         }),
       });
@@ -33,6 +35,7 @@ export function HeroSection() {
         alert('Thank you! We will contact you shortly.');
         setPickupDate('');
         setPhone('');
+        setAddDriver(false);
       } else {
         alert('Something went wrong. Please try again or call us directly.');
       }
@@ -243,6 +246,21 @@ export function HeroSection() {
                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700"
                     required
                   />
+                </div>
+
+                {/* Add Driver Option */}
+                <div className="flex items-center gap-3 p-3 bg-mango/10 rounded-lg border border-mango/20">
+                  <input
+                    type="checkbox"
+                    id="addDriverHero"
+                    checked={addDriver}
+                    onChange={(e) => setAddDriver(e.target.checked)}
+                    className="w-5 h-5 text-mango bg-white border-slate-300 rounded focus:ring-mango focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="addDriverHero" className="flex-1 cursor-pointer">
+                    <span className="text-sm font-medium text-slate-700">Add Driver</span>
+                    <span className="block text-xs text-slate-500">+₱850/day for a professional driver</span>
+                  </label>
                 </div>
 
                 {/* Submit */}

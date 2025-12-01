@@ -1,4 +1,17 @@
+'use client';
+
 export function DriverBanner() {
+  const handleAddDriverClick = () => {
+    // Dispatch custom event to trigger the checkbox in ContactSection
+    window.dispatchEvent(new CustomEvent('addDriverToBooking'));
+
+    // Scroll to contact section
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="py-20 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,8 +81,8 @@ export function DriverBanner() {
               </div>
 
               {/* CTA */}
-              <a
-                href="#contact"
+              <button
+                onClick={handleAddDriverClick}
                 className="group inline-flex items-center gap-2 bg-gradient-to-r from-mango to-golden hover:from-mango-dark hover:to-mango text-slate-900 px-8 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 Add Driver to Booking
@@ -81,7 +94,7 @@ export function DriverBanner() {
                     d="M17 8l4 4m0 0l-4 4m4-4H3"
                   />
                 </svg>
-              </a>
+              </button>
             </div>
 
             {/* Visual */}

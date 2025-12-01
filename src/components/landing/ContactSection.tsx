@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type ServiceType = 'car-rental' | 'airport-transfer' | 'tour' | 'custom' | '';
 
@@ -13,8 +13,21 @@ export function ContactSection() {
     preferredDate: '',
     message: '',
   });
+  const [addDriver, setAddDriver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // Listen for add driver event from DriverBanner
+  useEffect(() => {
+    const handleAddDriver = () => {
+      setAddDriver(true);
+    };
+
+    window.addEventListener('addDriverToBooking', handleAddDriver);
+    return () => {
+      window.removeEventListener('addDriverToBooking', handleAddDriver);
+    };
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -34,6 +47,7 @@ export function ContactSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          addDriver,
           source: 'contact-form',
         }),
       });
@@ -48,6 +62,7 @@ export function ContactSection() {
           preferredDate: '',
           message: '',
         });
+        setAddDriver(false);
       } else {
         setSubmitStatus('error');
       }
@@ -207,6 +222,26 @@ export function ContactSection() {
                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white resize-none"
                     placeholder="Tell us about your trip - number of passengers, destinations, special requirements..."
                   />
+                </div>
+
+                {/* Add Driver Option */}
+                <div className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${addDriver ? 'bg-mango/10 border-mango' : 'bg-slate-50 border-slate-200 hover:border-mango/50'}`}>
+                  <input
+                    type="checkbox"
+                    id="addDriverContact"
+                    checked={addDriver}
+                    onChange={(e) => setAddDriver(e.target.checked)}
+                    className="w-5 h-5 text-mango bg-white border-slate-300 rounded focus:ring-mango focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="addDriverContact" className="flex-1 cursor-pointer">
+                    <span className="text-sm font-medium text-slate-700">Add Driver to Booking</span>
+                    <span className="block text-xs text-slate-500">Professional driver for ₱850/day (8 hours)</span>
+                  </label>
+                  {addDriver && (
+                    <svg className="w-5 h-5 text-mango" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
                 </div>
 
                 {/* Submit Status */}
