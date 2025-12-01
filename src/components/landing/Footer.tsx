@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 const quickLinks = [
   { href: '#services', label: 'Our Services' },
   { href: '#fleet', label: 'Vehicle Fleet' },
@@ -27,22 +29,14 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-coral to-mango rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2M6.343 6.343l1.414 1.414m8.486 8.486l1.414 1.414M6.343 17.657l1.414-1.414m8.486-8.486l1.414-1.414"
-                  />
-                </svg>
-              </div>
-              <span className="text-xl font-bold text-white">EasyRides</span>
+              <Image
+                src="/logo.jpg"
+                alt="EasyRideCebu Logo"
+                width={48}
+                height={48}
+                className="rounded-full"
+              />
+              <span className="text-xl font-bold text-white">EasyRideCebu</span>
             </div>
             <p className="text-slate-400 text-sm mb-4">
               Your trusted partner for car rentals, airport transfers, and curated tours in Cebu.
@@ -184,7 +178,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
-            © {new Date().getFullYear()} EasyRides. All rights reserved.
+            © {new Date().getFullYear()} EasyRideCebu. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
             <a href="#" className="text-slate-500 hover:text-mango transition-colors">

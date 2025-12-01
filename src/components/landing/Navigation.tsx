@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 const navLinks = [
   { href: '#services', label: 'Services' },
@@ -14,27 +15,20 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#F5F0E1] backdrop-blur-sm shadow-sm">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-coral to-mango rounded-lg flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2M6.343 6.343l1.414 1.414m8.486 8.486l1.414 1.414M6.343 17.657l1.414-1.414m8.486-8.486l1.414-1.414"
-                />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-slate-800">EasyRides</span>
+          <a href="#" className="flex items-center gap-1">
+            <Image
+              src="/logo.jpg"
+              alt="EasyRideCebu Logo"
+              width={52}
+              height={52}
+              className="rounded-full object-cover"
+              style={{ backgroundColor: '#F5F0E1' }}
+            />
+            <span className="text-xl font-bold text-palm-black hidden sm:inline">EasyRideCebu</span>
           </a>
 
           {/* Desktop Navigation */}
@@ -43,7 +37,7 @@ export function Navigation() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-slate-600 hover:text-coral font-medium transition-colors"
+                className="text-palm-black hover:text-cebu-red font-medium transition-colors"
               >
                 {link.label}
               </a>
@@ -54,7 +48,7 @@ export function Navigation() {
           <div className="hidden md:flex items-center gap-4">
             <a
               href="tel:+639123456789"
-              className="flex items-center gap-2 text-slate-600 hover:text-coral transition-colors"
+              className="flex items-center gap-2 text-palm-black hover:text-cebu-red transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -68,7 +62,7 @@ export function Navigation() {
             </a>
             <a
               href="#contact"
-              className="bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md shadow-coral/20"
+              className="bg-gradient-to-r from-cebu-red to-sunset-orange hover:from-cebu-red-dark hover:to-sunset-orange-dark text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md shadow-cebu-red/20"
             >
               Book Now
             </a>
@@ -76,7 +70,7 @@ export function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-slate-600"
+            className="md:hidden p-2 text-palm-black"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -94,22 +88,22 @@ export function Navigation() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-100">
+          <div className="md:hidden py-4 border-t border-cream-dark">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-slate-600 hover:text-cebu-red font-medium transition-colors py-2"
+                  className="text-palm-black hover:text-cebu-red font-medium transition-colors py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </a>
               ))}
-              <div className="flex gap-4 pt-4 border-t border-slate-100">
+              <div className="flex gap-4 pt-4 border-t border-cream-dark">
                 <a
                   href="tel:+639123456789"
-                  className="flex-1 flex items-center justify-center gap-2 border-2 border-coral text-coral px-4 py-2.5 rounded-lg font-semibold"
+                  className="flex-1 flex items-center justify-center gap-2 border-2 border-cebu-red text-cebu-red px-4 py-2.5 rounded-lg font-semibold"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -123,7 +117,7 @@ export function Navigation() {
                 </a>
                 <a
                   href="#contact"
-                  className="flex-1 bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark text-white px-4 py-2.5 rounded-lg font-semibold text-center transition-all"
+                  className="flex-1 bg-gradient-to-r from-cebu-red to-sunset-orange hover:from-cebu-red-dark hover:to-sunset-orange-dark text-white px-4 py-2.5 rounded-lg font-semibold text-center transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Book Now

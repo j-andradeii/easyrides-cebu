@@ -1,41 +1,67 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FFF8E7;
-  --foreground: #2D3748;
+  --background: #F5F0E1;
+  --foreground: #1A1A1A;
 
-  /* Tropical Adventure Color Palette */
-  --coral: #FF6B5B;
-  --coral-light: #FF8A7D;
-  --coral-dark: #E55A4A;
+  /* EasyRideCebu Brand Colors - Based on Logo */
+  /* Primary Red - Car color */
+  --cebu-red: #DC2626;
+  --cebu-red-light: #EF4444;
+  --cebu-red-dark: #B91C1C;
 
-  --mango: #FF9F45;
-  --mango-light: #FFB76B;
-  --mango-dark: #E88A30;
+  /* Sunset Orange/Yellow */
+  --sunset-orange: #F59E0B;
+  --sunset-orange-light: #FBBF24;
+  --sunset-orange-dark: #D97706;
 
-  --golden: #F4D03F;
-  --golden-light: #F7DC6F;
-  --golden-dark: #D4B02F;
+  /* Sunset Yellow */
+  --sunset-yellow: #FFC107;
+  --sunset-yellow-light: #FFEB3B;
+  --sunset-yellow-dark: #FFA000;
 
-  --papaya: #FFAB76;
-  --papaya-light: #FFBF94;
-  --papaya-dark: #E89560;
+  /* Palm Black */
+  --palm-black: #1A1A1A;
+  --palm-black-light: #374151;
+  --palm-black-dark: #0F0F0F;
 
-  --terracotta: #E07A5F;
-  --terracotta-light: #E99680;
-  --terracotta-dark: #C96A50;
+  /* Cream/Beige Background */
+  --cream: #F5F0E1;
+  --cream-light: #FAF8F3;
+  --cream-dark: #E8E0CC;
 
+  /* Tropical Palm Green - from palm trees in logo */
   --palm: #2D6A4F;
   --palm-light: #40916C;
   --palm-dark: #1B4332;
 
-  --cream: #FFF8E7;
-  --cream-light: #FFFDF7;
-  --cream-dark: #F5EDD8;
+  /* Papaya - warm accent */
+  --papaya: #FFAB76;
+  --papaya-light: #FFBF94;
+  --papaya-dark: #E89560;
 
+  /* Terracotta - earthy warm tone */
+  --terracotta: #E07A5F;
+  --terracotta-light: #E99680;
+  --terracotta-dark: #C96A50;
+
+  /* Hibiscus - tropical red accent */
   --hibiscus: #C94C4C;
   --hibiscus-light: #D86B6B;
   --hibiscus-dark: #A83D3D;
+
+  /* Legacy aliases for compatibility */
+  --coral: var(--cebu-red);
+  --coral-light: var(--cebu-red-light);
+  --coral-dark: var(--cebu-red-dark);
+
+  --mango: var(--sunset-orange);
+  --mango-light: var(--sunset-orange-light);
+  --mango-dark: var(--sunset-orange-dark);
+
+  --golden: var(--sunset-yellow);
+  --golden-light: var(--sunset-yellow-light);
+  --golden-dark: var(--sunset-yellow-dark);
 }
 
 @theme inline {
@@ -44,7 +70,44 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Tropical Adventure Theme */
+  /* EasyRideCebu Brand Theme */
+  --color-cebu-red: var(--cebu-red);
+  --color-cebu-red-light: var(--cebu-red-light);
+  --color-cebu-red-dark: var(--cebu-red-dark);
+
+  --color-sunset-orange: var(--sunset-orange);
+  --color-sunset-orange-light: var(--sunset-orange-light);
+  --color-sunset-orange-dark: var(--sunset-orange-dark);
+
+  --color-sunset-yellow: var(--sunset-yellow);
+  --color-sunset-yellow-light: var(--sunset-yellow-light);
+  --color-sunset-yellow-dark: var(--sunset-yellow-dark);
+
+  --color-palm-black: var(--palm-black);
+  --color-palm-black-light: var(--palm-black-light);
+  --color-palm-black-dark: var(--palm-black-dark);
+
+  --color-cream: var(--cream);
+  --color-cream-light: var(--cream-light);
+  --color-cream-dark: var(--cream-dark);
+
+  --color-palm: var(--palm);
+  --color-palm-light: var(--palm-light);
+  --color-palm-dark: var(--palm-dark);
+
+  --color-papaya: var(--papaya);
+  --color-papaya-light: var(--papaya-light);
+  --color-papaya-dark: var(--papaya-dark);
+
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-light: var(--terracotta-light);
+  --color-terracotta-dark: var(--terracotta-dark);
+
+  --color-hibiscus: var(--hibiscus);
+  --color-hibiscus-light: var(--hibiscus-light);
+  --color-hibiscus-dark: var(--hibiscus-dark);
+
+  /* Legacy aliases for compatibility */
   --color-coral: var(--coral);
   --color-coral-light: var(--coral-light);
   --color-coral-dark: var(--coral-dark);
@@ -56,26 +119,6 @@
   --color-golden: var(--golden);
   --color-golden-light: var(--golden-light);
   --color-golden-dark: var(--golden-dark);
-
-  --color-papaya: var(--papaya);
-  --color-papaya-light: var(--papaya-light);
-  --color-papaya-dark: var(--papaya-dark);
-
-  --color-terracotta: var(--terracotta);
-  --color-terracotta-light: var(--terracotta-light);
-  --color-terracotta-dark: var(--terracotta-dark);
-
-  --color-palm: var(--palm);
-  --color-palm-light: var(--palm-light);
-  --color-palm-dark: var(--palm-dark);
-
-  --color-cream: var(--cream);
-  --color-cream-light: var(--cream-light);
-  --color-cream-dark: var(--cream-dark);
-
-  --color-hibiscus: var(--hibiscus);
-  --color-hibiscus-light: var(--hibiscus-light);
-  --color-hibiscus-dark: var(--hibiscus-dark);
 }
 
 @media (prefers-color-scheme: dark) {
