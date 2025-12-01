@@ -128,15 +128,21 @@ const colorClasses = {
 
 export function ServicesSection() {
   return (
-    <section id="services" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="services" className="py-24 bg-slate-50 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-papaya/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-palm-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-papaya/30 text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-white text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm">
+            <span className="w-2 h-2 bg-coral rounded-full animate-pulse" />
             Our Services
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Everything You Need for Your Cebu Adventure
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+            Everything You Need for Your <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-coral to-mango bg-clip-text text-transparent">Cebu Adventure</span>
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             From airport pickups to island tours, we&apos;ve got you covered with reliable
@@ -151,25 +157,25 @@ export function ServicesSection() {
             return (
               <div
                 key={index}
-                className={`group bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-all duration-300 ${colors.border}`}
+                className={`group bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${colors.border}`}
               >
                 {/* Icon */}
                 <div
-                  className={`w-14 h-14 ${colors.bg} rounded-xl flex items-center justify-center mb-4 ${colors.icon}`}
+                  className={`w-14 h-14 ${colors.bg} rounded-xl flex items-center justify-center mb-4 ${colors.icon} group-hover:scale-110 transition-transform duration-300`}
                 >
                   {service.icon}
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{service.title}</h3>
-                <p className="text-slate-600 mb-4">{service.description}</p>
+                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-coral transition-colors">{service.title}</h3>
+                <p className="text-slate-600 mb-4 text-sm leading-relaxed">{service.description}</p>
 
                 {/* Features */}
                 <ul className="space-y-2">
                   {service.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-sm text-slate-500">
                       <svg
-                        className={`w-4 h-4 ${colors.icon}`}
+                        className={`w-4 h-4 ${colors.icon} flex-shrink-0`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -189,13 +195,13 @@ export function ServicesSection() {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-16">
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 bg-coral hover:bg-coral-dark text-white px-8 py-4 rounded-lg font-semibold transition-colors"
+            className="group inline-flex items-center gap-2 bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:shadow-coral/30 hover:-translate-y-0.5"
           >
-            Get Started
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            Get Started Today
+            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

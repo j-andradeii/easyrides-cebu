@@ -99,15 +99,21 @@ const reasons = [
 
 export function WhyChooseUs() {
   return (
-    <section className="py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-24 bg-slate-50 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-coral/10 text-coral px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-white text-coral px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm border border-coral/20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
             Why EasyRides?
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Your Trusted Travel Partner in Cebu
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+            Your <span className="bg-gradient-to-r from-coral to-mango bg-clip-text text-transparent">Trusted Travel Partner</span> in Cebu
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             We&apos;re not just a car rental service. We&apos;re here to make your Cebu experience
@@ -116,46 +122,64 @@ export function WhyChooseUs() {
         </div>
 
         {/* Reasons Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {reasons.map((reason, index) => (
-            <div key={index} className="flex gap-4">
-              <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-coral flex-shrink-0">
+            <div key={index} className="group flex gap-4 bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 bg-gradient-to-br from-coral/10 to-mango/10 rounded-xl flex items-center justify-center text-coral flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                 {reason.icon}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">{reason.title}</h3>
-                <p className="text-slate-600 text-sm">{reason.description}</p>
+                <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-coral transition-colors">{reason.title}</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">{reason.description}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Trust Indicators */}
-        <div className="mt-16 bg-white rounded-2xl p-8 shadow-sm">
-          <div className="grid sm:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-coral mb-2">500+</div>
-              <div className="text-slate-600">Happy Customers</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-coral mb-2">4.9</div>
-              <div className="flex items-center justify-center gap-1 mb-1">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className="w-5 h-5 text-mango"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
+        <div className="mt-16 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-coral to-mango rounded-3xl opacity-5" />
+          <div className="relative bg-white rounded-3xl p-8 sm:p-10 shadow-xl border border-slate-100">
+            <div className="grid sm:grid-cols-3 gap-8 text-center">
+              <div className="relative">
+                <div className="w-16 h-16 bg-coral/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-coral" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  </svg>
+                </div>
+                <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-coral to-mango bg-clip-text text-transparent mb-2">500+</div>
+                <div className="text-slate-600 font-medium">Happy Customers</div>
+              </div>
+              <div className="relative sm:border-x sm:border-slate-100">
+                <div className="w-16 h-16 bg-mango/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-mango" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
-                ))}
+                </div>
+                <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-mango to-coral bg-clip-text text-transparent mb-2">4.9</div>
+                <div className="flex items-center justify-center gap-1 mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <svg
+                      key={i}
+                      className="w-5 h-5 text-mango"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <div className="text-slate-600 font-medium">Average Rating</div>
               </div>
-              <div className="text-slate-600">Average Rating</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-coral mb-2">5+</div>
-              <div className="text-slate-600">Years of Service</div>
+              <div className="relative">
+                <div className="w-16 h-16 bg-palm-light/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-palm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-palm to-palm-dark bg-clip-text text-transparent mb-2">5+</div>
+                <div className="text-slate-600 font-medium">Years of Service</div>
+              </div>
             </div>
           </div>
         </div>

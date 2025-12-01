@@ -49,11 +49,15 @@ const transferRates = [
 
 export function TransferRatesSection() {
   return (
-    <section id="pricing" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-mango/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-coral/5 rounded-full blur-3xl" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-mango/30 text-mango-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-white text-mango-dark px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm border border-mango/20">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -64,8 +68,8 @@ export function TransferRatesSection() {
             </svg>
             Airport Transfers
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Airport &harr; Hotel Transfer Rates
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+            Airport <span className="text-mango">&harr;</span> Hotel Transfer Rates
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Smooth, comfortable transfers between Mactan-Cebu International Airport and hotels within

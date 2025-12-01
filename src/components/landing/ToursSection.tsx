@@ -72,11 +72,15 @@ const colorClasses = {
 
 export function ToursSection() {
   return (
-    <section id="tours" className="py-20 bg-gradient-to-b from-white to-cream-dark/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="tours" className="py-24 bg-gradient-to-b from-slate-50 via-cream-light/20 to-white relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-20 left-0 w-72 h-72 bg-palm-light/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-0 w-80 h-80 bg-mango/10 rounded-full blur-3xl" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-palm-light/30 text-palm-dark px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-white text-palm-dark px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm border border-palm-light/30">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -87,8 +91,8 @@ export function ToursSection() {
             </svg>
             Tour Packages
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Discover the Best of Cebu
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+            Discover the <span className="bg-gradient-to-r from-mango to-coral bg-clip-text text-transparent">Best of Cebu</span>
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             From quick day trips to comprehensive island adventures. Each package showcases
@@ -103,12 +107,12 @@ export function ToursSection() {
             return (
               <div
                 key={index}
-                className={`relative bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-all duration-300 ${colors.border} ${
-                  tour.featured ? 'ring-2 ring-coral' : ''
+                className={`group relative bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${colors.border} ${
+                  tour.featured ? 'ring-2 ring-coral shadow-lg shadow-coral/10' : ''
                 }`}
               >
                 {tour.featured && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-coral text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-coral to-mango text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
                     BEST VALUE
                   </div>
                 )}
@@ -155,41 +159,50 @@ export function ToursSection() {
 
         {/* Custom Tour CTA */}
         <div className="mt-16 text-center">
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 max-w-2xl mx-auto">
-            <div className="w-16 h-16 bg-mango/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-mango-dark"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div className="relative bg-white rounded-3xl p-8 sm:p-10 shadow-xl border border-slate-100 max-w-2xl mx-auto overflow-hidden">
+            {/* Decorative background */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-mango/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-coral/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-mango/30 to-coral/20 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <svg
+                  className="w-8 h-8 text-mango-dark"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Want a Custom Itinerary?</h3>
+              <p className="text-slate-600 mb-8 max-w-md mx-auto">
+                Design your own tour! Tell us your preferences, schedule, and budget — we&apos;ll
+                create a personalized Cebu experience just for you.
+              </p>
+              <a
+                href="#contact"
+                className="group inline-flex items-center gap-2 bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+                Let&apos;s Plan Together
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Want a Custom Itinerary?</h3>
-            <p className="text-slate-600 mb-6">
-              Design your own tour! Tell us your preferences, schedule, and budget — we&apos;ll
-              create a personalized Cebu experience just for you.
-            </p>
-            <a
-              href="#contact"
-              className="inline-flex items-center gap-2 bg-coral hover:bg-coral-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-              Let&apos;s Plan Together
-            </a>
           </div>
         </div>
       </div>

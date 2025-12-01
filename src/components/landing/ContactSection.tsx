@@ -59,15 +59,22 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="contact" className="py-24 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-coral/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-mango/5 rounded-full blur-3xl" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-papaya/30 text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-white text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm border border-papaya/30">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
             Get In Touch
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Ready to Book Your Ride?
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+            Ready to <span className="bg-gradient-to-r from-coral to-mango bg-clip-text text-transparent">Book Your Ride?</span>
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Fill out the form below or contact us directly. We&apos;ll get back to you within the
@@ -78,7 +85,7 @@ export function ContactSection() {
         <div className="grid lg:grid-cols-5 gap-12">
           {/* Contact Form */}
           <div className="lg:col-span-3">
-            <div className="bg-slate-50 rounded-2xl p-6 sm:p-8">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name & Email */}
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -233,7 +240,7 @@ export function ContactSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-coral hover:bg-coral-dark disabled:bg-coral/70 text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                  className="group w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5"
                 >
                   {isSubmitting ? (
                     <>

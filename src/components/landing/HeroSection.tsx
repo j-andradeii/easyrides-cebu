@@ -48,10 +48,13 @@ export function HeroSection() {
       {/* Background Gradient - Warm Tropical */}
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-cream-light to-papaya-light/30" />
 
-      {/* Decorative Elements - Tropical Warmth */}
-      <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-papaya/40 to-palm-light/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-0 w-80 h-80 bg-gradient-to-tr from-mango/40 to-coral/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-golden/20 rounded-full blur-3xl" />
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'}} />
+
+      {/* Decorative Elements - Tropical Warmth with animation */}
+      <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-papaya/40 to-palm-light/30 rounded-full blur-3xl animate-pulse" style={{animationDuration: '4s'}} />
+      <div className="absolute bottom-20 left-0 w-80 h-80 bg-gradient-to-tr from-mango/40 to-coral/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '5s'}} />
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-golden/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '6s'}} />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -79,18 +82,39 @@ export function HeroSection() {
             </p>
 
             {/* Quick Stats */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-8 mb-8">
-              <div>
-                <div className="text-3xl font-bold text-coral">500+</div>
-                <div className="text-sm text-slate-500">Happy Customers</div>
+            <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-8">
+              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
+                <div className="w-10 h-10 bg-coral/10 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-coral" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-coral">500+</div>
+                  <div className="text-xs text-slate-500">Happy Customers</div>
+                </div>
               </div>
-              <div>
-                <div className="text-3xl font-bold text-palm">15+</div>
-                <div className="text-sm text-slate-500">Vehicles</div>
+              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
+                <div className="w-10 h-10 bg-palm-light/30 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-palm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-palm">15+</div>
+                  <div className="text-xs text-slate-500">Vehicles</div>
+                </div>
               </div>
-              <div>
-                <div className="text-3xl font-bold text-mango-dark">5</div>
-                <div className="text-sm text-slate-500">Tour Packages</div>
+              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
+                <div className="w-10 h-10 bg-mango/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-mango-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-mango-dark">5</div>
+                  <div className="text-xs text-slate-500">Tour Packages</div>
+                </div>
               </div>
             </div>
 
@@ -129,9 +153,20 @@ export function HeroSection() {
 
           {/* Right: Booking Form */}
           <div className="relative">
-            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-100">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Quick Booking</h2>
-              <p className="text-slate-500 mb-6">Get a quote in minutes</p>
+            {/* Decorative elements behind form */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-coral/20 to-mango/20 rounded-3xl blur-2xl opacity-60" />
+            <div className="relative bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-100/50 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-coral to-mango rounded-xl flex items-center justify-center shadow-lg shadow-coral/25">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">Quick Booking</h2>
+                  <p className="text-slate-500 text-sm">Get a quote in minutes</p>
+                </div>
+              </div>
 
               <form onSubmit={handleQuickBooking} className="space-y-4">
                 {/* Service Type */}
@@ -269,7 +304,7 @@ export function HeroSection() {
                     href="https://wa.me/639123456789"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -280,7 +315,7 @@ export function HeroSection() {
                     href="https://m.me/easyridescebu"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.301 2.246.464 3.443.464 6.627 0 12-4.974 12-11.111S18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z" />

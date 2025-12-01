@@ -17,8 +17,12 @@ const services = [
 
 export function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <footer className="bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-coral/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-mango/5 rounded-full blur-3xl" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="lg:col-span-1">
@@ -178,18 +182,31 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="mt-12 pt-8 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-sm">
             © {new Date().getFullYear()} EasyRides. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <a href="#" className="text-slate-500 hover:text-slate-300 transition-colors">
+            <a href="#" className="text-slate-500 hover:text-mango transition-colors">
               Privacy Policy
             </a>
-            <a href="#" className="text-slate-500 hover:text-slate-300 transition-colors">
+            <a href="#" className="text-slate-500 hover:text-mango transition-colors">
               Terms of Service
             </a>
           </div>
+        </div>
+
+        {/* Back to top */}
+        <div className="mt-8 text-center">
+          <a
+            href="#"
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-mango transition-colors text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+            Back to top
+          </a>
         </div>
       </div>
     </footer>

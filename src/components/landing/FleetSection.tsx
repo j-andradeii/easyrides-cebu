@@ -30,15 +30,22 @@ const vehicles = [
 
 export function FleetSection() {
   return (
-    <section id="fleet" className="py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="fleet" className="py-24 bg-white relative">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-papaya/30 text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-papaya/20 text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4 border border-papaya/30">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2" />
+            </svg>
             Our Fleet
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Well-Maintained Vehicles for Every Need
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+            Well-Maintained Vehicles for <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-palm to-palm-dark bg-clip-text text-transparent">Every Need</span>
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Choose from our selection of reliable, fully air-conditioned vehicles. All rates are for
@@ -51,22 +58,23 @@ export function FleetSection() {
           {vehicles.map((vehicle, index) => (
             <div
               key={index}
-              className={`relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 ${
-                vehicle.popular ? 'ring-2 ring-coral' : ''
+              className={`group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 ${
+                vehicle.popular ? 'ring-2 ring-coral shadow-lg shadow-coral/10' : 'border border-slate-100'
               }`}
             >
               {/* Popular Badge */}
               {vehicle.popular && (
-                <div className="absolute top-4 right-4 bg-coral text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                <div className="absolute top-4 right-4 bg-gradient-to-r from-coral to-mango text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-lg animate-pulse">
                   POPULAR
                 </div>
               )}
 
               {/* Vehicle Image Placeholder */}
-              <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                <div className="text-center">
+              <div className="h-48 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-white/50 to-transparent" />
+                <div className="text-center relative z-10 group-hover:scale-110 transition-transform duration-500">
                   <svg
-                    className="w-20 h-20 text-slate-300 mx-auto mb-2"
+                    className="w-24 h-24 text-slate-300 mx-auto mb-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -78,7 +86,7 @@ export function FleetSection() {
                       d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2M6.343 6.343l1.414 1.414m8.486 8.486l1.414 1.414M6.343 17.657l1.414-1.414m8.486-8.486l1.414-1.414"
                     />
                   </svg>
-                  <span className="text-sm text-slate-400">{vehicle.type} Image</span>
+                  <span className="text-sm text-slate-400 font-medium">{vehicle.type}</span>
                 </div>
               </div>
 
@@ -149,38 +157,42 @@ export function FleetSection() {
         </div>
 
         {/* Discount Note */}
-        <div className="mt-12 bg-gradient-to-r from-coral to-mango rounded-2xl p-8 text-center text-white">
-          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Special Offer
+        <div className="mt-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-coral to-mango rounded-3xl" />
+          <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'}} />
+          <div className="relative p-8 sm:p-12 text-center text-white">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6 border border-white/20">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Special Offer
+            </div>
+            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3">
+              Book for 3+ Days & Get Discounted Rates
+            </h3>
+            <p className="text-white/90 mb-8 max-w-xl mx-auto text-lg">
+              Planning a longer trip? Contact us for special multi-day rental packages and save more on
+              your Cebu adventure.
+            </p>
+            <a
+              href="#contact"
+              className="group inline-flex items-center gap-2 bg-white text-coral hover:bg-white/95 px-8 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              Inquire Now
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                />
+              </svg>
+            </a>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-bold mb-2">
-            Book for 3+ Days & Get Discounted Rates
-          </h3>
-          <p className="text-white/80 mb-6 max-w-xl mx-auto">
-            Planning a longer trip? Contact us for special multi-day rental packages and save more on
-            your Cebu adventure.
-          </p>
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 bg-white text-coral hover:bg-white/90 px-6 py-3 rounded-lg font-semibold transition-colors"
-          >
-            Inquire Now
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </a>
         </div>
       </div>
     </section>
