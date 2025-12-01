@@ -154,3 +154,233 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(0);
   }
 }
+
+/* ===========================================
+   PrimeReact Component Overrides
+   =========================================== */
+
+/* Base Calendar Styles */
+.p-calendar {
+  width: 100%;
+}
+
+.p-calendar .p-inputtext {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  color: #334155;
+  background-color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.p-calendar .p-inputtext:hover {
+  border-color: var(--coral);
+}
+
+.p-calendar .p-inputtext:focus {
+  outline: none;
+  border-color: var(--coral);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
+.p-calendar .p-inputtext::placeholder {
+  color: #94a3b8;
+}
+
+.p-calendar .p-datepicker-trigger {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 0 0.75rem;
+}
+
+.p-calendar .p-datepicker-trigger:hover {
+  background: transparent;
+  color: var(--coral);
+}
+
+/* Calendar Panel */
+.p-datepicker {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 0.75rem;
+}
+
+.p-datepicker .p-datepicker-header {
+  background: transparent;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 0.5rem;
+}
+
+.p-datepicker .p-datepicker-title {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.p-datepicker .p-datepicker-prev,
+.p-datepicker .p-datepicker-next {
+  color: #64748b;
+  border-radius: 0.375rem;
+}
+
+.p-datepicker .p-datepicker-prev:hover,
+.p-datepicker .p-datepicker-next:hover {
+  background: #f1f5f9;
+  color: var(--coral);
+}
+
+.p-datepicker table th {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.p-datepicker table td > span {
+  border-radius: 0.375rem;
+  color: #334155;
+}
+
+.p-datepicker table td > span:hover {
+  background: #fef2f2;
+  color: var(--coral);
+}
+
+.p-datepicker table td.p-datepicker-today > span {
+  background: #fef2f2;
+  color: var(--coral);
+}
+
+.p-datepicker table td > span.p-highlight {
+  background: var(--coral);
+  color: #fff;
+}
+
+.p-datepicker table td > span.p-highlight:hover {
+  background: var(--coral-dark);
+}
+
+/* Base Dropdown Styles */
+.p-dropdown {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.p-dropdown:hover {
+  border-color: var(--coral);
+}
+
+.p-dropdown.p-focus {
+  outline: none;
+  border-color: var(--coral);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
+.p-dropdown .p-dropdown-label {
+  padding: 0.75rem 1rem;
+  color: #334155;
+  font-size: 1rem;
+}
+
+.p-dropdown .p-dropdown-label.p-placeholder {
+  color: #94a3b8;
+}
+
+.p-dropdown .p-dropdown-trigger {
+  color: #64748b;
+  padding: 0 0.75rem;
+}
+
+/* Dropdown Panel */
+.p-dropdown-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.p-dropdown-items {
+  padding: 0.25rem;
+}
+
+.p-dropdown-item {
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  color: #334155;
+  margin: 0.125rem 0;
+}
+
+.p-dropdown-item:hover {
+  background: #fef2f2;
+  color: var(--coral);
+}
+
+.p-dropdown-item.p-highlight {
+  background: var(--coral);
+  color: #fff;
+}
+
+.p-dropdown-item.p-highlight:hover {
+  background: var(--coral-dark);
+}
+
+/* Hero Section specific styles */
+.hero-calendar,
+.hero-dropdown {
+  font-family: inherit;
+}
+
+.hero-calendar .p-inputtext,
+.hero-dropdown .p-dropdown-label {
+  padding: 0.875rem 1rem;
+}
+
+/* Form component specific styles */
+.form-calendar,
+.form-dropdown {
+  font-family: inherit;
+}
+
+/* Invalid state */
+.p-invalid .p-inputtext,
+.p-dropdown.p-invalid {
+  border-color: var(--cebu-red);
+}
+
+.p-invalid .p-inputtext:focus,
+.p-dropdown.p-invalid.p-focus {
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
+/* Disabled state */
+.p-disabled .p-inputtext,
+.p-dropdown.p-disabled {
+  background-color: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.p-disabled .p-inputtext:hover,
+.p-dropdown.p-disabled:hover {
+  border-color: #e2e8f0;
+}
+
+/* Submit Button Styles */
+.submit-button.p-button {
+  justify-content: center;
+}
+
+.submit-button.p-button .p-button-label {
+  flex: none;
+}
+
+.submit-button.p-button .p-button-icon {
+  margin-left: 0.5rem;
+}

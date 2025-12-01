@@ -1,9 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Calendar } from 'primereact/calendar';
+import { Dropdown } from 'primereact/dropdown';
 
 type ServiceType = 'car-rental' | 'airport-transfer' | 'tour';
 type VehicleType = 'sedan' | 'suv' | 'van';
+
+const vehicleOptions = [
+  { value: 'sedan', label: 'Sedan (5-seater) - ₱1,500/day' },
+  { value: 'suv', label: 'SUV (7-seater) - ₱2,500/day' },
+  { value: 'van', label: 'Van (15-seater) - ₱3,500/day' },
+];
 
 type Toast = {
   message: string;
@@ -13,7 +21,7 @@ type Toast = {
 export function HeroSection() {
   const [serviceType, setServiceType] = useState<ServiceType>('car-rental');
   const [vehicleType, setVehicleType] = useState<VehicleType>('sedan');
-  const [pickupDate, setPickupDate] = useState('');
+  const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [phone, setPhone] = useState('');
   const [addDriver, setAddDriver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,7 +45,7 @@ export function HeroSection() {
         body: JSON.stringify({
           serviceType,
           vehicleType: serviceType === 'car-rental' ? vehicleType : undefined,
-          preferredDate: pickupDate,
+          preferredDate: pickupDate?.toISOString(),
           phone,
           addDriver,
           source: 'hero-quick-form',
@@ -46,7 +54,7 @@ export function HeroSection() {
 
       if (response.ok) {
         setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
-        setPickupDate('');
+        setPickupDate(null);
         setPhone('');
         setAddDriver(false);
       } else {
@@ -253,15 +261,16 @@ export function HeroSection() {
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       Vehicle Type
                     </label>
-                    <select
+                    <Dropdown
                       value={vehicleType}
-                      onChange={(e) => setVehicleType(e.target.value as VehicleType)}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700"
-                    >
-                      <option value="sedan">Sedan (5-seater) - ₱1,500/day</option>
-                      <option value="suv">SUV (7-seater) - ₱2,500/day</option>
-                      <option value="van">Van (15-seater) - ₱3,500/day</option>
-                    </select>
+                      onChange={(e) => setVehicleType(e.value as VehicleType)}
+                      options={vehicleOptions}
+                      optionLabel="label"
+                      optionValue="value"
+                      placeholder="Select vehicle type"
+                      className="w-full hero-dropdown"
+                      panelClassName="hero-dropdown-panel"
+                    />
                   </div>
                 )}
 
@@ -270,13 +279,15 @@ export function HeroSection() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     {serviceType === 'tour' ? 'Tour Date' : 'Pick-up Date'}
                   </label>
-                  <input
-                    type="date"
+                  <Calendar
                     value={pickupDate}
-                    onChange={(e) => setPickupDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700"
-                    required
+                    onChange={(e) => setPickupDate(e.value as Date | null)}
+                    minDate={new Date()}
+                    dateFormat="MM dd, yy"
+                    placeholder="Select a date"
+                    showIcon
+                    className="w-full hero-calendar"
+                    panelClassName="hero-calendar-panel"
                   />
                 </div>
 

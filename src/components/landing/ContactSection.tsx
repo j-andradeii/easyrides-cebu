@@ -66,7 +66,7 @@ export function ContactSection() {
   }, [toast]);
 
   const methods = useForm<ContactFormData>({
-    resolver: yupResolver(contactFormSchema),
+    resolver: yupResolver(contactFormSchema) as never,
     mode: 'onChange',
     defaultValues: {
       fullName: '',
@@ -262,7 +262,7 @@ export function ContactSection() {
                     type="submit"
                     disabled={isSubmitting}
                     loading={isSubmitting}
-                    className="w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5 border-0"
+                    className="w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 px-6 rounded-xl font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5 border-0 submit-button"
                     label={isSubmitting ? 'Sending...' : 'Send Inquiry'}
                     icon={isSubmitting ? 'pi pi-spin pi-spinner' : 'pi pi-send'}
                     iconPos="right"

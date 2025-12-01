@@ -89,12 +89,8 @@ export const FormSelect: React.FC<FormSelectProps> = ({
               placeholder={placeholder}
               disabled={disabled || readonly}
               filter={filter}
-              className={`w-full border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent transition-colors
-                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-200'}
-                ${disabled || readonly ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
-                ${inputClassName}
-              `}
-              panelClassName="bg-white border border-slate-200 rounded-lg shadow-lg"
+              className={`w-full form-dropdown ${fieldState.invalid ? 'p-invalid' : ''} ${disabled || readonly ? 'p-disabled' : ''} ${inputClassName}`}
+              panelClassName="form-dropdown-panel"
             />
             {error && <FormError error={error} />}
           </div>

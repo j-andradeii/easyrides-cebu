@@ -89,13 +89,8 @@ export const FormCalendar: React.FC<FormCalendarProps> = ({
               showTime={showTime}
               dateFormat={dateFormat}
               showIcon
-              className={`w-full`}
-              inputClassName={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white transition-colors
-                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-200'}
-                ${disabled || readonly ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
-                ${inputClassName}
-              `}
-              panelClassName="bg-white border border-slate-200 rounded-lg shadow-lg"
+              className={`w-full form-calendar ${fieldState.invalid ? 'p-invalid' : ''} ${disabled || readonly ? 'p-disabled' : ''} ${inputClassName}`}
+              panelClassName="form-calendar-panel"
             />
             {error && <FormError error={error} />}
           </div>
