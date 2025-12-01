@@ -13,8 +13,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EasyRides App",
-  description: "Next.js 15 application with enterprise architecture - Zustand, Zod, react-hook-form",
+  title: "EasyRideCebu - Car Rentals and Tour Services",
+  description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
+  openGraph: {
+    title: "EasyRideCebu - Car Rentals and Tour Services",
+    description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
+    images: [
+      {
+        url: "/logo.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "EasyRideCebu Logo",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EasyRideCebu - Car Rentals and Tour Services",
+    description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
+    images: ["/logo.jpg"],
+  },
 };
 
 export default function RootLayout({
