@@ -288,7 +288,10 @@ export function HeroSection() {
                   <input
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9+]/g, '');
+                      setPhone(value);
+                    }}
                     placeholder="+63 9XX XXX XXXX"
                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700"
                     required

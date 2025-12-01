@@ -9,6 +9,11 @@ import { FormSelect } from '@/components/FormSelect';
 import { FormTextarea } from '@/components/FormTextarea';
 import { FormCheckbox } from '@/components/FormCheckbox';
 
+type Toast = {
+  message: string;
+  type: 'success' | 'error';
+} | null;
+
 const contactFormSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
@@ -16,7 +21,7 @@ const contactFormSchema = z.object({
   serviceType: z.enum(['car-rental', 'airport-transfer', 'tour', 'custom'], {
     error: 'Please select a service type',
   }),
-  preferredDate: z.string().optional(),
+  preferredDate: z.string().min(1, 'Please select a preferred date'),
   message: z.string().optional(),
   addDriver: z.boolean().optional(),
 });
@@ -31,7 +36,14 @@ const serviceOptions = [
 ];
 
 export function ContactSection() {
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [toast, setToast] = useState<Toast>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const {
     register,
@@ -42,6 +54,7 @@ export function ContactSection() {
     formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
+    mode: 'onChange',
     defaultValues: {
       fullName: '',
       email: '',
@@ -67,9 +80,12 @@ export function ContactSection() {
     };
   }, [setValue]);
 
-  const onSubmit = async (data: ContactFormData) => {
-    setSubmitStatus('idle');
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    setValue('phone', value);
+  };
 
+  const onSubmit = async (data: ContactFormData) => {
     try {
       const response = await fetch('/api/submit-booking', {
         method: 'POST',
@@ -81,18 +97,52 @@ export function ContactSection() {
       });
 
       if (response.ok) {
-        setSubmitStatus('success');
+        setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
         reset();
       } else {
-        setSubmitStatus('error');
+        setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
       }
     } catch {
-      setSubmitStatus('error');
+      setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
     }
   };
 
   return (
     <section id="contact" className="py-24 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
+              toast.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-800'
+                : 'bg-red-50 border border-red-200 text-red-800'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+            <p className="text-sm font-medium">{toast.message}</p>
+            <button
+              onClick={() => setToast(null)}
+              className={`ml-2 p-1 rounded-full transition-colors ${
+                toast.type === 'success' ? 'hover:bg-green-100' : 'hover:bg-red-100'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-coral/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-mango/5 rounded-full blur-3xl" />
@@ -151,6 +201,7 @@ export function ContactSection() {
                     error={errors.phone}
                     className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
                     {...register('phone')}
+                    onChange={handlePhoneChange}
                   />
                   <FormSelect
                     label="Service Type *"
@@ -165,7 +216,7 @@ export function ContactSection() {
 
                 {/* Preferred Date */}
                 <FormInput
-                  label="Preferred Date"
+                  label="Preferred Date *"
                   id="preferredDate"
                   type="date"
                   min={new Date().toISOString().split('T')[0]}
@@ -201,33 +252,6 @@ export function ContactSection() {
                     </svg>
                   )}
                 </div>
-
-                {/* Submit Status */}
-                {submitStatus === 'success' && (
-                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Thank you! We&apos;ll contact you shortly.
-                  </div>
-                )}
-
-                {submitStatus === 'error' && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Something went wrong. Please try again or contact us directly.
-                  </div>
-                )}
 
                 {/* Submit Button */}
                 <button
