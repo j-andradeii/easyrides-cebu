@@ -1,44 +1,73 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { FormInput } from '@/components/FormInput';
+import { FormSelect } from '@/components/FormSelect';
+import { FormTextarea } from '@/components/FormTextarea';
+import { FormCheckbox } from '@/components/FormCheckbox';
 
-type ServiceType = 'car-rental' | 'airport-transfer' | 'tour' | 'custom' | '';
+const contactFormSchema = z.object({
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  serviceType: z.enum(['car-rental', 'airport-transfer', 'tour', 'custom'], {
+    error: 'Please select a service type',
+  }),
+  preferredDate: z.string().optional(),
+  message: z.string().optional(),
+  addDriver: z.boolean().optional(),
+});
+
+type ContactFormData = z.infer<typeof contactFormSchema>;
+
+const serviceOptions = [
+  { value: 'car-rental', label: 'Car Rental' },
+  { value: 'airport-transfer', label: 'Airport Transfer' },
+  { value: 'tour', label: 'Tour Package' },
+  { value: 'custom', label: 'Custom Tour / Other' },
+];
 
 export function ContactSection() {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    serviceType: '' as ServiceType,
-    preferredDate: '',
-    message: '',
-  });
-  const [addDriver, setAddDriver] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      phone: '',
+      serviceType: undefined,
+      preferredDate: '',
+      message: '',
+      addDriver: false,
+    },
+  });
+
+  const addDriver = watch('addDriver');
 
   // Listen for add driver event from DriverBanner
   useEffect(() => {
     const handleAddDriver = () => {
-      setAddDriver(true);
+      setValue('addDriver', true);
     };
 
     window.addEventListener('addDriverToBooking', handleAddDriver);
     return () => {
       window.removeEventListener('addDriverToBooking', handleAddDriver);
     };
-  }, []);
+  }, [setValue]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const onSubmit = async (data: ContactFormData) => {
     setSubmitStatus('idle');
 
     try {
@@ -46,30 +75,19 @@ export function ContactSection() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          addDriver,
+          ...data,
           source: 'contact-form',
         }),
       });
 
       if (response.ok) {
         setSubmitStatus('success');
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          serviceType: '',
-          preferredDate: '',
-          message: '',
-        });
-        setAddDriver(false);
+        reset();
       } else {
         setSubmitStatus('error');
       }
     } catch {
       setSubmitStatus('error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -101,142 +119,82 @@ export function ContactSection() {
           {/* Contact Form */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Name & Email */}
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="fullName"
-                      className="block text-sm font-medium text-slate-700 mb-2"
-                    >
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="fullName"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
-                      placeholder="Juan dela Cruz"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-slate-700 mb-2"
-                    >
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
-                      placeholder="juan@email.com"
-                    />
-                  </div>
+                  <FormInput
+                    label="Full Name *"
+                    id="fullName"
+                    placeholder="Juan dela Cruz"
+                    error={errors.fullName}
+                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
+                    {...register('fullName')}
+                  />
+                  <FormInput
+                    label="Email Address *"
+                    id="email"
+                    type="email"
+                    placeholder="juan@email.com"
+                    error={errors.email}
+                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
+                    {...register('email')}
+                  />
                 </div>
 
                 {/* Phone & Service Type */}
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-slate-700 mb-2"
-                    >
-                      Phone / WhatsApp *
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
-                      placeholder="+63 9XX XXX XXXX"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="serviceType"
-                      className="block text-sm font-medium text-slate-700 mb-2"
-                    >
-                      Service Type *
-                    </label>
-                    <select
-                      id="serviceType"
-                      name="serviceType"
-                      value={formData.serviceType}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
-                    >
-                      <option value="">Select a service</option>
-                      <option value="car-rental">Car Rental</option>
-                      <option value="airport-transfer">Airport Transfer</option>
-                      <option value="tour">Tour Package</option>
-                      <option value="custom">Custom Tour / Other</option>
-                    </select>
-                  </div>
+                  <FormInput
+                    label="Phone / WhatsApp *"
+                    id="phone"
+                    type="tel"
+                    placeholder="+63 9XX XXX XXXX"
+                    error={errors.phone}
+                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
+                    {...register('phone')}
+                  />
+                  <FormSelect
+                    label="Service Type *"
+                    id="serviceType"
+                    options={serviceOptions}
+                    placeholder="Select a service"
+                    error={errors.serviceType}
+                    className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
+                    {...register('serviceType')}
+                  />
                 </div>
 
                 {/* Preferred Date */}
-                <div>
-                  <label
-                    htmlFor="preferredDate"
-                    className="block text-sm font-medium text-slate-700 mb-2"
-                  >
-                    Preferred Date
-                  </label>
-                  <input
-                    type="date"
-                    id="preferredDate"
-                    name="preferredDate"
-                    value={formData.preferredDate}
-                    onChange={handleChange}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white"
-                  />
-                </div>
+                <FormInput
+                  label="Preferred Date"
+                  id="preferredDate"
+                  type="date"
+                  min={new Date().toISOString().split('T')[0]}
+                  error={errors.preferredDate}
+                  className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white"
+                  {...register('preferredDate')}
+                />
 
                 {/* Message */}
-                <div>
-                  <label
-                    htmlFor="message"
-                    className="block text-sm font-medium text-slate-700 mb-2"
-                  >
-                    Message / Special Requests
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white resize-none"
-                    placeholder="Tell us about your trip - number of passengers, destinations, special requirements..."
-                  />
-                </div>
+                <FormTextarea
+                  label="Message / Special Requests"
+                  id="message"
+                  rows={4}
+                  placeholder="Tell us about your trip - number of passengers, destinations, special requirements..."
+                  error={errors.message}
+                  className="px-4 py-3 border-slate-200 rounded-lg focus:ring-coral text-slate-700 bg-white resize-none"
+                  {...register('message')}
+                />
 
                 {/* Add Driver Option */}
                 <div className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${addDriver ? 'bg-mango/10 border-mango' : 'bg-slate-50 border-slate-200 hover:border-mango/50'}`}>
-                  <input
-                    type="checkbox"
-                    id="addDriverContact"
-                    checked={addDriver}
-                    onChange={(e) => setAddDriver(e.target.checked)}
-                    className="w-5 h-5 text-mango bg-white border-slate-300 rounded focus:ring-mango focus:ring-2 cursor-pointer"
+                  <FormCheckbox
+                    id="addDriver"
+                    label="Add Driver to Booking"
+                    description="Professional driver for ₱850/day (8 hours)"
+                    error={errors.addDriver}
+                    className="w-5 h-5 text-mango bg-white border-slate-300 focus:ring-mango"
+                    {...register('addDriver')}
                   />
-                  <label htmlFor="addDriverContact" className="flex-1 cursor-pointer">
-                    <span className="text-sm font-medium text-slate-700">Add Driver to Booking</span>
-                    <span className="block text-xs text-slate-500">Professional driver for ₱850/day (8 hours)</span>
-                  </label>
                   {addDriver && (
                     <svg className="w-5 h-5 text-mango" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
