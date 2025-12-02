@@ -5,7 +5,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from 'primereact/button';
-import { FormInput, FormSelect, FormTextarea, FormCheckbox, FormCalendar } from '@/components';
+import { FormInput, FormSelect, FormTextarea, FormCheckbox, FormCalendar, FormPhoneInput } from '@/components';
 import { FORM_CONST } from '@/core/constants';
 import FORM_MESSAGES from '@/core/form-messages';
 
@@ -28,6 +28,7 @@ const contactFormSchema = z.object({
     .string()
     .min(1, FORM_MESSAGES.EMAIL_REQUIRED)
     .regex(FORM_CONST.EMAIL_REGEX, FORM_MESSAGES.EMAIL_INVALID),
+  countryCode: z.string(),
   phone: z
     .string()
     .min(1, FORM_MESSAGES.PHONE_REQUIRED)
@@ -73,6 +74,7 @@ export function ContactSection() {
     defaultValues: {
       fullName: '',
       email: '',
+      countryCode: '+63',
       phone: '',
       serviceType: undefined,
       vehicleType: undefined,
@@ -106,11 +108,13 @@ export function ContactSection() {
 
   const onSubmit = async (data: ContactFormData) => {
     try {
+      const fullPhone = `${data.countryCode}${data.phone}`;
       const response = await fetch('/api/submit-booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
+          phone: fullPhone,
           preferredDate: data.preferredDate?.toISOString(),
           source: 'contact-form',
         }),
@@ -210,16 +214,16 @@ export function ContactSection() {
                     />
                   </div>
 
-                  {/* Phone & Service Type */}
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <FormInput
+                  <FormPhoneInput
                       name="phone"
+                      countryCodeName="countryCode"
                       label="Phone / WhatsApp"
-                      placeholder="+63 9XX XXX XXXX"
-                      enablePhoneNumberFormat
+                      placeholder="9XX XXX XXXX"
                       showRequired
                       className="mb-0"
                     />
+                  {/* Phone & Service Type */}
+                   
                     <FormSelect
                       name="serviceType"
                       label="Service Type"
@@ -228,7 +232,6 @@ export function ContactSection() {
                       showRequired
                       className="mb-0"
                     />
-                  </div>
 
                   {/* Vehicle Type & Preferred Date */}
                     <FormSelect

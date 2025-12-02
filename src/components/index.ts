@@ -10,3 +10,4 @@ export * from './FormTextarea';
 export * from './FormSelect';
 export * from './FormCalendar';
 export * from './FormCheckbox';
+export * from './FormPhoneInput';

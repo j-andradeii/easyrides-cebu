@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { FormSelect, FormCalendar, FormInput, FormCheckbox } from '@/components';
+import { FormSelect, FormCalendar, FormCheckbox, FormPhoneInput } from '@/components';
 
 const serviceTypes = ['car-rental', 'airport-transfer', 'tour'] as const;
 const vehicleTypes = ['sedan', 'suv', 'van'] as const;
@@ -13,7 +13,8 @@ const heroFormSchema = z.object({
   serviceType: z.enum(serviceTypes),
   vehicleType: z.enum(vehicleTypes).optional(),
   pickupDate: z.date({ error: 'Please select a date' }),
-  phone: z.string().min(10, 'Please enter a valid phone number'),
+  countryCode: z.string(),
+  phone: z.string().min(9, 'Please enter a valid phone number'),
   addDriver: z.boolean(),
 });
 
@@ -40,6 +41,7 @@ export function HeroSection() {
       serviceType: 'car-rental',
       vehicleType: 'sedan',
       pickupDate: undefined,
+      countryCode: '+63',
       phone: '',
       addDriver: false,
     },
@@ -65,7 +67,7 @@ export function HeroSection() {
           serviceType: data.serviceType,
           vehicleType: data.serviceType === 'car-rental' ? data.vehicleType : undefined,
           preferredDate: data.pickupDate?.toISOString(),
-          phone: data.phone,
+          phone: `${data.countryCode}${data.phone}`,
           addDriver: data.addDriver,
           source: 'hero-quick-form',
         }),
@@ -297,11 +299,12 @@ export function HeroSection() {
                   />
 
                   {/* Phone */}
-                  <FormInput
+                  <FormPhoneInput
                     name="phone"
+                    countryCodeName="countryCode"
                     label="Phone / WhatsApp Number"
-                    placeholder="+63 9XX XXX XXXX"
-                    enableAllowNumbersSpacesPlusDash
+                    placeholder="9XX XXX XXXX"
+                    showRequired
                     className="mb-0"
                   />
 
