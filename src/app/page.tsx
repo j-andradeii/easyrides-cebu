@@ -35,10 +35,10 @@ export default function Home() {
       <Footer />
 
       {/* Facebook Messenger Chat Button */}
-      <FacebookMessenger
+      {/* <FacebookMessenger
         pageId={process.env.NEXT_PUBLIC_FACEBOOK_PAGE_ID || ''}
         themeColor="#0084FF"
-      />
+      /> */}
     </main>
   );
 }
