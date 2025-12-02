@@ -14,6 +14,8 @@ export default function FacebookMessenger({
   const [isHovered, setIsHovered] = useState(false);
 
   // m.me link opens Messenger conversation with the page
+  // For mobile compatibility, pageId should be the page USERNAME (not numeric ID)
+  // e.g., "EasyRidesOfficial" from facebook.com/EasyRidesOfficial
   const messengerUrl = `https://m.me/${pageId}`;
 
   return (
