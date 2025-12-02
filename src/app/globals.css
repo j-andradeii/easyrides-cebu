@@ -233,6 +233,19 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--coral);
 }
 
+.p-datepicker table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.p-datepicker table th,
+.p-datepicker table td {
+  width: calc(100% / 7);
+  text-align: center;
+  padding: 0.25rem;
+}
+
 .p-datepicker table th {
   color: #64748b;
   font-weight: 500;
@@ -346,6 +359,13 @@ h1, h2, h3, h4, h5, h6 {
 .form-calendar,
 .form-dropdown {
   font-family: inherit;
+}
+
+/* Form Calendar Panel - constrain width */
+.form-calendar-panel.p-datepicker {
+  width: auto !important;
+  min-width: auto !important;
+  max-width: 320px;
 }
 
 /* Invalid state */

@@ -26,6 +26,7 @@ interface FormCalendarProps {
   dateFormat?: string;
   className?: string;
   inputClassName?: string;
+  panelClassName?: string;
 }
 
 export const FormCalendar: React.FC<FormCalendarProps> = ({
@@ -42,6 +43,7 @@ export const FormCalendar: React.FC<FormCalendarProps> = ({
   dateFormat = 'mm/dd/yy',
   className = '',
   inputClassName = '',
+  panelClassName = '',
 }) => {
   const {
     control,
@@ -92,7 +94,7 @@ export const FormCalendar: React.FC<FormCalendarProps> = ({
               dateFormat={dateFormat}
               showIcon
               className={`w-full form-calendar ${fieldState.invalid ? 'p-invalid' : ''} ${disabled || readonly ? 'p-disabled' : ''} ${inputClassName}`}
-              panelClassName="form-calendar-panel"
+              panelClassName={`form-calendar-panel ${panelClassName}`}
             />
             {error && <FormError error={error} />}
           </div>

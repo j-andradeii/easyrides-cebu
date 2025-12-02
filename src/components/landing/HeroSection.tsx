@@ -1,11 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar } from 'primereact/calendar';
-import { Dropdown } from 'primereact/dropdown';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { FormSelect, FormCalendar, FormInput, FormCheckbox } from '@/components';
 
-type ServiceType = 'car-rental' | 'airport-transfer' | 'tour';
-type VehicleType = 'sedan' | 'suv' | 'van';
+const serviceTypes = ['car-rental', 'airport-transfer', 'tour'] as const;
+const vehicleTypes = ['sedan', 'suv', 'van'] as const;
+
+const heroFormSchema = z.object({
+  serviceType: z.enum(serviceTypes),
+  vehicleType: z.enum(vehicleTypes).optional(),
+  pickupDate: z.date({ error: 'Please select a date' }),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  addDriver: z.boolean(),
+});
+
+type HeroFormData = z.infer<typeof heroFormSchema>;
 
 const vehicleOptions = [
   { value: 'sedan', label: 'Sedan (5-seater) - ₱1,500/day' },
@@ -19,13 +31,21 @@ type Toast = {
 } | null;
 
 export function HeroSection() {
-  const [serviceType, setServiceType] = useState<ServiceType>('car-rental');
-  const [vehicleType, setVehicleType] = useState<VehicleType>('sedan');
-  const [pickupDate, setPickupDate] = useState<Date | null>(null);
-  const [phone, setPhone] = useState('');
-  const [addDriver, setAddDriver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
+
+  const methods = useForm<HeroFormData>({
+    resolver: zodResolver(heroFormSchema),
+    defaultValues: {
+      serviceType: 'car-rental',
+      vehicleType: 'sedan',
+      pickupDate: undefined,
+      phone: '',
+      addDriver: false,
+    },
+  });
+
+  const serviceType = methods.watch('serviceType');
 
   useEffect(() => {
     if (toast) {
@@ -34,8 +54,7 @@ export function HeroSection() {
     }
   }, [toast]);
 
-  const handleQuickBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleQuickBooking = async (data: HeroFormData) => {
     setIsSubmitting(true);
 
     try {
@@ -43,20 +62,18 @@ export function HeroSection() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          serviceType,
-          vehicleType: serviceType === 'car-rental' ? vehicleType : undefined,
-          preferredDate: pickupDate?.toISOString(),
-          phone,
-          addDriver,
+          serviceType: data.serviceType,
+          vehicleType: data.serviceType === 'car-rental' ? data.vehicleType : undefined,
+          preferredDate: data.pickupDate?.toISOString(),
+          phone: data.phone,
+          addDriver: data.addDriver,
           source: 'hero-quick-form',
         }),
       });
 
       if (response.ok) {
         setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
-        setPickupDate(null);
-        setPhone('');
-        setAddDriver(false);
+        methods.reset();
       } else {
         setToast({ message: 'Something went wrong. Please try again or call us directly.', type: 'error' });
       }
@@ -226,154 +243,128 @@ export function HeroSection() {
                 </div>
               </div>
 
-              <form onSubmit={handleQuickBooking} className="space-y-4">
-                {/* Service Type */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    What do you need?
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: 'car-rental', label: 'Car Rental', icon: '🚗' },
-                      { value: 'airport-transfer', label: 'Transfer', icon: '✈️' },
-                      { value: 'tour', label: 'Tour', icon: '🗺️' },
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setServiceType(option.value as ServiceType)}
-                        className={`p-3 rounded-lg border-2 text-center transition-all ${
-                          serviceType === option.value
-                            ? 'border-coral bg-coral/5 text-coral'
-                            : 'border-slate-200 hover:border-coral/50 text-slate-600'
-                        }`}
-                      >
-                        <div className="text-xl mb-1">{option.icon}</div>
-                        <div className="text-xs font-medium">{option.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Vehicle Type - Only for Car Rental */}
-                {serviceType === 'car-rental' && (
+              <FormProvider {...methods}>
+                <form onSubmit={methods.handleSubmit(handleQuickBooking)} className="space-y-4">
+                  {/* Service Type */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Vehicle Type
+                      What do you need?
                     </label>
-                    <Dropdown
-                      value={vehicleType}
-                      onChange={(e) => setVehicleType(e.value as VehicleType)}
-                      options={vehicleOptions}
-                      optionLabel="label"
-                      optionValue="value"
-                      placeholder="Select vehicle type"
-                      className="w-full hero-dropdown"
-                      panelClassName="hero-dropdown-panel"
-                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: 'car-rental', label: 'Car Rental', icon: '🚗' },
+                        { value: 'airport-transfer', label: 'Transfer', icon: '✈️' },
+                        { value: 'tour', label: 'Tour', icon: '🗺️' },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => methods.setValue('serviceType', option.value as typeof serviceTypes[number])}
+                          className={`p-3 rounded-lg border-2 text-center transition-all ${
+                            serviceType === option.value
+                              ? 'border-coral bg-coral/5 text-coral'
+                              : 'border-slate-200 hover:border-coral/50 text-slate-600'
+                          }`}
+                        >
+                          <div className="text-xl mb-1">{option.icon}</div>
+                          <div className="text-xs font-medium">{option.label}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                )}
 
-                {/* Date */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {serviceType === 'tour' ? 'Tour Date' : 'Pick-up Date'}
-                  </label>
-                  <Calendar
-                    value={pickupDate}
-                    onChange={(e) => setPickupDate(e.value as Date | null)}
+                  {/* Vehicle Type - Only for Car Rental */}
+                  {serviceType === 'car-rental' && (
+                    <FormSelect
+                      name="vehicleType"
+                      label="Vehicle Type"
+                      options={vehicleOptions}
+                      placeholder="Select vehicle type"
+                      className="mb-0"
+                      inputClassName="hero-dropdown"
+                    />
+                  )}
+
+                  {/* Date */}
+                  <FormCalendar
+                    name="pickupDate"
+                    label={serviceType === 'tour' ? 'Tour Date' : 'Pick-up Date'}
+                    placeholder="Select a date"
                     minDate={new Date()}
                     dateFormat="MM dd, yy"
-                    placeholder="Select a date"
-                    showIcon
-                    className="w-full hero-calendar"
-                    panelClassName="hero-calendar-panel"
+                    className="mb-0"
+                    inputClassName="hero-calendar"
                   />
-                </div>
 
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Phone / WhatsApp Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9+]/g, '');
-                      setPhone(value);
-                    }}
+                  {/* Phone */}
+                  <FormInput
+                    name="phone"
+                    label="Phone / WhatsApp Number"
                     placeholder="+63 9XX XXX XXXX"
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700"
-                    required
+                    enableAllowNumbersSpacesPlusDash
+                    className="mb-0"
                   />
-                </div>
 
-                {/* Add Driver Option */}
-                <div className="flex items-center gap-3 p-3 bg-mango/10 rounded-lg border border-mango/20">
-                  <input
-                    type="checkbox"
-                    id="addDriverHero"
-                    checked={addDriver}
-                    onChange={(e) => setAddDriver(e.target.checked)}
-                    className="w-5 h-5 text-mango bg-white border-slate-300 rounded focus:ring-mango focus:ring-2 cursor-pointer"
-                  />
-                  <label htmlFor="addDriverHero" className="flex-1 cursor-pointer">
-                    <span className="text-sm font-medium text-slate-700">Add Driver</span>
-                    <span className="block text-xs text-slate-500">+₱850/day for a professional driver</span>
-                  </label>
-                </div>
+                  {/* Add Driver Option */}
+                  <div className="p-3 bg-mango/10 rounded-lg border border-mango/20">
+                    <FormCheckbox
+                      name="addDriver"
+                      label="Add Driver"
+                      description="+₱850/day for a professional driver"
+                    />
+                  </div>
 
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-coral/25"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-coral/25"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg
+                          className="animate-spin h-5 w-5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        Get Quote
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
                           stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      Get Quote
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 8l4 4m0 0l-4 4m4-4H3"
-                        />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </form>
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                          />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </FormProvider>
 
               {/* Or Contact Directly */}
               <div className="mt-6 pt-6 border-t border-slate-100">
