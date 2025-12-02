@@ -20,11 +20,11 @@ export default function ToursPage() {
   const tours = toursData.tours as Tour[];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-white">
       <Navigation />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
+      <section className="pt-32 pb-16 bg-gradient-to-b from-cream-light/50 to-white relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-20 left-0 w-72 h-72 bg-palm-light/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-mango/10 rounded-full blur-3xl" />
@@ -64,7 +64,7 @@ export default function ToursPage() {
       </section>
 
       {/* Tours Grid */}
-      <section className="py-16">
+      <section className="py-16 bg-gradient-to-b from-white via-cream-light/20 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {tours.map((tour) => (
