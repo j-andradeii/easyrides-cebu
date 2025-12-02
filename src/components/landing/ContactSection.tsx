@@ -198,14 +198,15 @@ export function ContactSection() {
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
               <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
                   {/* Name & Email */}
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-3">
                     <FormInput
                       name="fullName"
                       label="Full Name"
                       placeholder="Juan dela Cruz"
                       showRequired
+                      className="mb-0"
                     />
                     <FormInput
                       name="email"
@@ -213,17 +214,19 @@ export function ContactSection() {
                       type="email"
                       placeholder="juan@email.com"
                       showRequired
+                      className="mb-0"
                     />
                   </div>
 
                   {/* Phone & Service Type */}
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-3">
                     <FormInput
                       name="phone"
                       label="Phone / WhatsApp"
                       placeholder="+63 9XX XXX XXXX"
                       enablePhoneNumberFormat
                       showRequired
+                      className="mb-0"
                     />
                     <FormSelect
                       name="serviceType"
@@ -231,42 +234,46 @@ export function ContactSection() {
                       options={serviceOptions}
                       placeholder="Select a service"
                       showRequired
+                      className="mb-0"
                     />
                   </div>
 
-                  {/* Vehicle Type - Optional */}
-                  <FormSelect
-                    name="vehicleType"
-                    label="Vehicle Type"
-                    options={vehicleOptions}
-                    placeholder="Select vehicle type (optional)"
-                  />
-
-                  {/* Preferred Date */}
-                  <FormCalendar
-                    name="preferredDate"
-                    label="Preferred Date"
-                    placeholder="Select a date"
-                    minDate={new Date()}
-                    showRequired
-                  />
+                  {/* Vehicle Type & Preferred Date */}
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <FormSelect
+                      name="vehicleType"
+                      label="Vehicle Type"
+                      options={vehicleOptions}
+                      placeholder="Select (optional)"
+                      className="mb-0"
+                    />
+                    <FormCalendar
+                      name="preferredDate"
+                      label="Preferred Date"
+                      placeholder="Select a date"
+                      minDate={new Date()}
+                      showRequired
+                      className="mb-0"
+                    />
+                  </div>
 
                   {/* Message */}
                   <FormTextarea
                     name="message"
                     label="Message / Special Requests"
-                    rows={4}
-                    placeholder="Tell us about your trip - number of passengers, destinations, special requirements..."
+                    rows={2}
+                    placeholder="Tell us about your trip - destinations, special requirements..."
                     maxLength={FORM_CONST.MESSAGE_MAX_LENGTH}
+                    className="mb-0"
                   />
 
                   {/* Add Driver Option */}
-                  <div className={`p-4 rounded-xl border-2 transition-all ${addDriver ? 'bg-mango/10 border-mango' : 'bg-slate-50 border-slate-200 hover:border-mango/50'}`}>
+                  <div className={`p-3 rounded-lg border-2 transition-all ${addDriver ? 'bg-mango/10 border-mango' : 'bg-slate-50 border-slate-200 hover:border-mango/50'}`}>
                     <div className="flex items-center justify-between">
                       <FormCheckbox
                         name="addDriver"
-                        label="Add Driver to Booking"
-                        description="Professional driver for ₱850/day (8 hours)"
+                        label="Add Driver"
+                        description="₱850/day (8 hours)"
                       />
                       {addDriver && (
                         <svg className="w-5 h-5 text-mango shrink-0" fill="currentColor" viewBox="0 0 20 20">
