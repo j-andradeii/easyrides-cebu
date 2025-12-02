@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from 'primereact/button';
 import { FormInput, FormSelect, FormTextarea, FormCheckbox, FormCalendar } from '@/components';
 import { FORM_CONST } from '@/core/constants';
@@ -14,43 +14,35 @@ type Toast = {
   type: 'success' | 'error';
 } | null;
 
-// Yup validation schema
-const contactFormSchema = yup.object().shape({
-  fullName: yup
+const serviceTypes = ['car-rental', 'airport-transfer', 'tour', 'custom'] as const;
+const vehicleTypes = ['sedan', 'suv', 'van'] as const;
+
+// Zod validation schema
+const contactFormSchema = z.object({
+  fullName: z
     .string()
-    .required(FORM_MESSAGES.NAME_REQUIRED)
+    .min(1, FORM_MESSAGES.NAME_REQUIRED)
     .min(FORM_CONST.NAME_MIN_LENGTH, FORM_MESSAGES.NAME_MIN.replace('${min}', String(FORM_CONST.NAME_MIN_LENGTH)))
     .max(FORM_CONST.NAME_MAX_LENGTH, FORM_MESSAGES.NAME_MAX.replace('${max}', String(FORM_CONST.NAME_MAX_LENGTH))),
-  email: yup
+  email: z
     .string()
-    .required(FORM_MESSAGES.EMAIL_REQUIRED)
-    .matches(FORM_CONST.EMAIL_REGEX, FORM_MESSAGES.EMAIL_INVALID),
-  phone: yup
+    .min(1, FORM_MESSAGES.EMAIL_REQUIRED)
+    .regex(FORM_CONST.EMAIL_REGEX, FORM_MESSAGES.EMAIL_INVALID),
+  phone: z
     .string()
-    .required(FORM_MESSAGES.PHONE_REQUIRED)
+    .min(1, FORM_MESSAGES.PHONE_REQUIRED)
     .min(FORM_CONST.PHONE_MIN_LENGTH, FORM_MESSAGES.PHONE_MIN.replace('${min}', String(FORM_CONST.PHONE_MIN_LENGTH))),
-  serviceType: yup
-    .string()
-    .required(FORM_MESSAGES.SELECT_REQUIRED)
-    .oneOf(['car-rental', 'airport-transfer', 'tour', 'custom'], FORM_MESSAGES.SELECT_REQUIRED),
-  vehicleType: yup
-    .string()
-    .oneOf(['sedan', 'suv', 'van'], 'Please select a valid vehicle type')
-    .optional(),
-  preferredDate: yup
-    .date()
-    .required(FORM_MESSAGES.DATE_REQUIRED)
-    .min(new Date(new Date().setHours(0, 0, 0, 0)), FORM_MESSAGES.DATE_PAST)
-    .nullable()
-    .transform((value, originalValue) => (originalValue === '' ? null : value)),
-  message: yup
+  serviceType: z.enum(serviceTypes, { message: FORM_MESSAGES.SELECT_REQUIRED }),
+  vehicleType: z.enum(vehicleTypes).optional(),
+  preferredDate: z.date({ message: FORM_MESSAGES.DATE_REQUIRED }),
+  message: z
     .string()
     .max(FORM_CONST.MESSAGE_MAX_LENGTH, FORM_MESSAGES.MESSAGE_MAX.replace('${max}', String(FORM_CONST.MESSAGE_MAX_LENGTH)))
     .optional(),
-  addDriver: yup.boolean().optional(),
+  addDriver: z.boolean().optional(),
 });
 
-type ContactFormData = yup.InferType<typeof contactFormSchema>;
+type ContactFormData = z.infer<typeof contactFormSchema>;
 
 const serviceOptions = [
   { value: 'car-rental', label: 'Car Rental' },
@@ -76,7 +68,7 @@ export function ContactSection() {
   }, [toast]);
 
   const methods = useForm<ContactFormData>({
-    resolver: yupResolver(contactFormSchema) as never,
+    resolver: zodResolver(contactFormSchema),
     mode: 'onChange',
     defaultValues: {
       fullName: '',
@@ -239,7 +231,6 @@ export function ContactSection() {
                   </div>
 
                   {/* Vehicle Type & Preferred Date */}
-                  <div className="grid sm:grid-cols-2 gap-3">
                     <FormSelect
                       name="vehicleType"
                       label="Vehicle Type"
@@ -247,7 +238,8 @@ export function ContactSection() {
                       placeholder="Select (optional)"
                       className="mb-0"
                     />
-                    <FormCalendar
+              
+                        <FormCalendar
                       name="preferredDate"
                       label="Preferred Date"
                       placeholder="Select a date"
@@ -255,7 +247,7 @@ export function ContactSection() {
                       showRequired
                       className="mb-0"
                     />
-                  </div>
+
 
                   {/* Message */}
                   <FormTextarea
