@@ -7,6 +7,7 @@
 
 'use client';
 
+import { useId } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 import { Controller, useFormContext } from 'react-hook-form';
 import { FormError } from './FormError';
@@ -62,7 +63,8 @@ export const FormSelect: React.FC<FormSelectProps> = ({
   };
 
   const error = getNestedError(errors, name);
-  const uniqueId = `${name}-${Math.random().toString(36).substr(2, 9)}`;
+  const reactId = useId();
+  const uniqueId = `${name}-${reactId}`;
 
   return (
     <div className={`mb-4 ${className}`}>

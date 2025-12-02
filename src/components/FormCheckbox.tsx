@@ -7,6 +7,7 @@
 
 'use client';
 
+import { useId } from 'react';
 import { Checkbox } from 'primereact/checkbox';
 import { Controller, useFormContext } from 'react-hook-form';
 import { FormError } from './FormError';
@@ -47,7 +48,8 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = ({
   };
 
   const error = getNestedError(errors, name);
-  const uniqueId = `${name}-${Math.random().toString(36).substr(2, 9)}`;
+  const reactId = useId();
+  const uniqueId = `${name}-${reactId}`;
 
   return (
     <Controller

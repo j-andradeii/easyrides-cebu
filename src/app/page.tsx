@@ -10,6 +10,7 @@ import {
   ContactSection,
   Footer,
 } from '@/components/landing';
+import FacebookMessenger from '@/components/FacebookMessenger';
 
 export default function Home() {
   return (
@@ -32,6 +33,14 @@ export default function Home() {
       <WhyChooseUs />
       <ContactSection />
       <Footer />
+
+      {/* Facebook Messenger Chat Plugin */}
+      <FacebookMessenger
+        pageId={process.env.NEXT_PUBLIC_FACEBOOK_PAGE_ID || ''}
+        themeColor="#0084FF"
+        loggedInGreeting="Hi! How can we help you with your ride?"
+        loggedOutGreeting="Hi! How can we help you with your ride?"
+      />
     </main>
   );
 }

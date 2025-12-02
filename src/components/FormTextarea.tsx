@@ -7,6 +7,7 @@
 
 'use client';
 
+import { useId } from 'react';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Controller, useFormContext } from 'react-hook-form';
 import { FormError } from './FormError';
@@ -57,7 +58,8 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
   };
 
   const error = getNestedError(errors, name);
-  const uniqueId = `${name}-${Math.random().toString(36).substr(2, 9)}`;
+  const reactId = useId();
+  const uniqueId = `${name}-${reactId}`;
 
   return (
     <div className={`mb-4 ${className}`}>

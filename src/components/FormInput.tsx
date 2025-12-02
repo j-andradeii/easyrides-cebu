@@ -7,6 +7,7 @@
 
 'use client';
 
+import { useId } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Controller, useFormContext } from 'react-hook-form';
 import { FormError } from './FormError';
@@ -153,7 +154,8 @@ export const FormInput: React.FC<FormInputProps> = ({
   };
 
   const error = getNestedError(errors, name);
-  const uniqueId = `${name}-${Math.random().toString(36).substr(2, 9)}`;
+  const reactId = useId();
+  const uniqueId = `${name}-${reactId}`;
 
   const handlePaste = (
     e: React.ClipboardEvent<HTMLInputElement>,
