@@ -1,0 +1,119 @@
+{
+  "tours": [
+    {
+      "slug": "city-uphill-tour",
+      "title": "City & Uphill Tour",
+      "shortDescription": "Explore Cebu City's historical landmarks and scenic highland viewpoints in this comprehensive 8-hour tour.",
+      "description": "Experience the best of Cebu City with our City & Uphill Tour. Visit iconic landmarks including the Temple of Leah, Sirao Flower Garden, and Tops Busay for panoramic views. Explore historical sites like Fort San Pedro, Sto. Nino Church, and Magellan's Cross. This tour combines cultural heritage with natural beauty for an unforgettable Cebu experience.",
+      "image": "/images/tours/city-tour.png",
+      "duration": "8 hours",
+      "featured": true,
+      "pricing": {
+        "sedan": { "price": 3500, "capacity": "1-3 pax" },
+        "suv": { "price": 4500, "capacity": "4-6 pax" },
+        "van": { "price": 6000, "capacity": "7-14 pax" }
+      },
+      "itinerary": [
+        { "time": "8:00 AM", "activity": "Pickup at Airport or Hotel Cebu City" },
+        { "activity": "Sirao Flower Garden" },
+        { "activity": "Tops Busay" },
+        { "activity": "La Vie In The Sky" },
+        { "activity": "Temple of Leah" },
+        { "activity": "Taoist Temple" },
+        { "activity": "Lunch at House of Lechon" },
+        { "activity": "Heritage Park" },
+        { "activity": "San Diego Ancestral House" },
+        { "activity": "Fort San Pedro" },
+        { "activity": "Sto Nino Church & Magellan's Cross" },
+        { "activity": "Tabuan Pasalubong" },
+        { "activity": "10,000 Roses (Optional - Additional P1,000/group)" },
+        { "activity": "Bookchigo Cebu" },
+        { "activity": "Dropoff at Airport or Hotels Cebu City" }
+      ],
+      "inclusions": [
+        "Sedan/SUV/Van",
+        "Pick up & Drop-off to Hotel",
+        "Driver/Guide/Photographer",
+        "Fuel"
+      ],
+      "exclusions": [
+        "Entrance Fees",
+        "Parking Fees",
+        "Food",
+        "10K Roses (Additional P1,000/Group)",
+        "La Vie Entrance Fee of P100 (Consumable)"
+      ]
+    },
+    {
+      "slug": "cebu-safari",
+      "title": "Cebu Safari Adventure",
+      "shortDescription": "Discover exotic wildlife at Cebu's premier safari and adventure park in Carmen.",
+      "description": "Journey to Carmen, Cebu for an unforgettable wildlife experience at Cebu Safari Adventure Park. Get up close with exotic animals from around the world, enjoy scenic views of the Cebu highlands, and experience adventure activities. The park features diverse wildlife exhibits, bird sanctuaries, and family-friendly attractions.",
+      "image": "/images/tours/cebu-safari.png",
+      "duration": "Full Day",
+      "featured": true,
+      "pricing": {
+        "sedan": { "price": 4000, "capacity": "1-3 pax" },
+        "suv": { "price": 4500, "capacity": "4-6 pax" },
+        "van": { "price": 5500, "capacity": "7-14 pax" }
+      },
+      "itinerary": [
+        { "time": "6:00 AM", "activity": "Pick up at Hotel/Airport" },
+        { "activity": "2 hours travel time to Carmen" },
+        { "activity": "Cebu Safari Adventure" },
+        { "activity": "Titay's Pasalubong in Liloan" },
+        { "activity": "2 hours back to Cebu" },
+        { "activity": "Drop off Hotel/Airport" }
+      ],
+      "inclusions": [
+        "Sedan/SUV/Van",
+        "Pick-Up & Drop-Off to Hotel",
+        "Driver/Guide/Photographer",
+        "Fuel"
+      ],
+      "exclusions": [
+        "Entrance Fees",
+        "Parking Fees",
+        "Meals"
+      ]
+    },
+    {
+      "slug": "moalboal-canyoneering",
+      "title": "Moalboal & Canyoneering",
+      "shortDescription": "Swim with sardines, watch sea turtles, and conquer thrilling canyoneering at Kawasan Falls.",
+      "description": "Experience the ultimate Cebu adventure combining the marine wonders of Moalboal with the thrills of Kawasan Falls canyoneering. Swim with millions of sardines in their natural habitat, spot sea turtles at the coral garden, and challenge yourself with cliff jumps and waterfall rappelling. This action-packed tour is perfect for adventure seekers!",
+      "image": "/images/tours/moalboal.png",
+      "duration": "Full Day",
+      "featured": true,
+      "pricing": {
+        "sedan": { "price": 5500, "capacity": "1-3 pax" },
+        "suv": { "price": 6500, "capacity": "4-6 pax" },
+        "van": { "price": 7500, "capacity": "7-14 pax" }
+      },
+      "itinerary": [
+        { "activity": "Pick up at Hotel/Airport" },
+        { "activity": "Mantayupan Falls" },
+        { "activity": "Sunrise View at Barili (Stop over for Breakfast)" },
+        { "activity": "Coral Garden / School of Fish" },
+        { "activity": "Sardines Run" },
+        { "activity": "Turtle watching" },
+        { "activity": "Full Course Canyoneering (Optional)" },
+        { "activity": "Kawasan Falls" },
+        { "activity": "Drop off Cebu City or Airport" }
+      ],
+      "inclusions": [
+        "Sedan/SUV/Van",
+        "Pick-Up & Drop-Off to Hotel",
+        "Driver/Guide/Photographer",
+        "Fuel"
+      ],
+      "exclusions": [
+        "Entrance Fees",
+        "Parking Fees",
+        "Meals",
+        "Full Course Canyoneering with lunch is optional for P2,100/pax",
+        "Kawasan Falls entrance and guide fee is P500/pax"
+      ]
+    }
+  ]
+}

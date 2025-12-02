@@ -4,7 +4,7 @@ import {
   ServicesSection,
   FleetSection,
   DriverBanner,
-  // ToursSection,
+  ToursSection,
   TransferRatesSection,
   WhyChooseUs,
   ContactSection,
@@ -28,7 +28,7 @@ export default function Home() {
       <ServicesSection />
       <FleetSection />
       <DriverBanner />
-      {/* <ToursSection /> */}
+      <ToursSection />
       <TransferRatesSection />
       <WhyChooseUs />
       <ContactSection />
