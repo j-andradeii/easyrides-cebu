@@ -20,14 +20,17 @@ export default function ToursPage() {
   const tours = toursData.tours as Tour[];
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-slate-50 relative overflow-hidden">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
+
       <Navigation />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-gradient-to-b from-cream-light/50 to-white relative overflow-hidden">
+      <section className="pt-32 pb-16 relative">
         {/* Background decoration */}
-        <div className="absolute top-20 left-0 w-72 h-72 bg-palm-light/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-mango/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-0 w-72 h-72 bg-palm-light/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-mango/5 rounded-full blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-white text-palm-dark px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm border border-palm-light/30">
@@ -64,7 +67,7 @@ export default function ToursPage() {
       </section>
 
       {/* Tours Grid */}
-      <section className="py-16 bg-gradient-to-b from-white via-cream-light/20 to-white">
+      <section className="py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {tours.map((tour) => (

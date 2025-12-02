@@ -49,7 +49,10 @@ export default async function TourDetailPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-slate-50 relative overflow-hidden">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
+
       <Navigation />
 
       {/* Hero with Image */}
@@ -92,7 +95,7 @@ export default async function TourDetailPage({ params }: Props) {
       </section>
 
       {/* Content Section */}
-      <section className="py-12 md:py-16 bg-gradient-to-b from-white via-cream-light/30 to-white">
+      <section className="py-12 md:py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
             {/* Main Content */}
