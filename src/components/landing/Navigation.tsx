@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const navLinks = [
-  { href: '#services', label: 'Services' },
-  { href: '#fleet', label: 'Fleet' },
-  { href: '#tours', label: 'Tours' },
-  { href: '#pricing', label: 'Pricing' },
-  { href: '#contact', label: 'Contact' },
+  { href: '/#services', label: 'Services' },
+  { href: '/#fleet', label: 'Fleet' },
+  { href: '/#tours', label: 'Tours' },
+  { href: '/#pricing', label: 'Pricing' },
+  { href: '/#contact', label: 'Contact' },
 ];
 
 export function Navigation() {
@@ -19,7 +20,7 @@ export function Navigation() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-1">
+          <Link href="/" className="flex items-center gap-1">
             <Image
               src="/logo.jpg"
               alt="EasyRideCebu Logo"
@@ -29,7 +30,7 @@ export function Navigation() {
               style={{ backgroundColor: '#F5F0E1' }}
             />
             <span className="text-xl font-bold text-palm-black hidden sm:inline">EasyRideCebu</span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
@@ -61,7 +62,7 @@ export function Navigation() {
               <span className="text-sm font-medium">Call Us</span>
             </a>
             <a
-              href="#contact"
+              href="/#contact"
               className="bg-gradient-to-r from-cebu-red to-sunset-orange hover:from-cebu-red-dark hover:to-sunset-orange-dark text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md shadow-cebu-red/20"
             >
               Book Now
@@ -116,7 +117,7 @@ export function Navigation() {
                   Call
                 </a>
                 <a
-                  href="#contact"
+                  href="/#contact"
                   className="flex-1 bg-gradient-to-r from-cebu-red to-sunset-orange hover:from-cebu-red-dark hover:to-sunset-orange-dark text-white px-4 py-2.5 rounded-lg font-semibold text-center transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >

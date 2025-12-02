@@ -12,7 +12,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from 'primereact/button';
-import { FormInput, FormSelect, FormTextarea, FormCheckbox, FormCalendar, FormPhoneInput } from '@/components';
+import { FormInput, FormSelect, FormTextarea, FormCalendar, FormPhoneInput } from '@/components';
 import { FORM_CONST } from '@/core/constants';
 import FORM_MESSAGES from '@/core/form-messages';
 
@@ -91,18 +91,15 @@ export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
       vehicleType: undefined,
       preferredDate: undefined,
       message: defaultMessage,
-      addDriver: false,
+      addDriver: true,
     },
   });
 
   const {
     handleSubmit,
     reset,
-    watch,
     formState: { isSubmitting },
   } = methods;
-
-  const addDriver = watch('addDriver');
 
   const onSubmit = async (data: TourInquiryFormData) => {
     try {
@@ -138,12 +135,12 @@ export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-xl border border-slate-100">
-      {/* Toast Notification */}
+    <>
+      {/* Toast Notification - Fixed bottom right */}
       {toast && (
-        <div className="mb-4">
+        <div className="fixed bottom-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
           <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
               toast.type === 'success'
                 ? 'bg-green-50 border border-green-200 text-green-800'
                 : 'bg-red-50 border border-red-200 text-red-800'
@@ -159,11 +156,22 @@ export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
               </svg>
             )}
             <p className="text-sm font-medium">{toast.message}</p>
+            <button
+              onClick={() => setToast(null)}
+              className={`ml-2 p-1 rounded-full transition-colors ${
+                toast.type === 'success' ? 'hover:bg-green-100' : 'hover:bg-red-100'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
       )}
 
-      <h3 className="text-xl font-bold text-slate-900 mb-4">Book This Tour</h3>
+      <div className="bg-white rounded-2xl p-6 shadow-xl border border-slate-100">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">Book This Tour</h3>
       <p className="text-slate-600 text-sm mb-6">Fill out the form and we&apos;ll get back to you with availability and pricing.</p>
 
       <FormProvider {...methods}>
@@ -229,22 +237,6 @@ export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
             className="mb-0"
           />
 
-          {/* Add Driver Option */}
-          <div className={`p-3 rounded-lg border-2 transition-all ${addDriver ? 'bg-mango/10 border-mango' : 'bg-slate-50 border-slate-200 hover:border-mango/50'}`}>
-            <div className="flex items-center justify-between">
-              <FormCheckbox
-                name="addDriver"
-                label="Add Driver"
-                description="₱850/day (8 hours)"
-              />
-              {addDriver && (
-                <svg className="w-5 h-5 text-mango shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              )}
-            </div>
-          </div>
-
           {/* Submit Button */}
           <Button
             type="submit"
@@ -257,6 +249,7 @@ export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
           />
         </form>
       </FormProvider>
-    </div>
+      </div>
+    </>
   );
 }
