@@ -33,6 +33,10 @@ const contactFormSchema = yup.object().shape({
     .string()
     .required(FORM_MESSAGES.SELECT_REQUIRED)
     .oneOf(['car-rental', 'airport-transfer', 'tour', 'custom'], FORM_MESSAGES.SELECT_REQUIRED),
+  vehicleType: yup
+    .string()
+    .oneOf(['sedan', 'suv', 'van'], 'Please select a valid vehicle type')
+    .optional(),
   preferredDate: yup
     .date()
     .required(FORM_MESSAGES.DATE_REQUIRED)
@@ -55,6 +59,12 @@ const serviceOptions = [
   { value: 'custom', label: 'Custom Tour / Other' },
 ];
 
+const vehicleOptions = [
+  { value: 'sedan', label: 'Sedan (5-seater) - ₱1,500/day' },
+  { value: 'suv', label: 'SUV (7-seater) - ₱2,500/day' },
+  { value: 'van', label: 'Van (15-seater) - ₱3,500/day' },
+];
+
 export function ContactSection() {
   const [toast, setToast] = useState<Toast>(null);
 
@@ -73,6 +83,7 @@ export function ContactSection() {
       email: '',
       phone: '',
       serviceType: undefined,
+      vehicleType: undefined,
       preferredDate: undefined,
       message: '',
       addDriver: false,
@@ -222,6 +233,14 @@ export function ContactSection() {
                       showRequired
                     />
                   </div>
+
+                  {/* Vehicle Type - Optional */}
+                  <FormSelect
+                    name="vehicleType"
+                    label="Vehicle Type"
+                    options={vehicleOptions}
+                    placeholder="Select vehicle type (optional)"
+                  />
 
                   {/* Preferred Date */}
                   <FormCalendar
