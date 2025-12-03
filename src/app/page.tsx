@@ -14,7 +14,7 @@ import FacebookMessenger from '@/components/FacebookMessenger';
 
 export default function Home() {
   return (
-    <main className="min-h-screen scroll-smooth">
+    <main className="min-h-screen scroll-smooth overflow-x-hidden">
       <Navigation />
       <HeroSection />
 

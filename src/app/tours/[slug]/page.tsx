@@ -49,7 +49,7 @@ export default async function TourDetailPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 relative overflow-hidden">
+    <main className="min-h-screen bg-slate-50 relative overflow-x-hidden">
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
 
