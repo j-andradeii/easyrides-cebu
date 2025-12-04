@@ -49,9 +49,9 @@ export default async function TourDetailPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 relative overflow-x-hidden">
+    <main className="min-h-screen bg-slate-50 relative overflow-x-hidden w-full max-w-full">
       {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
+      <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5 pointer-events-none" />
 
       <Navigation />
 
@@ -95,15 +95,15 @@ export default async function TourDetailPage({ params }: Props) {
       </section>
 
       {/* Content Section */}
-      <section className="py-12 md:py-16 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 md:py-16 relative overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid lg:grid-cols-3 gap-4 sm:gap-8 lg:gap-12">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               {/* Description */}
-              <div>
+              <div className="overflow-hidden">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">About This Tour</h2>
-                <p className="text-slate-600 leading-relaxed">{tour.description}</p>
+                <p className="text-slate-600 leading-relaxed break-words">{tour.description}</p>
               </div>
 
               {/* Pricing Table */}
@@ -130,7 +130,7 @@ export default async function TourDetailPage({ params }: Props) {
               </div>
 
               {/* Itinerary */}
-              <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+              <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm overflow-hidden">
                 <h2 className="text-xl font-bold text-slate-900 mb-6">Itinerary</h2>
                 <ol className="space-y-4">
                   {tour.itinerary.map((item, idx) => (
@@ -138,11 +138,11 @@ export default async function TourDetailPage({ params }: Props) {
                       <span className="w-8 h-8 bg-gradient-to-br from-coral/20 to-mango/20 text-coral rounded-full flex items-center justify-center text-sm font-bold shrink-0">
                         {idx + 1}
                       </span>
-                      <div className="pt-1">
+                      <div className="pt-1 min-w-0 flex-1">
                         {item.time && (
                           <span className="text-sm text-coral font-medium">{item.time} &mdash; </span>
                         )}
-                        <span className="text-slate-700">{item.activity}</span>
+                        <span className="text-slate-700 break-words">{item.activity}</span>
                       </div>
                     </li>
                   ))}
