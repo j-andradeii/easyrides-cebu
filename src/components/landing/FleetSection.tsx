@@ -5,7 +5,7 @@ const vehicles = [
     capacity: '5-seater',
     rate: 1500,
     features: ['Air Conditioned', 'Automatic Transmission', 'Fuel Efficient', 'City-friendly'],
-    image: '/images/sedan-placeholder.jpg',
+    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/vios.png',
     popular: false,
   },
   {
@@ -14,7 +14,7 @@ const vehicles = [
     capacity: '7-seater',
     rate: 2500,
     features: ['Air Conditioned', 'Automatic Transmission', 'Spacious Interior', 'Family-friendly'],
-    image: '/images/suv-placeholder.jpg',
+    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/suv.png',
     popular: true,
   },
   {
@@ -23,7 +23,7 @@ const vehicles = [
     capacity: '15-seater',
     rate: 3500,
     features: ['Air Conditioned', 'Group Travel', 'Luggage Space', 'Tour-ready'],
-    image: '/images/van-placeholder.jpg',
+    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/van.png',
     popular: false,
   },
 ];
@@ -69,25 +69,14 @@ export function FleetSection() {
                 </div>
               )}
 
-              {/* Vehicle Image Placeholder */}
+              {/* Vehicle Image */}
               <div className="h-48 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-white/50 to-transparent" />
-                <div className="text-center relative z-10 group-hover:scale-110 transition-transform duration-500">
-                  <svg
-                    className="w-24 h-24 text-slate-300 mx-auto mb-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2M6.343 6.343l1.414 1.414m8.486 8.486l1.414 1.414M6.343 17.657l1.414-1.414m8.486-8.486l1.414-1.414"
-                    />
-                  </svg>
-                  <span className="text-sm text-slate-400 font-medium">{vehicle.type}</span>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-white/50 to-transparent z-10" />
+                <img
+                  src={vehicle.image}
+                  alt={vehicle.type}
+                  className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+                />
               </div>
 
               {/* Content */}
