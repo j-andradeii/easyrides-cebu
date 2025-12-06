@@ -107,24 +107,24 @@ export default async function TourDetailPage({ params }: Props) {
               </div>
 
               {/* Pricing Table */}
-              <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-900 mb-4">Pricing</h2>
                 <p className="text-sm text-slate-500 mb-4">All-inclusive rates with vehicle, driver/guide, and fuel</p>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
-                    <div className="text-sm text-slate-500 mb-1">Sedan</div>
-                    <div className="text-2xl font-bold text-slate-900">₱{tour.pricing.sedan.price.toLocaleString()}</div>
-                    <div className="text-xs text-slate-400">{tour.pricing.sedan.capacity}</div>
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="text-center p-2 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
+                    <div className="text-xs sm:text-sm text-slate-500 mb-1">Sedan</div>
+                    <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.sedan.price.toLocaleString()}</div>
+                    <div className="text-[10px] sm:text-xs text-slate-400">{tour.pricing.sedan.capacity}</div>
                   </div>
-                  <div className="text-center p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
-                    <div className="text-sm text-slate-500 mb-1">SUV</div>
-                    <div className="text-2xl font-bold text-slate-900">₱{tour.pricing.suv.price.toLocaleString()}</div>
-                    <div className="text-xs text-slate-400">{tour.pricing.suv.capacity}</div>
+                  <div className="text-center p-2 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
+                    <div className="text-xs sm:text-sm text-slate-500 mb-1">SUV</div>
+                    <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.suv.price.toLocaleString()}</div>
+                    <div className="text-[10px] sm:text-xs text-slate-400">{tour.pricing.suv.capacity}</div>
                   </div>
-                  <div className="text-center p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
-                    <div className="text-sm text-slate-500 mb-1">Van</div>
-                    <div className="text-2xl font-bold text-slate-900">₱{tour.pricing.van.price.toLocaleString()}</div>
-                    <div className="text-xs text-slate-400">{tour.pricing.van.capacity}</div>
+                  <div className="text-center p-2 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
+                    <div className="text-xs sm:text-sm text-slate-500 mb-1">Van</div>
+                    <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.van.price.toLocaleString()}</div>
+                    <div className="text-[10px] sm:text-xs text-slate-400">{tour.pricing.van.capacity}</div>
                   </div>
                 </div>
               </div>
