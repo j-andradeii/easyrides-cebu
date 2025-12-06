@@ -75,6 +75,9 @@ export function FleetSection() {
                 <img
                   src={vehicle.image}
                   alt={vehicle.type}
+                  width={400}
+                  height={200}
+                  loading="eager"
                   className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
