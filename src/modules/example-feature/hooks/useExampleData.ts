@@ -27,7 +27,7 @@ export function useExampleData(id: string) {
         setIsLoading(true);
         setError(null);
         const result = await exampleService.getById(id);
-        setData(result.data);
+        setData(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
       } finally {

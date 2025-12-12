@@ -5,7 +5,7 @@
  * Uses the base API client for HTTP requests
  */
 
-import { apiClient, ApiResponse } from '@/services/api-client';
+import { apiClient } from '@/services/api-client';
 
 interface ExampleItem {
   id: string;
@@ -31,39 +31,40 @@ class ExampleService {
   /**
    * Get all items
    */
-  async getAll(): Promise<ApiResponse<ExampleItem[]>> {
-    return apiClient.get<ExampleItem[]>(this.basePath);
+  async getAll(): Promise<ExampleItem[]> {
+    const response = await apiClient.get(this.basePath);
+    return response.json();
   }
 
   /**
    * Get item by ID
    */
-  async getById(id: string): Promise<ApiResponse<ExampleItem>> {
-    return apiClient.get<ExampleItem>(`${this.basePath}/${id}`);
+  async getById(id: string): Promise<ExampleItem> {
+    const response = await apiClient.get(`${this.basePath}/${id}`);
+    return response.json();
   }
 
   /**
    * Create new item
    */
-  async create(data: CreateExampleDto): Promise<ApiResponse<ExampleItem>> {
-    return apiClient.post<ExampleItem>(this.basePath, data);
+  async create(data: CreateExampleDto): Promise<ExampleItem> {
+    const response = await apiClient.post(this.basePath, data);
+    return response.json();
   }
 
   /**
    * Update item
    */
-  async update(
-    id: string,
-    data: UpdateExampleDto
-  ): Promise<ApiResponse<ExampleItem>> {
-    return apiClient.patch<ExampleItem>(`${this.basePath}/${id}`, data);
+  async update(id: string, data: UpdateExampleDto): Promise<ExampleItem> {
+    const response = await apiClient.patch(`${this.basePath}/${id}`, data);
+    return response.json();
   }
 
   /**
    * Delete item
    */
-  async delete(id: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<void>(`${this.basePath}/${id}`);
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`${this.basePath}/${id}`);
   }
 }
 

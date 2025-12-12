@@ -7,3 +7,4 @@
 export * from './user.store';
 export * from './resettable.store';
 export * from './event.store';
+export * from './loading-bar.store';

@@ -18,10 +18,12 @@ interface User {
 interface UserState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
 
   // Actions
-  setUser: (user: User, token: string) => void;
+  setUser: (user: User, token: string, refreshToken?: string) => void;
+  setTokens: (token: string, refreshToken: string) => void;
   clearUser: () => void;
   updateUser: (updates: Partial<User>) => void;
 }
@@ -31,19 +33,28 @@ export const useUserStore = create<UserState>()(
     (set) => ({
       user: null,
       token: null,
+      refreshToken: null,
       isAuthenticated: false,
 
-      setUser: (user, token) =>
+      setUser: (user, token, refreshToken) =>
         set({
           user,
           token,
+          refreshToken: refreshToken || null,
           isAuthenticated: true,
+        }),
+
+      setTokens: (token, refreshToken) =>
+        set({
+          token,
+          refreshToken,
         }),
 
       clearUser: () =>
         set({
           user: null,
           token: null,
+          refreshToken: null,
           isAuthenticated: false,
         }),
 

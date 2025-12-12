@@ -2,11 +2,15 @@
  * API Client Service
  *
  * Fetch API wrapper with interceptors, token management, and error handling
- * Emits events for API calls that can be subscribed to by components
+ * Similar to Axios interceptor pattern but using native fetch
  */
 
-import { useEventStore } from '@/stores/event.store';
+import { useLoadingBarStore } from '@/stores/loading-bar.store';
 import { useUserStore } from '@/stores/user.store';
+import { useEventStore } from '@/stores/event.store';
+import { config } from '@/core/config';
+
+// --- Types ---
 
 export interface ApiResponse<T = unknown> {
   data: T;
@@ -21,195 +25,206 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
-class ApiClient {
-  private baseURL: string;
+export interface FetchOptions extends Omit<RequestInit, 'body'> {
+  skipAuth?: boolean;
+  body?: unknown;
+}
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '') {
-    this.baseURL = baseURL;
+interface RetryConfig {
+  endpoint: string;
+  options?: FetchOptions;
+}
+
+// --- Store Actions (outside React components) ---
+
+const { incrementRequests, decrementRequests } = useLoadingBarStore.getState();
+
+// --- Request Interceptor Logic ---
+
+const buildHeaders = (options?: FetchOptions): HeadersInit => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Accept-Language': 'en',
+    ...(options?.headers as Record<string, string>),
+  };
+
+  return headers;
+};
+
+const buildUrl = (endpoint: string): string => {
+  const baseUrl = config.api.url;
+  // Remove leading slash if present to avoid double slashes
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  return `${baseUrl}/${cleanEndpoint}`;
+};
+
+// --- Response Interceptor Logic ---
+
+const handleSuccessResponse = (response: Response): Response => {
+  return response;
+};
+
+const handleErrorResponse = async (
+  response: Response,
+  endpoint: string
+): Promise<ApiError> => {
+  const eventStore = useEventStore.getState();
+  let errorData: unknown;
+
+  try {
+    errorData = await response.json();
+  } catch {
+    errorData = { message: response.statusText };
   }
 
-  /**
-   * Request interceptor - adds auth token and headers
-   */
-  private async buildRequest(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<Request> {
-    const url = `${this.baseURL}${endpoint}`;
-    const token = useUserStore.getState().token;
+  const error: ApiError = {
+    message: (errorData as { message?: string })?.message || 'An error occurred',
+    status: response.status,
+    statusText: response.statusText,
+    errors: (errorData as { errors?: Record<string, string[]> })?.errors,
+  };
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>),
-    };
+  // Emit error event
+  eventStore.emit({
+    type: 'API_ERROR',
+    status: 'error',
+    message: error.message,
+    metadata: {
+      endpoint,
+      status: response.status,
+      errors: error.errors,
+    },
+  });
 
-    // Add authorization token if available
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+  return error;
+};
 
-    return new Request(url, {
+// --- Token Refresh Logic ---
+
+const refreshToken = async (): Promise<{ token: string; refresh_token: string } | null> => {
+  const userStore = useUserStore.getState();
+  const currentRefreshToken = userStore.refreshToken;
+
+  if (!currentRefreshToken) return null;
+
+  try {
+    const response = await fetch(buildUrl('token/refresh'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ refresh_token: currentRefreshToken }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    return data?.data;
+  } catch {
+    return null;
+  }
+};
+
+const handleTokenRefresh = async (
+  retryConfig: RetryConfig
+): Promise<Response> => {
+  const userStore = useUserStore.getState();
+  const tokens = await refreshToken();
+
+  if (!tokens?.token) {
+    userStore.clearUser();
+    throw { message: 'Session expired. Please login again.', status: 401 } as ApiError;
+  }
+
+  // Update tokens in store
+  userStore.setTokens(tokens.token, tokens.refresh_token);
+
+  // Retry original request with new token
+  return makeRequest(retryConfig.endpoint, {
+    ...retryConfig.options,
+    headers: {
+      ...retryConfig.options?.headers,
+      Authorization: `Bearer ${tokens.token}`,
+    },
+  });
+};
+
+// --- Core Request Function ---
+
+const makeRequest = async (
+  endpoint: string,
+  options?: FetchOptions
+): Promise<Response> => {
+  incrementRequests();
+
+  try {
+    const url = buildUrl(endpoint);
+    const headers = buildHeaders(options);
+    const body = options?.body ? JSON.stringify(options.body) : undefined;
+
+    const response = await fetch(url, {
       ...options,
       headers,
-    });
-  }
-
-  /**
-   * Response interceptor - handles response and emits events
-   */
-  private async handleResponse<T>(
-    response: Response,
-    endpoint: string
-  ): Promise<ApiResponse<T>> {
-    const eventStore = useEventStore.getState();
-
-    // Handle successful response
-    if (response.ok) {
-      const data = await response.json();
-
-      // Emit success event
-      eventStore.emit({
-        type: 'API_SUCCESS',
-        status: 'success',
-        message: `Request to ${endpoint} successful`,
-        metadata: { endpoint, status: response.status },
-      });
-
-      return {
-        data,
-        status: response.status,
-        statusText: response.statusText,
-      };
-    }
-
-    // Handle error response
-    const error = await this.handleError(response, endpoint);
-    throw error;
-  }
-
-  /**
-   * Error handler - processes errors and emits error events
-   */
-  private async handleError(
-    response: Response,
-    endpoint: string
-  ): Promise<ApiError> {
-    const eventStore = useEventStore.getState();
-    let errorData: unknown;
-
-    try {
-      errorData = await response.json();
-    } catch {
-      errorData = { message: response.statusText };
-    }
-
-    const error: ApiError = {
-      message:
-        (errorData as { message?: string })?.message ||
-        'An error occurred',
-      status: response.status,
-      statusText: response.statusText,
-      errors: (errorData as { errors?: Record<string, string[]> })?.errors,
-    };
-
-    // Emit error event
-    eventStore.emit({
-      type: 'API_ERROR',
-      status: 'error',
-      message: error.message,
-      metadata: {
-        endpoint,
-        status: response.status,
-        errors: error.errors,
-      },
+      body,
     });
 
-    // Handle 401 Unauthorized - clear user session
+    // Handle 401 with "Expired JWT Token" message
     if (response.status === 401) {
+      const clonedResponse = response.clone();
+      let errorData: { message?: string } = {};
+
+      try {
+        errorData = await clonedResponse.json();
+      } catch {
+        // Ignore parse error
+      }
+
+      if (errorData.message === 'Expired JWT Token') {
+        decrementRequests();
+        return handleTokenRefresh({ endpoint, options });
+      }
+
+      // For other 401 errors, clear user session
       useUserStore.getState().clearUser();
     }
 
-    return error;
+    decrementRequests();
+
+    if (!response.ok) {
+      const error = await handleErrorResponse(response, endpoint);
+      throw error;
+    }
+
+    return handleSuccessResponse(response);
+  } catch (error) {
+    decrementRequests();
+    throw error;
+  }
+};
+
+// --- API Client Class ---
+
+class ApiClient {
+  async get(endpoint: string, options?: FetchOptions): Promise<Response> {
+    return makeRequest(endpoint, { ...options, method: 'GET' });
   }
 
-  /**
-   * GET request
-   */
-  async get<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const request = await this.buildRequest(endpoint, {
-      ...options,
-      method: 'GET',
-    });
-
-    const response = await fetch(request);
-    return this.handleResponse<T>(response, endpoint);
+  async post(endpoint: string, body?: unknown, options?: FetchOptions): Promise<Response> {
+    return makeRequest(endpoint, { ...options, method: 'POST', body });
   }
 
-  /**
-   * POST request
-   */
-  async post<T>(
-    endpoint: string,
-    body?: unknown,
-    options?: RequestInit
-  ): Promise<ApiResponse<T>> {
-    const request = await this.buildRequest(endpoint, {
-      ...options,
-      method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    const response = await fetch(request);
-    return this.handleResponse<T>(response, endpoint);
+  async put(endpoint: string, body?: unknown, options?: FetchOptions): Promise<Response> {
+    return makeRequest(endpoint, { ...options, method: 'PUT', body });
   }
 
-  /**
-   * PUT request
-   */
-  async put<T>(
-    endpoint: string,
-    body?: unknown,
-    options?: RequestInit
-  ): Promise<ApiResponse<T>> {
-    const request = await this.buildRequest(endpoint, {
-      ...options,
-      method: 'PUT',
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    const response = await fetch(request);
-    return this.handleResponse<T>(response, endpoint);
+  async patch(endpoint: string, body?: unknown, options?: FetchOptions): Promise<Response> {
+    return makeRequest(endpoint, { ...options, method: 'PATCH', body });
   }
 
-  /**
-   * PATCH request
-   */
-  async patch<T>(
-    endpoint: string,
-    body?: unknown,
-    options?: RequestInit
-  ): Promise<ApiResponse<T>> {
-    const request = await this.buildRequest(endpoint, {
-      ...options,
-      method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    const response = await fetch(request);
-    return this.handleResponse<T>(response, endpoint);
-  }
-
-  /**
-   * DELETE request
-   */
-  async delete<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const request = await this.buildRequest(endpoint, {
-      ...options,
-      method: 'DELETE',
-    });
-
-    const response = await fetch(request);
-    return this.handleResponse<T>(response, endpoint);
+  async delete(endpoint: string, options?: FetchOptions): Promise<Response> {
+    return makeRequest(endpoint, { ...options, method: 'DELETE' });
   }
 }
 
