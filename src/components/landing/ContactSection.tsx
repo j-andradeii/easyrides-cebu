@@ -194,7 +194,7 @@ export function ContactSection() {
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
               <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+                <div className="space-y-3">
                   {/* Name & Email */}
                   <div className="grid sm:grid-cols-2 gap-3">
                     <FormInput
@@ -286,9 +286,10 @@ export function ContactSection() {
                     className="w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 px-6 rounded-xl font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5 border-0 submit-button"
                     label={isSubmitting ? 'Sending...' : 'Send Inquiry'}
                     icon={isSubmitting ? 'pi pi-spin pi-spinner' : 'pi pi-send'}
+                    onClick={handleSubmit(onSubmit)}
                     iconPos="right"
                   />
-                </form>
+                </div>
               </FormProvider>
             </div>
           </div>
