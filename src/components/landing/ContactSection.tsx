@@ -8,6 +8,10 @@ import { Button } from 'primereact/button';
 import { FormInput, FormSelect, FormTextarea, FormCheckbox, FormCalendar, FormPhoneInput } from '@/components';
 import { FORM_CONST } from '@/core/constants';
 import FORM_MESSAGES from '@/core/form-messages';
+import * as queryService from "@/services/query.service";
+import { useApiEventStore } from '@/stores';
+import { ApiEvent, ApiEventStatus, ApiEventType } from '@/models/api-event';
+
 
 type Toast = {
   message: string;
@@ -60,6 +64,8 @@ const vehicleOptions = [
 
 export function ContactSection() {
   const [toast, setToast] = useState<Toast>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const apiEventStore = useApiEventStore();
 
   useEffect(() => {
     if (toast) {
@@ -89,10 +95,63 @@ export function ContactSection() {
     reset,
     setValue,
     watch,
-    formState: { isSubmitting },
   } = methods;
 
   const addDriver = watch('addDriver');
+
+  useEffect(()=>{
+        const cleanup = getApiEvents();
+        return () => {
+            cleanup();
+        };
+  }, []);
+
+
+  const getApiEvents = () => {
+        const unsubscribe = apiEventStore.subscribe((event) => {
+            if (!event) return;
+            // Use the factory pattern to handle different event statuses
+            const eventStatusHandleMap = createEventStatusHandleMap(event);
+            const handleEvent = eventStatusHandleMap[event.status] || (() => {});
+            handleEvent();
+          });
+          return () => {
+            unsubscribe(); 
+          };
+  }
+
+
+  const createEventStatusHandleMap = (
+        apiEvent: ApiEvent, 
+      ): { [key in ApiEventStatus]?: () => void } => {
+        return {
+          [ApiEventStatus.COMPLETED]: () => {
+            const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+              [ApiEventType.SUBMIT_QUERY]: async () => {
+                  setIsSubmitting(false);
+                  setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
+                  reset();
+              },
+            };
+            const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+            handleEventType();
+          },
+          [ApiEventStatus.ERROR]: () => {
+            const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+              [ApiEventType.SUBMIT_QUERY]: async () => {
+                  setIsSubmitting(false);
+                  setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
+              },
+            };
+            const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+            handleEventType();
+          },
+          [ApiEventStatus.IN_PROGRESS]: () => {
+          },
+          [ApiEventStatus.DEFAULT]: () => {
+          }
+        };
+    };
 
   // Listen for add driver event from DriverBanner
   useEffect(() => {
@@ -107,29 +166,13 @@ export function ContactSection() {
   }, [setValue]);
 
   const onSubmit = async (data: ContactFormData) => {
-    try {
+      setIsSubmitting(true);
       const fullPhone = `${data.countryCode}${data.phone}`;
-      const response = await fetch('/api/submit-booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
+      queryService.submitQuery({...data,
           phone: fullPhone,
           preferredDate: data.preferredDate?.toISOString(),
-          source: 'contact-form',
-        }),
-      });
-
-      if (response.ok) {
-        setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
-        reset();
-      } else {
-        setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
-      }
-    } catch {
-      setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
-    }
-  };
+          source: 'contact-form'})
+};
 
   return (
     <section id="contact" className="py-24 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
@@ -194,7 +237,7 @@ export function ContactSection() {
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
               <FormProvider {...methods}>
-                <div className="space-y-3">
+                <div  className="space-y-4">
                   {/* Name & Email */}
                   <div className="grid sm:grid-cols-2 gap-3">
                     <FormInput
@@ -286,8 +329,8 @@ export function ContactSection() {
                     className="w-full bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark disabled:from-coral/70 disabled:to-mango/70 text-white py-4 px-6 rounded-xl font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:-translate-y-0.5 border-0 submit-button"
                     label={isSubmitting ? 'Sending...' : 'Send Inquiry'}
                     icon={isSubmitting ? 'pi pi-spin pi-spinner' : 'pi pi-send'}
-                    onClick={handleSubmit(onSubmit)}
                     iconPos="right"
+                    onClick={handleSubmit(onSubmit)}
                   />
                 </div>
               </FormProvider>

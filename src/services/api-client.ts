@@ -7,8 +7,9 @@
 
 import { useLoadingBarStore } from '@/stores/loading-bar.store';
 import { useUserStore } from '@/stores/user.store';
-import { useEventStore } from '@/stores/event.store';
 import { config } from '@/core/config';
+import { useApiEventStore } from '@/stores';
+import { ApiEventType } from '@/models/api-event';
 
 // --- Types ---
 
@@ -53,7 +54,7 @@ const buildHeaders = (options?: FetchOptions): HeadersInit => {
 };
 
 const buildUrl = (endpoint: string): string => {
-  const baseUrl = config.api.url;
+  const baseUrl = config.app.url;
   // Remove leading slash if present to avoid double slashes
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
   return `${baseUrl}/${cleanEndpoint}`;
@@ -69,7 +70,7 @@ const handleErrorResponse = async (
   response: Response,
   endpoint: string
 ): Promise<ApiError> => {
-  const eventStore = useEventStore.getState();
+  // const eventStore = useApiEventStore.getState();
   let errorData: unknown;
 
   try {
@@ -86,16 +87,16 @@ const handleErrorResponse = async (
   };
 
   // Emit error event
-  eventStore.emit({
-    type: 'API_ERROR',
-    status: 'error',
-    message: error.message,
-    metadata: {
-      endpoint,
-      status: response.status,
-      errors: error.errors,
-    },
-  });
+  // eventStore.sendEvent({
+  //   type: ApiEventType.DEFAULT,
+  //   status: 'error',
+  //   message: error.message,
+  //   metadata: {
+  //     endpoint,
+  //     status: response.status,
+  //     errors: error.errors,
+  //   },
+  // });
 
   return error;
 };
