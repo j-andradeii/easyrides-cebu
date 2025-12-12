@@ -8,8 +8,6 @@
 import { useLoadingBarStore } from '@/stores/loading-bar.store';
 import { useUserStore } from '@/stores/user.store';
 import { config } from '@/core/config';
-import { useApiEventStore } from '@/stores';
-import { ApiEventType } from '@/models/api-event';
 
 // --- Types ---
 
@@ -67,10 +65,8 @@ const handleSuccessResponse = (response: Response): Response => {
 };
 
 const handleErrorResponse = async (
-  response: Response,
-  endpoint: string
+  response: Response
 ): Promise<ApiError> => {
-  // const eventStore = useApiEventStore.getState();
   let errorData: unknown;
 
   try {
@@ -85,18 +81,6 @@ const handleErrorResponse = async (
     statusText: response.statusText,
     errors: (errorData as { errors?: Record<string, string[]> })?.errors,
   };
-
-  // Emit error event
-  // eventStore.sendEvent({
-  //   type: ApiEventType.DEFAULT,
-  //   status: 'error',
-  //   message: error.message,
-  //   metadata: {
-  //     endpoint,
-  //     status: response.status,
-  //     errors: error.errors,
-  //   },
-  // });
 
   return error;
 };
@@ -194,7 +178,7 @@ const makeRequest = async (
     decrementRequests();
 
     if (!response.ok) {
-      const error = await handleErrorResponse(response, endpoint);
+      const error = await handleErrorResponse(response);
       throw error;
     }
 

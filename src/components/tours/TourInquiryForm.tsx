@@ -15,6 +15,9 @@ import { Button } from 'primereact/button';
 import { FormInput, FormSelect, FormTextarea, FormCalendar, FormPhoneInput } from '@/components';
 import { FORM_CONST } from '@/core/constants';
 import FORM_MESSAGES from '@/core/form-messages';
+import * as queryService from '@/services/query.service';
+import { useApiEventStore } from '@/stores';
+import { ApiEvent, ApiEventStatus, ApiEventType } from '@/models/api-event';
 
 type Toast = {
   message: string;
@@ -70,6 +73,8 @@ interface TourInquiryFormProps {
 
 export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
   const [toast, setToast] = useState<Toast>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const apiEventStore = useApiEventStore();
   const defaultMessage = `I am interested in booking the "${tourTitle}" tour. Please provide more information about availability and pricing.`;
 
   useEffect(() => {
@@ -78,6 +83,62 @@ export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  useEffect(() => {
+    const cleanup = getApiEvents();
+    return () => {
+      cleanup();
+    };
+  }, []);
+
+  const getApiEvents = () => {
+    const unsubscribe = apiEventStore.subscribe((event) => {
+      if (!event) return;
+      const eventStatusHandleMap = createEventStatusHandleMap(event);
+      const handleEvent = eventStatusHandleMap[event.status] || (() => {});
+      handleEvent();
+    });
+    return () => {
+      unsubscribe();
+    };
+  };
+
+  const createEventStatusHandleMap = (
+    apiEvent: ApiEvent
+  ): { [key in ApiEventStatus]?: () => void } => {
+    return {
+      [ApiEventStatus.COMPLETED]: () => {
+        const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+          [ApiEventType.SUBMIT_QUERY]: async () => {
+            setIsSubmitting(false);
+            setToast({ message: 'Thank you! We will contact you shortly with tour details.', type: 'success' });
+            reset({
+              ...methods.getValues(),
+              fullName: '',
+              email: '',
+              phone: '',
+              preferredDate: undefined,
+              message: defaultMessage,
+            });
+          },
+        };
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+        handleEventType();
+      },
+      [ApiEventStatus.ERROR]: () => {
+        const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+          [ApiEventType.SUBMIT_QUERY]: async () => {
+            setIsSubmitting(false);
+            setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
+          },
+        };
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+        handleEventType();
+      },
+      [ApiEventStatus.IN_PROGRESS]: () => {},
+      [ApiEventStatus.DEFAULT]: () => {},
+    };
+  };
 
   const methods = useForm<TourInquiryFormData>({
     resolver: zodResolver(tourInquirySchema),
@@ -95,43 +156,18 @@ export function TourInquiryForm({ tourTitle }: TourInquiryFormProps) {
     },
   });
 
-  const {
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = methods;
+  const { handleSubmit, reset } = methods;
 
   const onSubmit = async (data: TourInquiryFormData) => {
-    try {
-      const fullPhone = `${data.countryCode}${data.phone}`;
-      const response = await fetch('/api/submit-booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          phone: fullPhone,
-          preferredDate: data.preferredDate?.toISOString(),
-          source: 'tour-inquiry',
-          tourTitle,
-        }),
-      });
-
-      if (response.ok) {
-        setToast({ message: 'Thank you! We will contact you shortly with tour details.', type: 'success' });
-        reset({
-          ...methods.getValues(),
-          fullName: '',
-          email: '',
-          phone: '',
-          preferredDate: undefined,
-          message: defaultMessage,
-        });
-      } else {
-        setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
-      }
-    } catch {
-      setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
-    }
+    setIsSubmitting(true);
+    const fullPhone = `${data.countryCode}${data.phone}`;
+    queryService.submitQuery({
+      ...data,
+      phone: fullPhone,
+      preferredDate: data.preferredDate?.toISOString(),
+      source: 'tour-inquiry',
+      tourTitle,
+    });
   };
 
   return (

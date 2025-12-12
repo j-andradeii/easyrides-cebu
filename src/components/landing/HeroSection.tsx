@@ -5,6 +5,9 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FormSelect, FormCalendar, FormCheckbox, FormPhoneInput } from '@/components';
+import * as queryService from '@/services/query.service';
+import { useApiEventStore } from '@/stores';
+import { ApiEvent, ApiEventStatus, ApiEventType } from '@/models/api-event';
 
 const serviceTypes = ['car-rental', 'airport-transfer', 'tour'] as const;
 const vehicleTypes = ['sedan', 'suv', 'van'] as const;
@@ -34,6 +37,7 @@ type Toast = {
 export function HeroSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
+  const apiEventStore = useApiEventStore();
 
   const methods = useForm<HeroFormData>({
     resolver: zodResolver(heroFormSchema),
@@ -56,34 +60,66 @@ export function HeroSection() {
     }
   }, [toast]);
 
+  useEffect(() => {
+    const cleanup = getApiEvents();
+    return () => {
+      cleanup();
+    };
+  }, []);
+
+  const getApiEvents = () => {
+    const unsubscribe = apiEventStore.subscribe((event) => {
+      if (!event) return;
+      const eventStatusHandleMap = createEventStatusHandleMap(event);
+      const handleEvent = eventStatusHandleMap[event.status] || (() => {});
+      handleEvent();
+    });
+    return () => {
+      unsubscribe();
+    };
+  };
+
+  const createEventStatusHandleMap = (
+    apiEvent: ApiEvent
+  ): { [key in ApiEventStatus]?: () => void } => {
+    return {
+      [ApiEventStatus.COMPLETED]: () => {
+        const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+          [ApiEventType.SUBMIT_QUERY]: async () => {
+            setIsSubmitting(false);
+            setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
+            methods.reset();
+          },
+        };
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+        handleEventType();
+      },
+      [ApiEventStatus.ERROR]: () => {
+        const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+          [ApiEventType.SUBMIT_QUERY]: async () => {
+            setIsSubmitting(false);
+            setToast({ message: 'Something went wrong. Please try again or call us directly.', type: 'error' });
+          },
+        };
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+        handleEventType();
+      },
+      [ApiEventStatus.IN_PROGRESS]: () => {},
+      [ApiEventStatus.DEFAULT]: () => {},
+    };
+  };
+
   const handleQuickBooking = async (data: HeroFormData) => {
     setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/submit-booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          serviceType: data.serviceType,
-          vehicleType: data.serviceType === 'car-rental' ? data.vehicleType : undefined,
-          preferredDate: data.pickupDate?.toISOString(),
-          phone: `${data.countryCode}${data.phone}`,
-          addDriver: data.addDriver,
-          source: 'hero-quick-form',
-        }),
-      });
-
-      if (response.ok) {
-        setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
-        methods.reset();
-      } else {
-        setToast({ message: 'Something went wrong. Please try again or call us directly.', type: 'error' });
-      }
-    } catch {
-      setToast({ message: 'Something went wrong. Please try again or call us directly.', type: 'error' });
-    } finally {
-      setIsSubmitting(false);
-    }
+    const fullPhone = `${data.countryCode}${data.phone}`;
+    queryService.submitQuery({
+      serviceType: data.serviceType,
+      vehicleType: data.serviceType === 'car-rental' ? data.vehicleType : undefined,
+      preferredDate: data.pickupDate?.toISOString(),
+      phone: fullPhone,
+      addDriver: data.addDriver,
+      source: 'hero-quick-form',
+    });
   };
 
   return (
