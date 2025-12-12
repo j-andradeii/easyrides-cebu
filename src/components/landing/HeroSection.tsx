@@ -29,14 +29,8 @@ const vehicleOptions = [
   { value: 'van', label: 'Van (15-seater) - ₱3,500/day' },
 ];
 
-type Toast = {
-  message: string;
-  type: 'success' | 'error';
-} | null;
-
 export function HeroSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [toast, setToast] = useState<Toast>(null);
   const apiEventStore = useApiEventStore();
 
   const methods = useForm<HeroFormData>({
@@ -52,13 +46,6 @@ export function HeroSection() {
   });
 
   const serviceType = methods.watch('serviceType');
-
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
 
   useEffect(() => {
     const cleanup = getApiEvents();
@@ -87,7 +74,6 @@ export function HeroSection() {
         const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
           [ApiEventType.SUBMIT_QUERY]: async () => {
             setIsSubmitting(false);
-            setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
             methods.reset();
           },
         };
@@ -98,7 +84,6 @@ export function HeroSection() {
         const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
           [ApiEventType.SUBMIT_QUERY]: async () => {
             setIsSubmitting(false);
-            setToast({ message: 'Something went wrong. Please try again or call us directly.', type: 'error' });
           },
         };
         const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
@@ -124,40 +109,6 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-x-hidden">
-      {/* Toast Notification */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
-              toast.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}
-          >
-            {toast.type === 'success' ? (
-              <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-            <p className="text-sm font-medium">{toast.message}</p>
-            <button
-              onClick={() => setToast(null)}
-              className={`ml-2 p-1 rounded-full transition-colors ${
-                toast.type === 'success' ? 'hover:bg-green-100' : 'hover:bg-red-100'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Background Gradient - Warm Tropical */}
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-cream-light to-papaya-light/30" />
 
