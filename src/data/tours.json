@@ -5,30 +5,70 @@
       "title": "City & Uphill Tour",
       "shortDescription": "Explore Cebu City's historical landmarks and scenic highland viewpoints in this comprehensive 8-hour tour.",
       "description": "Experience the best of Cebu City with our City & Uphill Tour. Visit iconic landmarks including the Temple of Leah, Sirao Flower Garden, and Tops Busay for panoramic views. Explore historical sites like Fort San Pedro, Sto. Nino Church, and Magellan's Cross. This tour combines cultural heritage with natural beauty for an unforgettable Cebu experience.",
-      "image": "/images/tours/city-tour.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/city_tour.png",
       "duration": "8 hours",
       "featured": true,
       "pricing": {
-        "sedan": { "price": 3500, "capacity": "1-3 pax" },
-        "suv": { "price": 4500, "capacity": "4-6 pax" },
-        "van": { "price": 6000, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 3500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 4500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 6000,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "8:00 AM", "activity": "Pickup at Airport or Hotel Cebu City" },
-        { "activity": "Sirao Flower Garden" },
-        { "activity": "Tops Busay" },
-        { "activity": "La Vie In The Sky" },
-        { "activity": "Temple of Leah" },
-        { "activity": "Taoist Temple" },
-        { "activity": "Lunch at House of Lechon" },
-        { "activity": "Heritage Park" },
-        { "activity": "San Diego Ancestral House" },
-        { "activity": "Fort San Pedro" },
-        { "activity": "Sto Nino Church & Magellan's Cross" },
-        { "activity": "Tabuan Pasalubong" },
-        { "activity": "10,000 Roses (Optional - Additional P1,000/group)" },
-        { "activity": "Bookchigo Cebu" },
-        { "activity": "Dropoff at Airport or Hotels Cebu City" }
+        {
+          "time": "8:00 AM",
+          "activity": "Pickup at Airport or Hotel Cebu City"
+        },
+        {
+          "activity": "Sirao Flower Garden"
+        },
+        {
+          "activity": "Tops Busay"
+        },
+        {
+          "activity": "La Vie In The Sky"
+        },
+        {
+          "activity": "Temple of Leah"
+        },
+        {
+          "activity": "Taoist Temple"
+        },
+        {
+          "activity": "Lunch at House of Lechon"
+        },
+        {
+          "activity": "Heritage Park"
+        },
+        {
+          "activity": "San Diego Ancestral House"
+        },
+        {
+          "activity": "Fort San Pedro"
+        },
+        {
+          "activity": "Sto Nino Church & Magellan's Cross"
+        },
+        {
+          "activity": "Tabuan Pasalubong"
+        },
+        {
+          "activity": "10,000 Roses (Optional - Additional P1,000/group)"
+        },
+        {
+          "activity": "Bookchigo Cebu"
+        },
+        {
+          "activity": "Dropoff at Airport or Hotels Cebu City"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -49,24 +89,51 @@
       "title": "Moalboal & Canyoneering",
       "shortDescription": "Swim with sardines, watch sea turtles, and conquer thrilling canyoneering at Kawasan Falls.",
       "description": "Experience the ultimate Cebu adventure combining the marine wonders of Moalboal with the thrills of Kawasan Falls canyoneering. Swim with millions of sardines in their natural habitat, spot sea turtles at the coral garden, and challenge yourself with cliff jumps and waterfall rappelling. This action-packed tour is perfect for adventure seekers!",
-      "image": "/images/tours/moalboal.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/moalboal.png",
       "duration": "Full Day",
       "featured": true,
       "pricing": {
-        "sedan": { "price": 5500, "capacity": "1-3 pax" },
-        "suv": { "price": 6500, "capacity": "4-6 pax" },
-        "van": { "price": 7500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 5500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 6500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 7500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "activity": "Pick up at Hotel/Airport" },
-        { "activity": "Mantayupan Falls" },
-        { "activity": "Sunrise View at Barili (Stop over for Breakfast)" },
-        { "activity": "Coral Garden / School of Fish" },
-        { "activity": "Sardines Run" },
-        { "activity": "Turtle watching" },
-        { "activity": "Full Course Canyoneering (Optional)" },
-        { "activity": "Kawasan Falls" },
-        { "activity": "Drop off Cebu City or Airport" }
+        {
+          "activity": "Pick up at Hotel/Airport"
+        },
+        {
+          "activity": "Mantayupan Falls"
+        },
+        {
+          "activity": "Sunrise View at Barili (Stop over for Breakfast)"
+        },
+        {
+          "activity": "Coral Garden / School of Fish"
+        },
+        {
+          "activity": "Sardines Run"
+        },
+        {
+          "activity": "Turtle watching"
+        },
+        {
+          "activity": "Full Course Canyoneering (Optional)"
+        },
+        {
+          "activity": "Kawasan Falls"
+        },
+        {
+          "activity": "Drop off Cebu City or Airport"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -87,21 +154,43 @@
       "title": "Cebu Safari Adventure",
       "shortDescription": "Discover exotic wildlife at Cebu's premier safari and adventure park in Carmen.",
       "description": "Journey to Carmen, Cebu for an unforgettable wildlife experience at Cebu Safari Adventure Park. Get up close with exotic animals from around the world, enjoy scenic views of the Cebu highlands, and experience adventure activities. The park features diverse wildlife exhibits, bird sanctuaries, and family-friendly attractions.",
-      "image": "/images/tours/cebu-safari.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/safari.jpg",
       "duration": "Full Day",
       "featured": true,
       "pricing": {
-        "sedan": { "price": 4000, "capacity": "1-3 pax" },
-        "suv": { "price": 4500, "capacity": "4-6 pax" },
-        "van": { "price": 5500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 4000,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 4500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 5500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "6:00 AM", "activity": "Pick up at Hotel/Airport" },
-        { "activity": "2 hours travel time to Carmen" },
-        { "activity": "Cebu Safari Adventure" },
-        { "activity": "Titay's Pasalubong in Liloan" },
-        { "activity": "2 hours back to Cebu" },
-        { "activity": "Drop off Hotel/Airport" }
+        {
+          "time": "6:00 AM",
+          "activity": "Pick up at Hotel/Airport"
+        },
+        {
+          "activity": "2 hours travel time to Carmen"
+        },
+        {
+          "activity": "Cebu Safari Adventure"
+        },
+        {
+          "activity": "Titay's Pasalubong in Liloan"
+        },
+        {
+          "activity": "2 hours back to Cebu"
+        },
+        {
+          "activity": "Drop off Hotel/Airport"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -120,28 +209,64 @@
       "title": "Oslob & Simala",
       "shortDescription": "Experience whale shark encounters and visit the miraculous Simala Shrine in one epic tour.",
       "description": "Start your day with an incredible whale shark encounter in Oslob, then explore the beautiful Simala Shrine. This tour combines marine adventure with spiritual experience, visiting multiple attractions in southern Cebu including the Oslob Cuartel, Monkey Sanctuary, and historic churches.",
-      "image": "/images/tours/oslob-simala.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/oslob.avif",
       "duration": "Full Day",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 5500, "capacity": "1-3 pax" },
-        "suv": { "price": 6500, "capacity": "4-6 pax" },
-        "van": { "price": 8000, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 5500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 6500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 8000,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "3:00 AM", "activity": "Pick up at Hotel/Airport" },
-        { "activity": "Sunrise viewing at Tanawan Oslob" },
-        { "activity": "Whaleshark Encounter (Optional)" },
-        { "activity": "Sumilon Island (Optional)" },
-        { "activity": "Tumalog Falls (Side Trip)" },
-        { "activity": "Oslob Cuartel" },
-        { "activity": "Monkey Sanctuary" },
-        { "activity": "Boljoon Church" },
-        { "activity": "Simala Church" },
-        { "activity": "Carcar Pasulubong" },
-        { "activity": "Carcar Lechon & Chicharon" },
-        { "activity": "Arch. Teofilo Camomot Shrine" },
-        { "activity": "Drop off Cebu City or Airport" }
+        {
+          "time": "3:00 AM",
+          "activity": "Pick up at Hotel/Airport"
+        },
+        {
+          "activity": "Sunrise viewing at Tanawan Oslob"
+        },
+        {
+          "activity": "Whaleshark Encounter (Optional)"
+        },
+        {
+          "activity": "Sumilon Island (Optional)"
+        },
+        {
+          "activity": "Tumalog Falls (Side Trip)"
+        },
+        {
+          "activity": "Oslob Cuartel"
+        },
+        {
+          "activity": "Monkey Sanctuary"
+        },
+        {
+          "activity": "Boljoon Church"
+        },
+        {
+          "activity": "Simala Church"
+        },
+        {
+          "activity": "Carcar Pasulubong"
+        },
+        {
+          "activity": "Carcar Lechon & Chicharon"
+        },
+        {
+          "activity": "Arch. Teofilo Camomot Shrine"
+        },
+        {
+          "activity": "Drop off Cebu City or Airport"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -163,27 +288,61 @@
       "title": "Cebu West Highland Tour",
       "shortDescription": "Discover the stunning West 35 Eco Mountain Resort and colorful flower gardens of Cebu.",
       "description": "Explore the beautiful highlands of western Cebu with visits to the stunning West 35 Eco Mountain Resort, Buwakan ni Alejandra flower garden, and Adventure Cafe zipline. Enjoy panoramic mountain views, colorful flower fields, and the famous Sirao Garden.",
-      "image": "/images/tours/cebu-west-highland.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/cebu_west.png",
       "duration": "Full Day",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 4500, "capacity": "1-3 pax" },
-        "suv": { "price": 5500, "capacity": "4-6 pax" },
-        "van": { "price": 6500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 4500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 5500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 6500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "8:00 AM", "activity": "Pickup at Airport or Hotel" },
-        { "activity": "West35 Eco Mountain Resort" },
-        { "activity": "Buwakan ni Alejandra" },
-        { "activity": "Adventure Cafe (zipline)" },
-        { "activity": "Charlie's Cup (coffee break)" },
-        { "activity": "Strawberry Farm de Cantipla" },
-        { "activity": "Sirao Flower Garden" },
-        { "activity": "Tops Busay" },
-        { "activity": "La Vie in the Sky" },
-        { "activity": "Temple of Leah" },
-        { "activity": "Dropoff at Hotel" },
-        { "activity": "OPTIONAL: 10,000 Roses with add-on P1000 for driver and fuel surcharge" }
+        {
+          "time": "8:00 AM",
+          "activity": "Pickup at Airport or Hotel"
+        },
+        {
+          "activity": "West35 Eco Mountain Resort"
+        },
+        {
+          "activity": "Buwakan ni Alejandra"
+        },
+        {
+          "activity": "Adventure Cafe (zipline)"
+        },
+        {
+          "activity": "Charlie's Cup (coffee break)"
+        },
+        {
+          "activity": "Strawberry Farm de Cantipla"
+        },
+        {
+          "activity": "Sirao Flower Garden"
+        },
+        {
+          "activity": "Tops Busay"
+        },
+        {
+          "activity": "La Vie in the Sky"
+        },
+        {
+          "activity": "Temple of Leah"
+        },
+        {
+          "activity": "Dropoff at Hotel"
+        },
+        {
+          "activity": "OPTIONAL: 10,000 Roses with add-on P1000 for driver and fuel surcharge"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -203,23 +362,49 @@
       "title": "Simala Shrine Visit",
       "shortDescription": "Visit the miraculous Simala Shrine and enjoy Carcar's famous lechon and chicharon.",
       "description": "Experience a spiritual journey to the famous Simala Shrine, known for its miraculous healing powers and stunning castle-like architecture. The tour includes visits to Carcar for its famous lechon and chicharon, plus the Archbishop Teofilo Camomot Shrine.",
-      "image": "/images/tours/simala-shrine.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/simala.jpg",
       "duration": "10 hours",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 3500, "capacity": "1-3 pax" },
-        "suv": { "price": 4500, "capacity": "4-6 pax" },
-        "van": { "price": 6000, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 3500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 4500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 6000,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "6:00 AM", "activity": "Pickup at Airport or Hotel" },
-        { "activity": "2hrs estimated travel time to Simala" },
-        { "activity": "Simala Shrine Visit" },
-        { "activity": "Carcar Pasalubong (chicharon)" },
-        { "activity": "Carcar Lechon (Lunch)" },
-        { "activity": "Archbishop Teofilo Camomot Shrine" },
-        { "activity": "Back to Cebu (2hrs estimated travel time)" },
-        { "activity": "Dropoff at Hotel, 10hrs Tour Duration" }
+        {
+          "time": "6:00 AM",
+          "activity": "Pickup at Airport or Hotel"
+        },
+        {
+          "activity": "2hrs estimated travel time to Simala"
+        },
+        {
+          "activity": "Simala Shrine Visit"
+        },
+        {
+          "activity": "Carcar Pasalubong (chicharon)"
+        },
+        {
+          "activity": "Carcar Lechon (Lunch)"
+        },
+        {
+          "activity": "Archbishop Teofilo Camomot Shrine"
+        },
+        {
+          "activity": "Back to Cebu (2hrs estimated travel time)"
+        },
+        {
+          "activity": "Dropoff at Hotel, 10hrs Tour Duration"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -238,29 +423,67 @@
       "title": "Simala & Mountain",
       "shortDescription": "Combine spiritual pilgrimage to Simala Shrine with scenic mountain viewpoints and heritage sites.",
       "description": "Experience the best of both worlds - spiritual enlightenment at Simala Shrine and breathtaking mountain views at Tops Busay and Temple of Leah. This comprehensive tour covers southern heritage sites and Cebu City's famous highland attractions.",
-      "image": "/images/tours/simala-mountain.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/simala.jpg",
       "duration": "Full Day",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 5500, "capacity": "1-3 pax" },
-        "suv": { "price": 6500, "capacity": "4-6 pax" },
-        "van": { "price": 7500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 5500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 6500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 7500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "5:00 AM", "activity": "Pick up at Hotel/Airport" },
-        { "activity": "Simala Shrine" },
-        { "activity": "Carcar (lechon and chicharon)" },
-        { "activity": "Sirao Garden" },
-        { "activity": "Temple of Leah" },
-        { "activity": "Tops of Cebu" },
-        { "activity": "Yap Ancestral House" },
-        { "activity": "Heritage Park" },
-        { "activity": "Magellan's Cross" },
-        { "activity": "Sto. Niño Church" },
-        { "activity": "Fort San Pedro" },
-        { "activity": "10,000 Roses (Optional) - Additional P1000 for fuel surcharge and driver" },
-        { "activity": "Cclex toll fee (90php) c/o guest" },
-        { "activity": "Bookchigo Cebu" }
+        {
+          "time": "5:00 AM",
+          "activity": "Pick up at Hotel/Airport"
+        },
+        {
+          "activity": "Simala Shrine"
+        },
+        {
+          "activity": "Carcar (lechon and chicharon)"
+        },
+        {
+          "activity": "Sirao Garden"
+        },
+        {
+          "activity": "Temple of Leah"
+        },
+        {
+          "activity": "Tops of Cebu"
+        },
+        {
+          "activity": "Yap Ancestral House"
+        },
+        {
+          "activity": "Heritage Park"
+        },
+        {
+          "activity": "Magellan's Cross"
+        },
+        {
+          "activity": "Sto. Niño Church"
+        },
+        {
+          "activity": "Fort San Pedro"
+        },
+        {
+          "activity": "10,000 Roses (Optional) - Additional P1000 for fuel surcharge and driver"
+        },
+        {
+          "activity": "Cclex toll fee (90php) c/o guest"
+        },
+        {
+          "activity": "Bookchigo Cebu"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -282,24 +505,52 @@
       "title": "Oslob-Moalboal-Kawasan",
       "shortDescription": "The ultimate Cebu adventure: whale sharks, sardines, turtles, and canyoneering in one tour!",
       "description": "Experience Cebu's most thrilling attractions in one action-packed day! Start with whale shark encounters in Oslob, snorkel with sardines and turtles in Moalboal, and finish with exhilarating canyoneering at Kawasan Falls. This is the ultimate adventure tour for thrill-seekers!",
-      "image": "/images/tours/oslob-moalboal-kawasan.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/oslob_moalboal_kawasan.png",
       "duration": "Full Day",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 7500, "capacity": "1-3 pax" },
-        "suv": { "price": 8500, "capacity": "4-6 pax" },
-        "van": { "price": 9500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 7500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 8500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 9500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "2:00 AM", "activity": "Pick up Airport or Hotels" },
-        { "activity": "Whale Shark Encounter" },
-        { "activity": "Sumilon Island (Optional)" },
-        { "activity": "Moalboal Snorkeling for Corals" },
-        { "activity": "Moalboal Sardines Run" },
-        { "activity": "Moalboal Turtle Watching" },
-        { "activity": "Full Course Canyoneering" },
-        { "activity": "Kawasan Falls" },
-        { "activity": "Drop off Cebu City or Airport" }
+        {
+          "time": "2:00 AM",
+          "activity": "Pick up Airport or Hotels"
+        },
+        {
+          "activity": "Whale Shark Encounter"
+        },
+        {
+          "activity": "Sumilon Island (Optional)"
+        },
+        {
+          "activity": "Moalboal Snorkeling for Corals"
+        },
+        {
+          "activity": "Moalboal Sardines Run"
+        },
+        {
+          "activity": "Moalboal Turtle Watching"
+        },
+        {
+          "activity": "Full Course Canyoneering"
+        },
+        {
+          "activity": "Kawasan Falls"
+        },
+        {
+          "activity": "Drop off Cebu City or Airport"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -322,29 +573,66 @@
       "title": "Bohol Countryside",
       "shortDescription": "Explore Bohol's famous Chocolate Hills, tarsiers, and scenic countryside attractions.",
       "description": "Discover the wonders of Bohol Island with this comprehensive countryside tour. Visit the iconic Chocolate Hills, see the adorable tarsiers at the sanctuary, cruise on the Loboc River, and explore historic churches and unique attractions like the Man-Made Forest.",
-      "image": "/images/tours/bohol-countryside.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/bohol.png",
       "duration": "Full Day",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 5500, "capacity": "1-3 pax" },
-        "suv": { "price": 6000, "capacity": "4-6 pax" },
-        "van": { "price": 7000, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 5500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 6000,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 7000,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "activity": "Pick Up Hotel Drop Off Port" },
-        { "activity": "Blood Compact" },
-        { "activity": "Baclayon Church" },
-        { "activity": "Tarsier" },
-        { "activity": "Man-Made Forest" },
-        { "activity": "Butterfly Garden" },
-        { "activity": "Chocolate Hills" },
-        { "activity": "Loboc Floating Restaurant (Guest's Expense)" },
-        { "activity": "Aproniana Souvenir Shop" },
-        { "activity": "Shiphaus" },
-        { "activity": "Python" },
-        { "activity": "ATV Rides" },
-        { "activity": "Mirror of the World" },
-        { "activity": "Drop Off to Port" }
+        {
+          "activity": "Pick Up Hotel Drop Off Port"
+        },
+        {
+          "activity": "Blood Compact"
+        },
+        {
+          "activity": "Baclayon Church"
+        },
+        {
+          "activity": "Tarsier"
+        },
+        {
+          "activity": "Man-Made Forest"
+        },
+        {
+          "activity": "Butterfly Garden"
+        },
+        {
+          "activity": "Chocolate Hills"
+        },
+        {
+          "activity": "Loboc Floating Restaurant (Guest's Expense)"
+        },
+        {
+          "activity": "Aproniana Souvenir Shop"
+        },
+        {
+          "activity": "Shiphaus"
+        },
+        {
+          "activity": "Python"
+        },
+        {
+          "activity": "ATV Rides"
+        },
+        {
+          "activity": "Mirror of the World"
+        },
+        {
+          "activity": "Drop Off to Port"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -363,18 +651,33 @@
       "title": "Cebu-Hagnaya Port Transfer",
       "shortDescription": "Convenient transfer service from Cebu to Hagnaya Port for Bantayan Island.",
       "description": "Hassle-free transfer service from Cebu City or Airport to Hagnaya Port, the gateway to beautiful Bantayan Island. The 3-hour journey takes you through scenic northern Cebu. Same rate applies for return trips from Hagnaya Port to Cebu.",
-      "image": "/images/tours/cebu-hagnaya-transfer.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/hagnaya.webp",
       "duration": "3 hours",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 4500, "capacity": "1-3 pax" },
-        "suv": { "price": 5000, "capacity": "4-6 pax" },
-        "van": { "price": 5500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 4500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 5000,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 5500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "activity": "Pickup at Airport or Cebu Hotel" },
-        { "activity": "3 Hrs estimated travel from Cebu to Hagnaya port" },
-        { "activity": "Dropoff at Hagnaya port (to Sta. Fe., Bantayan Island)" }
+        {
+          "activity": "Pickup at Airport or Cebu Hotel"
+        },
+        {
+          "activity": "3 Hrs estimated travel from Cebu to Hagnaya port"
+        },
+        {
+          "activity": "Dropoff at Hagnaya port (to Sta. Fe., Bantayan Island)"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -393,18 +696,33 @@
       "title": "Cebu-Maya Port Transfer",
       "shortDescription": "Convenient transfer service from Cebu to Maya Port for Malapascua Island.",
       "description": "Hassle-free transfer service from Cebu City or Airport to Maya Port, the gateway to stunning Malapascua Island known for its thresher sharks. The 3.5-hour journey takes you through scenic northern Cebu. Same rate applies for return trips.",
-      "image": "/images/tours/cebu-maya-transfer.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/maya.jpg",
       "duration": "3.5 hours",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 4500, "capacity": "1-3 pax" },
-        "suv": { "price": 5000, "capacity": "4-6 pax" },
-        "van": { "price": 5500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 4500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 5000,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 5500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "activity": "Pickup at Airport or Cebu Hotel" },
-        { "activity": "3.5Hrs estimated travel from Cebu to Maya port" },
-        { "activity": "Dropoff at Maya port (to Malapascua Island)" }
+        {
+          "activity": "Pickup at Airport or Cebu Hotel"
+        },
+        {
+          "activity": "3.5Hrs estimated travel from Cebu to Maya port"
+        },
+        {
+          "activity": "Dropoff at Maya port (to Malapascua Island)"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -423,22 +741,46 @@
       "title": "Simala with Oceanpark",
       "shortDescription": "Visit Simala Shrine and explore the amazing Cebu Ocean Park aquarium.",
       "description": "Combine spiritual enlightenment with marine discovery! Visit the miraculous Simala Shrine, enjoy Carcar's famous delicacies, then explore Cebu Ocean Park's amazing underwater exhibits. A perfect blend of culture, food, and marine adventure.",
-      "image": "/images/tours/simala-oceanpark.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/simala_oslob.png",
       "duration": "10 hours",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 5000, "capacity": "1-3 pax" },
-        "suv": { "price": 5500, "capacity": "4-6 pax" },
-        "van": { "price": 6000, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 5000,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 5500,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 6000,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "8:00 AM", "activity": "Pickup at Airport or Cebu Hotel" },
-        { "activity": "2hrs estimated travel time to Sibonga, Simala" },
-        { "activity": "Simala Shrine Visit" },
-        { "activity": "Carcar Pasalubong (chicharon & lechon)" },
-        { "activity": "Cebu OceanPark" },
-        { "activity": "Back to Cebu" },
-        { "activity": "Dropoff at Hotel, 10hrs Tour Duration" }
+        {
+          "time": "8:00 AM",
+          "activity": "Pickup at Airport or Cebu Hotel"
+        },
+        {
+          "activity": "2hrs estimated travel time to Sibonga, Simala"
+        },
+        {
+          "activity": "Simala Shrine Visit"
+        },
+        {
+          "activity": "Carcar Pasalubong (chicharon & lechon)"
+        },
+        {
+          "activity": "Cebu OceanPark"
+        },
+        {
+          "activity": "Back to Cebu"
+        },
+        {
+          "activity": "Dropoff at Hotel, 10hrs Tour Duration"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
@@ -458,25 +800,55 @@
       "title": "City Tour w/ Anjo World",
       "shortDescription": "Explore Cebu City's heritage sites and enjoy thrilling rides at Anjo World theme park.",
       "description": "Experience the best of Cebu City with a morning heritage tour followed by an exciting afternoon at Anjo World Theme Park. Visit historic landmarks like Fort San Pedro, Magellan's Cross, and Heritage Park, then enjoy thrilling rides and attractions at Cebu's premier theme park.",
-      "image": "/images/tours/city-tour-anjoworld.png",
+      "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/anjo_world.webp",
       "duration": "10 hours",
       "featured": false,
       "pricing": {
-        "sedan": { "price": 4500, "capacity": "1-3 pax" },
-        "suv": { "price": 5000, "capacity": "4-6 pax" },
-        "van": { "price": 5500, "capacity": "7-14 pax" }
+        "sedan": {
+          "price": 4500,
+          "capacity": "1-3 pax"
+        },
+        "suv": {
+          "price": 5000,
+          "capacity": "4-6 pax"
+        },
+        "van": {
+          "price": 5500,
+          "capacity": "7-14 pax"
+        }
       },
       "itinerary": [
-        { "time": "8:00 AM", "activity": "Pickup at Airport or Cebu Hotel" },
-        { "activity": "Morning: Heritage Park" },
-        { "activity": "San Diego Ancestral House" },
-        { "activity": "Fort San Pedro" },
-        { "activity": "Sto Nino Church & Magellans Cross" },
-        { "activity": "Tabuan Pasalubong" },
-        { "activity": "Lunch at House of Lechon" },
-        { "activity": "Afternoon: Anjoworld" },
-        { "activity": "Back to Cebu" },
-        { "activity": "Dropoff at Hotel, 10hrs Tour Duration" }
+        {
+          "time": "8:00 AM",
+          "activity": "Pickup at Airport or Cebu Hotel"
+        },
+        {
+          "activity": "Morning: Heritage Park"
+        },
+        {
+          "activity": "San Diego Ancestral House"
+        },
+        {
+          "activity": "Fort San Pedro"
+        },
+        {
+          "activity": "Sto Nino Church & Magellans Cross"
+        },
+        {
+          "activity": "Tabuan Pasalubong"
+        },
+        {
+          "activity": "Lunch at House of Lechon"
+        },
+        {
+          "activity": "Afternoon: Anjoworld"
+        },
+        {
+          "activity": "Back to Cebu"
+        },
+        {
+          "activity": "Dropoff at Hotel, 10hrs Tour Duration"
+        }
       ],
       "inclusions": [
         "Sedan/SUV/Van",
