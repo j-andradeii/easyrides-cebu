@@ -99,59 +99,59 @@ export function ContactSection() {
 
   const addDriver = watch('addDriver');
 
-  useEffect(()=>{
-        const cleanup = getApiEvents();
-        return () => {
-            cleanup();
-        };
+  useEffect(() => {
+    const cleanup = getApiEvents();
+    return () => {
+      cleanup();
+    };
   }, []);
 
 
   const getApiEvents = () => {
-        const unsubscribe = apiEventStore.subscribe((event) => {
-            if (!event) return;
-            // Use the factory pattern to handle different event statuses
-            const eventStatusHandleMap = createEventStatusHandleMap(event);
-            const handleEvent = eventStatusHandleMap[event.status] || (() => {});
-            handleEvent();
-          });
-          return () => {
-            unsubscribe(); 
-          };
+    const unsubscribe = apiEventStore.subscribe((event) => {
+      if (!event) return;
+      // Use the factory pattern to handle different event statuses
+      const eventStatusHandleMap = createEventStatusHandleMap(event);
+      const handleEvent = eventStatusHandleMap[event.status] || (() => { });
+      handleEvent();
+    });
+    return () => {
+      unsubscribe();
+    };
   }
 
 
   const createEventStatusHandleMap = (
-        apiEvent: ApiEvent, 
-      ): { [key in ApiEventStatus]?: () => void } => {
-        return {
-          [ApiEventStatus.COMPLETED]: () => {
-            const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
-              [ApiEventType.SUBMIT_QUERY]: async () => {
-                  setIsSubmitting(false);
-                  setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
-                  reset();
-              },
-            };
-            const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
-            handleEventType();
+    apiEvent: ApiEvent,
+  ): { [key in ApiEventStatus]?: () => void } => {
+    return {
+      [ApiEventStatus.COMPLETED]: () => {
+        const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+          [ApiEventType.SUBMIT_QUERY]: async () => {
+            setIsSubmitting(false);
+            setToast({ message: 'Thank you! We will contact you shortly.', type: 'success' });
+            reset();
           },
-          [ApiEventStatus.ERROR]: () => {
-            const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
-              [ApiEventType.SUBMIT_QUERY]: async () => {
-                  setIsSubmitting(false);
-                  setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
-              },
-            };
-            const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
-            handleEventType();
-          },
-          [ApiEventStatus.IN_PROGRESS]: () => {
-          },
-          [ApiEventStatus.DEFAULT]: () => {
-          }
         };
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => { });
+        handleEventType();
+      },
+      [ApiEventStatus.ERROR]: () => {
+        const eventTypeHandleMap: { [key in ApiEventType]?: () => void } = {
+          [ApiEventType.SUBMIT_QUERY]: async () => {
+            setIsSubmitting(false);
+            setToast({ message: 'Something went wrong. Please try again or contact us directly.', type: 'error' });
+          },
+        };
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => { });
+        handleEventType();
+      },
+      [ApiEventStatus.IN_PROGRESS]: () => {
+      },
+      [ApiEventStatus.DEFAULT]: () => {
+      }
     };
+  };
 
   // Listen for add driver event from DriverBanner
   useEffect(() => {
@@ -166,13 +166,15 @@ export function ContactSection() {
   }, [setValue]);
 
   const onSubmit = async (data: ContactFormData) => {
-      setIsSubmitting(true);
-      const fullPhone = `${data.countryCode}${data.phone}`;
-      queryService.submitQuery({...data,
-          phone: fullPhone,
-          preferredDate: data.preferredDate?.toISOString(),
-          source: 'contact-form'})
-};
+    setIsSubmitting(true);
+    const fullPhone = `${data.countryCode}${data.phone}`;
+    queryService.submitQuery({
+      ...data,
+      phone: fullPhone,
+      preferredDate: data.preferredDate?.toISOString(),
+      source: 'contact-form'
+    })
+  };
 
   return (
     <section id="contact" className="py-24 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
@@ -180,11 +182,10 @@ export function ContactSection() {
       {toast && (
         <div className="fixed bottom-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
           <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
-              toast.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${toast.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+              }`}
           >
             {toast.type === 'success' ? (
               <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,9 +199,8 @@ export function ContactSection() {
             <p className="text-sm font-medium">{toast.message}</p>
             <button
               onClick={() => setToast(null)}
-              className={`ml-2 p-1 rounded-full transition-colors ${
-                toast.type === 'success' ? 'hover:bg-green-100' : 'hover:bg-red-100'
-              }`}
+              className={`ml-2 p-1 rounded-full transition-colors ${toast.type === 'success' ? 'hover:bg-green-100' : 'hover:bg-red-100'
+                }`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -237,7 +237,7 @@ export function ContactSection() {
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
               <FormProvider {...methods}>
-                <div  className="space-y-4">
+                <div className="space-y-4">
                   {/* Name & Email */}
                   <div className="grid sm:grid-cols-2 gap-3">
                     <FormInput
@@ -258,41 +258,41 @@ export function ContactSection() {
                   </div>
 
                   <FormPhoneInput
-                      name="phone"
-                      countryCodeName="countryCode"
-                      label="Phone / WhatsApp"
-                      placeholder="9XX XXX XXXX"
-                      showRequired
-                      className="mb-0"
-                    />
+                    name="phone"
+                    countryCodeName="countryCode"
+                    label="Phone / WhatsApp"
+                    placeholder="9XX XXX XXXX"
+                    showRequired
+                    className="mb-0"
+                  />
                   {/* Phone & Service Type */}
-                   
-                    <FormSelect
-                      name="serviceType"
-                      label="Service Type"
-                      options={serviceOptions}
-                      placeholder="Select a service"
-                      showRequired
-                      className="mb-0"
-                    />
+
+                  <FormSelect
+                    name="serviceType"
+                    label="Service Type"
+                    options={serviceOptions}
+                    placeholder="Select a service"
+                    showRequired
+                    className="mb-0"
+                  />
 
                   {/* Vehicle Type & Preferred Date */}
-                    <FormSelect
-                      name="vehicleType"
-                      label="Vehicle Type"
-                      options={vehicleOptions}
-                      placeholder="Select (optional)"
-                      className="mb-0"
-                    />
-              
-                        <FormCalendar
-                      name="preferredDate"
-                      label="Preferred Date"
-                      placeholder="Select a date"
-                      minDate={new Date()}
-                      showRequired
-                      className="mb-0"
-                    />
+                  <FormSelect
+                    name="vehicleType"
+                    label="Vehicle Type"
+                    options={vehicleOptions}
+                    placeholder="Select (optional)"
+                    className="mb-0"
+                  />
+
+                  <FormCalendar
+                    name="preferredDate"
+                    label="Preferred Date"
+                    placeholder="Select a date"
+                    minDate={new Date()}
+                    showRequired
+                    className="mb-0"
+                  />
 
 
                   {/* Message */}
@@ -349,7 +349,7 @@ export function ContactSection() {
               <div className="space-y-3">
                 {/* WhatsApp */}
                 <a
-                  href="https://wa.me/639123456789"
+                  href="https://wa.me/639178046988"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-white/10 hover:bg-white/20 px-4 py-3 rounded-lg transition-colors"
@@ -361,7 +361,7 @@ export function ContactSection() {
                   </div>
                   <div>
                     <div className="font-semibold">WhatsApp</div>
-                    <div className="text-white/70 text-sm">+63 912 345 6789</div>
+                    <div className="text-white/70 text-sm">+63 917 804 6988</div>
                   </div>
                   <svg
                     className="w-5 h-5 ml-auto"
@@ -380,7 +380,7 @@ export function ContactSection() {
 
                 {/* Messenger */}
                 <a
-                  href="https://m.me/easyridescebu"
+                  href="https://web.facebook.com/messages/t/102398992770751"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-white/10 hover:bg-white/20 px-4 py-3 rounded-lg transition-colors"
@@ -392,7 +392,7 @@ export function ContactSection() {
                   </div>
                   <div>
                     <div className="font-semibold">Messenger</div>
-                    <div className="text-white/70 text-sm">@easyridescebu</div>
+                    <div className="text-white/70 text-sm">Easyride CEBU Car Rentals & Tour</div>
                   </div>
                   <svg
                     className="w-5 h-5 ml-auto"
@@ -411,7 +411,7 @@ export function ContactSection() {
 
                 {/* Phone */}
                 <a
-                  href="tel:+639123456789"
+                  href="tel:+639178046988"
                   className="flex items-center gap-3 bg-white/10 hover:bg-white/20 px-4 py-3 rounded-lg transition-colors"
                 >
                   <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
@@ -431,7 +431,7 @@ export function ContactSection() {
                   </div>
                   <div>
                     <div className="font-semibold">Call Us</div>
-                    <div className="text-white/70 text-sm">+63 912 345 6789</div>
+                    <div className="text-white/70 text-sm">+63 917 804 6988</div>
                   </div>
                   <svg
                     className="w-5 h-5 ml-auto"

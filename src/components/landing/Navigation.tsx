@@ -48,7 +48,7 @@ export function Navigation() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
             <a
-              href="tel:+639123456789"
+              href="tel:+639178046988"
               className="flex items-center gap-2 text-palm-black hover:text-cebu-red transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

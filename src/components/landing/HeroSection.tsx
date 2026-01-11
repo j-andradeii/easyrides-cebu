@@ -58,7 +58,7 @@ export function HeroSection() {
     const unsubscribe = apiEventStore.subscribe((event) => {
       if (!event) return;
       const eventStatusHandleMap = createEventStatusHandleMap(event);
-      const handleEvent = eventStatusHandleMap[event.status] || (() => {});
+      const handleEvent = eventStatusHandleMap[event.status] || (() => { });
       handleEvent();
     });
     return () => {
@@ -77,7 +77,7 @@ export function HeroSection() {
             methods.reset();
           },
         };
-        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => { });
         handleEventType();
       },
       [ApiEventStatus.ERROR]: () => {
@@ -86,11 +86,11 @@ export function HeroSection() {
             setIsSubmitting(false);
           },
         };
-        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => {});
+        const handleEventType = eventTypeHandleMap[apiEvent.type] || (() => { });
         handleEventType();
       },
-      [ApiEventStatus.IN_PROGRESS]: () => {},
-      [ApiEventStatus.DEFAULT]: () => {},
+      [ApiEventStatus.IN_PROGRESS]: () => { },
+      [ApiEventStatus.DEFAULT]: () => { },
     };
   };
 
@@ -113,12 +113,12 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-br from-cream via-cream-light to-papaya-light/30" />
 
       {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'}} />
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
 
       {/* Decorative Elements - Tropical Warmth with animation */}
-      <div className="absolute top-20 right-0 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-gradient-to-br from-papaya/40 to-palm-light/30 rounded-full blur-3xl animate-pulse" style={{animationDuration: '4s'}} />
-      <div className="absolute bottom-20 left-0 w-40 h-40 sm:w-56 sm:h-56 md:w-80 md:h-80 bg-gradient-to-tr from-mango/40 to-coral/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '5s'}} />
-      <div className="absolute top-1/2 left-1/4 sm:left-1/3 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-golden/20 rounded-full blur-3xl animate-pulse" style={{animationDuration: '6s'}} />
+      <div className="absolute top-20 right-0 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-gradient-to-br from-papaya/40 to-palm-light/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+      <div className="absolute bottom-20 left-0 w-40 h-40 sm:w-56 sm:h-56 md:w-80 md:h-80 bg-gradient-to-tr from-mango/40 to-coral/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s' }} />
+      <div className="absolute top-1/2 left-1/4 sm:left-1/3 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-golden/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
 
       <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -165,7 +165,7 @@ export function HeroSection() {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-palm">15+</div>
+                  <div className="text-2xl font-bold text-palm">5+</div>
                   <div className="text-xs text-slate-500">Vehicles</div>
                 </div>
               </div>
@@ -176,7 +176,7 @@ export function HeroSection() {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-mango-dark">5</div>
+                  <div className="text-2xl font-bold text-mango-dark">5+</div>
                   <div className="text-xs text-slate-500">Tour Packages</div>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export function HeroSection() {
                 View Tour Packages
               </a>
               <a
-                href="tel:+639123456789"
+                href="tel:+639178046988"
                 className="inline-flex items-center gap-2 text-slate-600 hover:text-coral px-6 py-3 font-semibold transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,11 +249,10 @@ export function HeroSection() {
                           key={option.value}
                           type="button"
                           onClick={() => methods.setValue('serviceType', option.value as typeof serviceTypes[number])}
-                          className={`p-3 rounded-lg border-2 text-center transition-all ${
-                            serviceType === option.value
-                              ? 'border-coral bg-coral/5 text-coral'
-                              : 'border-slate-200 hover:border-coral/50 text-slate-600'
-                          }`}
+                          className={`p-3 rounded-lg border-2 text-center transition-all ${serviceType === option.value
+                            ? 'border-coral bg-coral/5 text-coral'
+                            : 'border-slate-200 hover:border-coral/50 text-slate-600'
+                            }`}
                         >
                           <div className="text-xl mb-1">{option.icon}</div>
                           <div className="text-xs font-medium">{option.label}</div>
