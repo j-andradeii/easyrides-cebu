@@ -58,7 +58,7 @@ export default async function TourDetailPage({ params }: Props) {
       <Navigation />
 
       {/* Hero with Image */}
-      <section className="pt-24">
+      <section className="pt-16">
         <div className="relative h-[400px] md:h-[500px]">
           <Image
             src={tour.image}
