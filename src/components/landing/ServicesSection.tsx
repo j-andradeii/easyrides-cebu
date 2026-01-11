@@ -128,7 +128,7 @@ const colorClasses = {
 
 export function ServicesSection() {
   return (
-    <section id="services" className="py-24 bg-slate-50 relative overflow-hidden">
+    <section id="services" className="py-12 bg-slate-50 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-papaya/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-palm-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />

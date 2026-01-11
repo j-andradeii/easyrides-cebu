@@ -49,7 +49,7 @@ const transferRates = [
 
 export function TransferRatesSection() {
   return (
-    <section id="pricing" className="py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
+    <section id="pricing" className="py-12 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-mango/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-coral/5 rounded-full blur-3xl" />
@@ -82,11 +82,10 @@ export function TransferRatesSection() {
           {transferRates.map((transfer, index) => (
             <div
               key={index}
-              className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 ${
-                transfer.popular
+              className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 ${transfer.popular
                   ? 'border-coral shadow-lg'
                   : 'border-slate-100 hover:border-slate-200 hover:shadow-md'
-              }`}
+                }`}
             >
               {transfer.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-coral text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -96,9 +95,8 @@ export function TransferRatesSection() {
 
               {/* Icon */}
               <div
-                className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
-                  transfer.popular ? 'bg-coral/10 text-coral' : 'bg-slate-100 text-slate-600'
-                }`}
+                className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${transfer.popular ? 'bg-coral/10 text-coral' : 'bg-slate-100 text-slate-600'
+                  }`}
               >
                 {transfer.icon}
               </div>
@@ -125,11 +123,10 @@ export function TransferRatesSection() {
 
                 <a
                   href="#contact"
-                  className={`block w-full text-center py-3 rounded-lg font-semibold transition-colors ${
-                    transfer.popular
+                  className={`block w-full text-center py-3 rounded-lg font-semibold transition-colors ${transfer.popular
                       ? 'bg-coral hover:bg-coral-dark text-white'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                  }`}
+                    }`}
                 >
                   Book Transfer
                 </a>

@@ -99,7 +99,7 @@ const reasons = [
 
 export function WhyChooseUs() {
   return (
-    <section className="py-24 bg-slate-50 relative overflow-hidden">
+    <section className="py-12 bg-slate-50 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
 
