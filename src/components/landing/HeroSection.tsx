@@ -121,7 +121,7 @@ export function HeroSection() {
       <div className="absolute top-1/2 left-1/4 sm:left-1/3 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-golden/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
 
       <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-papaya-light/50 to-palm-light/30 text-palm-dark px-4 py-2 rounded-full text-sm font-medium mb-6">
