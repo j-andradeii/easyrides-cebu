@@ -49,9 +49,11 @@ export default async function TourDetailPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 relative overflow-x-hidden w-full max-w-full">
+    <main className="min-h-screen bg-slate-50 relative w-full max-w-full overflow-x-hidden">
       {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5 pointer-events-none" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
+      </div>
 
       <Navigation />
 
@@ -95,9 +97,9 @@ export default async function TourDetailPage({ params }: Props) {
       </section>
 
       {/* Content Section */}
-      <section className="py-12 md:py-16 relative overflow-x-hidden">
+      <section className="py-12 md:py-16 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid lg:grid-cols-3 gap-4 sm:gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8 lg:gap-12">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               {/* Description */}
@@ -110,21 +112,30 @@ export default async function TourDetailPage({ params }: Props) {
               <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-900 mb-4">Pricing</h2>
                 <p className="text-sm text-slate-500 mb-4">All-inclusive rates with vehicle, driver/guide, and fuel</p>
-                <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                  <div className="text-center p-2 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
-                    <div className="text-xs sm:text-sm text-slate-500 mb-1">Sedan</div>
-                    <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.sedan.price.toLocaleString()}</div>
-                    <div className="text-[10px] sm:text-xs text-slate-400">{tour.pricing.sedan.capacity}</div>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                  <div className="flex-1 text-center p-3 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors flex flex-row sm:flex-col items-center sm:justify-center justify-between gap-2">
+                    <div className="text-sm text-slate-500 sm:mb-1">Sedan</div>
+                    <div className="flex items-baseline gap-2 sm:block">
+                      <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.sedan.price.toLocaleString()}</div>
+                      <div className="text-xs text-slate-400 sm:hidden">/ {tour.pricing.sedan.capacity}</div>
+                    </div>
+                    <div className="hidden sm:block text-xs text-slate-400">{tour.pricing.sedan.capacity}</div>
                   </div>
-                  <div className="text-center p-2 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
-                    <div className="text-xs sm:text-sm text-slate-500 mb-1">SUV</div>
-                    <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.suv.price.toLocaleString()}</div>
-                    <div className="text-[10px] sm:text-xs text-slate-400">{tour.pricing.suv.capacity}</div>
+                  <div className="flex-1 text-center p-3 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors flex flex-row sm:flex-col items-center sm:justify-center justify-between gap-2">
+                    <div className="text-sm text-slate-500 sm:mb-1">SUV</div>
+                    <div className="flex items-baseline gap-2 sm:block">
+                      <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.suv.price.toLocaleString()}</div>
+                      <div className="text-xs text-slate-400 sm:hidden">/ {tour.pricing.suv.capacity}</div>
+                    </div>
+                    <div className="hidden sm:block text-xs text-slate-400">{tour.pricing.suv.capacity}</div>
                   </div>
-                  <div className="text-center p-2 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors">
-                    <div className="text-xs sm:text-sm text-slate-500 mb-1">Van</div>
-                    <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.van.price.toLocaleString()}</div>
-                    <div className="text-[10px] sm:text-xs text-slate-400">{tour.pricing.van.capacity}</div>
+                  <div className="flex-1 text-center p-3 sm:p-4 bg-cream rounded-xl hover:bg-coral/5 transition-colors flex flex-row sm:flex-col items-center sm:justify-center justify-between gap-2">
+                    <div className="text-sm text-slate-500 sm:mb-1">Van</div>
+                    <div className="flex items-baseline gap-2 sm:block">
+                      <div className="text-lg sm:text-2xl font-bold text-slate-900">₱{tour.pricing.van.price.toLocaleString()}</div>
+                      <div className="text-xs text-slate-400 sm:hidden">/ {tour.pricing.van.capacity}</div>
+                    </div>
+                    <div className="hidden sm:block text-xs text-slate-400">{tour.pricing.van.capacity}</div>
                   </div>
                 </div>
               </div>
