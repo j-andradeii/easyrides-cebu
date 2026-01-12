@@ -232,7 +232,7 @@ export function ContactSection() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
           {/* Contact Form */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
