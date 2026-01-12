@@ -111,7 +111,8 @@ export function HeroSection() {
     <section className="relative min-h-screen flex items-center pt-16 overflow-x-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-black/40 z-10" /> {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-black/40 z-10" />
+        {/* Overlay for readability */}
         <img
           src="https://djuny0idasckxayv.public.blob.vercel-storage.com/tops.avif"
           alt="Scenic Cebu City"
@@ -121,7 +122,7 @@ export function HeroSection() {
 
       {/* Decorative Elements - Subtle Glows */}
       <div className="absolute top-20 right-0 w-96 h-96 bg-coral/30 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '4s' }} />
-      <div className="absolute bottom-20 left-0 w-80 h-80 bg-mango/20 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '5s' }} />
+      {/* <div className="absolute bottom-20 left-0 w-80 h-80 bg-mango/20 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '5s' }} /> */}
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
