@@ -121,8 +121,8 @@ export function HeroSection() {
       </div>
 
       {/* Decorative Elements - Subtle Glows */}
-      <div className="absolute top-20 right-0 w-96 h-96 bg-coral/30 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '4s' }} />
-      {/* <div className="absolute bottom-20 left-0 w-80 h-80 bg-mango/20 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '5s' }} /> */}
+      <div className="absolute top-20 right-0 w-96 h-96 bg-coral/15 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '4s' }} />
+      <div className="absolute bottom-20 left-0 w-80 h-80 bg-mango/15 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '5s' }} />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -139,12 +139,12 @@ export function HeroSection() {
               Cebu, Philippines
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
               Explore Cebu
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-mango to-coral">Your Way</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-mango to-coral drop-shadow-none filter brightness-110">Your Way</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-slate-200 mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="text-lg sm:text-xl text-white mb-8 max-w-xl mx-auto lg:mx-0 drop-shadow-md font-medium">
               Premium car rentals, seamless airport transfers, and curated tour packages.
               Discover the Queen City of the South with comfort and flexibility.
             </p>
@@ -158,8 +158,8 @@ export function HeroSection() {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-white">500+</div>
-                  <div className="text-xs text-slate-300">Happy Customers</div>
+                  <div className="text-2xl font-bold text-white drop-shadow-md">500+</div>
+                  <div className="text-xs text-white/90 font-medium drop-shadow-sm">Happy Customers</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 shadow-lg">
@@ -169,8 +169,8 @@ export function HeroSection() {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-white">5+</div>
-                  <div className="text-xs text-slate-300">Vehicles</div>
+                  <div className="text-2xl font-bold text-white drop-shadow-md">5+</div>
+                  <div className="text-xs text-white/90 font-medium drop-shadow-sm">Vehicles</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 shadow-lg">
@@ -180,8 +180,8 @@ export function HeroSection() {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-white">5+</div>
-                  <div className="text-xs text-slate-300">Tour Packages</div>
+                  <div className="text-2xl font-bold text-white drop-shadow-md">5+</div>
+                  <div className="text-xs text-white/90 font-medium drop-shadow-sm">Tour Packages</div>
                 </div>
               </div>
             </div>
