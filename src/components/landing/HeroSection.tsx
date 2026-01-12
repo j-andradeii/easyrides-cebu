@@ -111,11 +111,11 @@ export function HeroSection() {
     <section className="relative min-h-screen flex items-center pt-16 overflow-x-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-black/50 z-10" /> {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-black/40 z-10" /> {/* Overlay for readability */}
         <img
           src="https://djuny0idasckxayv.public.blob.vercel-storage.com/tops.avif"
           alt="Scenic Cebu City"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover saturate-[.60]"
         />
       </div>
 
