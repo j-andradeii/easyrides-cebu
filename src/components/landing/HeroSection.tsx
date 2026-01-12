@@ -121,8 +121,8 @@ export function HeroSection() {
       </div>
 
       {/* Decorative Elements - Subtle Glows */}
-      <div className="hidden lg:block absolute top-20 left-0 w-80 h-80 bg-mango/20 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '5s' }} />
-      <div className="hidden lg:block absolute bottom-20 right-0 w-96 h-96 bg-coral/10 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '4s' }} />
+      <div className="hidden lg:block absolute top-20 left-0 w-80 h-80 bg-mango/5 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '5s' }} />
+      <div className="hidden lg:block absolute bottom-20 right-0 w-96 h-96 bg-coral/5 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '4s' }} />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
