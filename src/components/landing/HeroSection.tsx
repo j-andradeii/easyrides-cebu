@@ -109,23 +109,26 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-x-hidden">
-      {/* Background Gradient - Warm Tropical */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cream via-cream-light to-papaya-light/30" />
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-black/50 z-10" /> {/* Overlay for readability */}
+        <img
+          src="https://djuny0idasckxayv.public.blob.vercel-storage.com/tops.avif"
+          alt="Scenic Cebu City"
+          className="w-full h-full object-cover"
+        />
+      </div>
 
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+      {/* Decorative Elements - Subtle Glows */}
+      <div className="absolute top-20 right-0 w-96 h-96 bg-coral/30 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '4s' }} />
+      <div className="absolute bottom-20 left-0 w-80 h-80 bg-mango/20 rounded-full blur-3xl animate-pulse z-0" style={{ animationDuration: '5s' }} />
 
-      {/* Decorative Elements - Tropical Warmth with animation */}
-      <div className="absolute top-20 right-0 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-gradient-to-br from-papaya/40 to-palm-light/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-      <div className="absolute bottom-20 left-0 w-40 h-40 sm:w-56 sm:h-56 md:w-80 md:h-80 bg-gradient-to-tr from-mango/40 to-coral/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s' }} />
-      <div className="absolute top-1/2 left-1/4 sm:left-1/3 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-golden/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
-
-      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-papaya-light/50 to-palm-light/30 text-palm-dark px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <svg className="w-4 h-4 text-mango" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
@@ -135,49 +138,49 @@ export function HeroSection() {
               Cebu, Philippines
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Explore Cebu
-              <span className="block bg-gradient-to-r from-coral to-mango bg-clip-text text-transparent">Your Way</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-mango to-coral">Your Way</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="text-lg sm:text-xl text-slate-200 mb-8 max-w-xl mx-auto lg:mx-0">
               Premium car rentals, seamless airport transfers, and curated tour packages.
               Discover the Queen City of the South with comfort and flexibility.
             </p>
 
             {/* Quick Stats */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-8">
-              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
-                <div className="w-10 h-10 bg-coral/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-coral" fill="currentColor" viewBox="0 0 20 20">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 shadow-lg">
+                <div className="w-10 h-10 bg-coral/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-coral-light" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-coral">500+</div>
-                  <div className="text-xs text-slate-500">Happy Customers</div>
+                  <div className="text-2xl font-bold text-white">500+</div>
+                  <div className="text-xs text-slate-300">Happy Customers</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
-                <div className="w-10 h-10 bg-palm-light/30 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-palm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 shadow-lg">
+                <div className="w-10 h-10 bg-palm/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-palm-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2" />
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-palm">5+</div>
-                  <div className="text-xs text-slate-500">Vehicles</div>
+                  <div className="text-2xl font-bold text-white">5+</div>
+                  <div className="text-xs text-slate-300">Vehicles</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 shadow-lg">
                 <div className="w-10 h-10 bg-mango/20 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-mango-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-mango" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-mango-dark">5+</div>
-                  <div className="text-xs text-slate-500">Tour Packages</div>
+                  <div className="text-2xl font-bold text-white">5+</div>
+                  <div className="text-xs text-slate-300">Tour Packages</div>
                 </div>
               </div>
             </div>
@@ -200,7 +203,7 @@ export function HeroSection() {
               </a>
               <a
                 href="tel:+639178046988"
-                className="inline-flex items-center gap-2 text-slate-600 hover:text-coral px-6 py-3 font-semibold transition-colors"
+                className="inline-flex items-center gap-2 text-white hover:text-coral px-6 py-3 font-semibold transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -390,7 +393,7 @@ export function HeroSection() {
 
       {/* Scroll Indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <a href="#services" className="text-slate-400 hover:text-coral transition-colors">
+        <a href="#services" className="text-white/70 hover:text-coral transition-colors">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
