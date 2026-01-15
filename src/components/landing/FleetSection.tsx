@@ -30,26 +30,30 @@ const vehicles = [
 
 export function FleetSection() {
   return (
-    <section id="fleet" className="py-12 bg-white relative">
+    <section id="fleet" className="py-24 bg-slate-50 relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-palm-light/5 rounded-full blur-3xl" />
+        <div className="absolute top-40 right-20 w-96 h-96 bg-mango/5 rounded-full blur-3xl" />
+      </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-papaya/20 text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4 border border-papaya/30">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2" />
-            </svg>
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 bg-white text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-6 shadow-sm border border-slate-100">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terracotta opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-terracotta"></span>
+            </span>
             Our Fleet
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
-            Well-Maintained Vehicles for <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-palm to-palm-dark bg-clip-text text-transparent">Every Need</span>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+            Premium Vehicles for <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-palm to-palm-dark bg-clip-text text-transparent">Every Journey</span>
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Choose from our selection of reliable, fully air-conditioned vehicles. All rates are for
-            self-drive rentals.
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Choose from our meticulously maintained fleet. Whether you need a compact city car
+            or a spacious van for the whole family, we've got the perfect ride for you.
           </p>
         </div>
 
@@ -58,87 +62,72 @@ export function FleetSection() {
           {vehicles.map((vehicle, index) => (
             <div
               key={index}
-              className={`group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 ${vehicle.popular ? 'ring-2 ring-coral shadow-lg shadow-coral/10' : 'border border-slate-100'
+              className={`group relative bg-white rounded-3xl overflow-hidden transition-all duration-300 ${vehicle.popular
+                ? 'ring-1 ring-coral/20 shadow-xl shadow-coral/5 hover:shadow-2xl hover:shadow-coral/10 hover:-translate-y-1'
+                : 'border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1'
                 }`}
             >
               {/* Popular Badge */}
               {vehicle.popular && (
-                <div className="absolute top-4 right-4 bg-gradient-to-r from-coral to-mango text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-lg animate-pulse">
-                  POPULAR
+                <div className="absolute top-4 right-4 z-20">
+                  <div className="bg-gradient-to-r from-coral to-mango text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-coral/20">
+                    MOST POPULAR
+                  </div>
                 </div>
               )}
 
-              {/* Vehicle Image */}
-              <div className="h-48 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-white/50 to-transparent z-10" />
+              {/* Image Container */}
+              <div className="relative h-56 bg-gradient-to-br from-slate-50 to-white overflow-hidden p-6 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100/50 via-transparent to-transparent" />
                 <img
                   src={vehicle.image}
                   alt={vehicle.type}
-                  width={400}
-                  height={200}
-                  loading="eager"
-                  className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-500 will-change-transform"
                 />
               </div>
 
               {/* Content */}
-              <div className="p-6">
-                {/* Type & Models */}
-                <div className="mb-4">
-                  <h3 className="text-2xl font-bold text-slate-900">{vehicle.type}</h3>
-                  <p className="text-slate-500 text-sm">{vehicle.models}</p>
-                </div>
-
-                {/* Capacity Badge */}
-                <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  {vehicle.capacity}
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-1">{vehicle.type}</h3>
+                    <p className="text-slate-500 text-sm font-medium">{vehicle.models}</p>
+                  </div>
+                  <div className="bg-slate-50 text-slate-600 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border border-slate-100">
+                    {vehicle.capacity}
+                  </div>
                 </div>
 
                 {/* Features */}
-                <ul className="space-y-2 mb-6">
+                <div className="space-y-3 mb-8">
                   {vehicle.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-slate-600">
-                      <svg
-                        className="w-4 h-4 text-palm"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                    <div key={idx} className="flex items-center gap-3 text-sm text-slate-600">
+                      <div className={`p-1 rounded-full ${vehicle.popular ? 'bg-coral/10 text-coral' : 'bg-palm-light/10 text-palm'}`}>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
                       {feature}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
 
-                {/* Price */}
-                <div className="border-t border-slate-100 pt-4">
-                  <div className="flex items-end gap-1 mb-4">
-                    <span className="text-3xl font-bold text-slate-900">
-                      ₱{vehicle.rate.toLocaleString()}
-                    </span>
-                    <span className="text-slate-500 mb-1">/day</span>
+                {/* Price & Action */}
+                <div className="pt-6 border-t border-slate-50">
+                  <div className="flex items-end gap-1 mb-6">
+                    <span className="text-3xl font-bold text-slate-900">₱{vehicle.rate.toLocaleString()}</span>
+                    <span className="text-slate-400 font-medium mb-1.5 line-through decoration-slate-300 decoration-2 opacity-50 text-sm ml-2">₱{(vehicle.rate * 1.2).toLocaleString()}</span>
+                    <span className="text-slate-500 mb-1.5 text-sm ml-auto">/ 24 hours</span>
                   </div>
 
                   <a
                     href="#contact"
-                    className={`block w-full text-center py-3 rounded-lg font-semibold transition-colors ${vehicle.popular
-                      ? 'bg-coral hover:bg-coral-dark text-white'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    className={`block w-full py-4 rounded-xl font-bold text-center transition-all duration-300 ${vehicle.popular
+                      ? 'bg-gradient-to-r from-coral to-mango text-white shadow-lg shadow-coral/25 hover:shadow-xl hover:shadow-coral/30 hover:-translate-y-0.5'
+                      : 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg hover:-translate-y-0.5'
                       }`}
                   >
-                    Book This Vehicle
+                    Book Now
                   </a>
                 </div>
               </div>
