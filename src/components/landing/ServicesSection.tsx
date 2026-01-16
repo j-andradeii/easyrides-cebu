@@ -16,7 +16,7 @@ const services = [
       </svg>
     ),
     title: 'Car Rentals',
-    shortTitle: 'Rentals',
+    shortTitle: 'Car Rentals',
     description:
       'Experience the freedom of the road. From the majestic CCLEX to the scenic mountain views of Tops, our fleet is ready for your adventure.',
     image: 'https://www.mitsubishi-motors.com.ph/content/dam/mitsubishi-motors-ph/images/site-images/articles/2020/xpander-cross/Xpander-Cross-03.jpg',
