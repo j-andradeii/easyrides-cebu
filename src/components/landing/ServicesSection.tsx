@@ -188,13 +188,13 @@ export function ServicesSection() {
                   <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight max-w-lg">
                     {service.title}
                   </h3>
-                  <p className="text-slate-200 text-base lg:text-lg mb-8 max-w-md leading-relaxed">
+                  <p className="text-slate-200 text-base lg:text-lg mb-8 max-w-md leading-relaxed font-semibold">
                     {service.description}
                   </p>
 
                   <ul className="space-y-3 mb-8">
                     {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-3 text-white/90">
+                      <li key={idx} className="flex items-center gap-3 text-white/90 font-semibold" >
                         <svg className="w-5 h-5 text-mango flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>

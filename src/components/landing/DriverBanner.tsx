@@ -46,14 +46,14 @@ export function DriverBanner() {
                 <div className="bg-white/10 rounded-xl p-4">
                   <div className="text-mango text-sm font-medium mb-1">Driver Fee</div>
                   <div className="flex items-end gap-1">
-                    <span className="text-3xl font-bold text-white">₱850</span>
+                    <span className="text-3xl font-bold text-white">₱1000</span>
                     <span className="text-slate-400 mb-1">/ 8 hours</span>
                   </div>
                 </div>
                 <div className="bg-white/10 rounded-xl p-4">
                   <div className="text-mango text-sm font-medium mb-1">Overtime Rate</div>
                   <div className="flex items-end gap-1">
-                    <span className="text-3xl font-bold text-white">₱250</span>
+                    <span className="text-3xl font-bold text-white">₱100</span>
                     <span className="text-slate-400 mb-1">/ hour</span>
                   </div>
                 </div>
