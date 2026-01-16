@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 
 const services = [
@@ -18,9 +19,10 @@ const services = [
     shortTitle: 'Rentals',
     description:
       'Experience the freedom of the road. From the majestic CCLEX to the scenic mountain views of Tops, our fleet is ready for your adventure.',
-    image: 'https://images.unsplash.com/photo-1485291571150-772bcfc10da5?auto=format&fit=crop&q=80',
+    image: 'https://www.mitsubishi-motors.com.ph/content/dam/mitsubishi-motors-ph/images/site-images/articles/2020/xpander-cross/Xpander-Cross-03.jpg',
     features: ['Unlimited mileage option', 'Comprehensive Insurance', '24/7 Roadside support'],
     color: 'orange',
+    link: '/#contact',
   },
   {
     icon: (
@@ -43,9 +45,10 @@ const services = [
     shortTitle: 'Transfers',
     description:
       'Start your trip stress-free with our premium airport transfer service. We monitor your flight and ensure a smooth pickup.',
-    image: 'https://images.unsplash.com/photo-1464037866556-56549c887739?auto=format&fit=crop&q=80',
+    image: 'https://s28477.pcdn.co/wp-content/uploads/2018/05/CEB_2A-984x554.jpg',
     features: ['Flight tracking', 'Meet & greet service', 'Fixed competitive rates'],
     color: 'cyan',
+    link: '/#contact',
   },
   {
     icon: (
@@ -62,9 +65,10 @@ const services = [
     shortTitle: 'Tours',
     description:
       "From waterfalls to heritage sites, discover the best of Cebu with our curated tour packages designed for every type of traveler.",
-    image: 'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&q=80',
+    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/oslob.avif',
     features: ['1D to 5D4N packages', 'Expert local guides', 'All-inclusive options'],
     color: 'emerald',
+    link: '/tours',
   },
   {
     icon: (
@@ -81,9 +85,10 @@ const services = [
     shortTitle: 'Custom',
     description:
       'Your trip, your way. Our travel experts help you design a personalized itinerary that fits your specific preferences and budget.',
-    image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80',
+    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/city_tour.png',
     features: ['Flexible scheduling', 'Personalized routes', 'Budget-friendly planning'],
     color: 'violet',
+    link: '/#contact',
   },
   {
     icon: (
@@ -109,6 +114,7 @@ const services = [
     image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80',
     features: ['Business class vehicles', 'Professional chauffeurs', 'Hourly bookings'],
     color: 'rose',
+    link: '/#contact',
   },
 ];
 
@@ -197,7 +203,7 @@ export function ServicesSection() {
                     ))}
                   </ul>
 
-                  <button className={`
+                  <Link href={service.link} className={`
                     w-fit px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center gap-2
                     ${colors.btn}
                   `}>
@@ -205,7 +211,7 @@ export function ServicesSection() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
-                  </button>
+                  </Link>
                 </div>
 
                 {/* Inactive Content - Vertical Text */}
