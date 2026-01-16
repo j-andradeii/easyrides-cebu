@@ -177,7 +177,7 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-12 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden snap-y scroll-mt-20">
+    <section id="contact" className="py-12 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden snap-y scroll-mt-15">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
