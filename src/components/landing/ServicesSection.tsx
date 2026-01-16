@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+
 const services = [
   {
     icon: (
@@ -11,10 +15,12 @@ const services = [
       </svg>
     ),
     title: 'Car Rentals',
+    shortTitle: 'Rentals',
     description:
-      'Self-drive or with professional driver. Well-maintained sedans, SUVs, and vans for any occasion.',
-    features: ['Self-drive option', 'Professional drivers', 'Daily/weekly rates'],
-    color: 'cyan',
+      'Experience the freedom of the road. From the majestic CCLEX to the scenic mountain views of Tops, our fleet is ready for your adventure.',
+    image: 'https://images.unsplash.com/photo-1485291571150-772bcfc10da5?auto=format&fit=crop&q=80',
+    features: ['Unlimited mileage option', 'Comprehensive Insurance', '24/7 Roadside support'],
+    color: 'orange',
   },
   {
     icon: (
@@ -34,10 +40,12 @@ const services = [
       </svg>
     ),
     title: 'Airport Transfers',
+    shortTitle: 'Transfers',
     description:
-      'Smooth pickups and drop-offs to/from Mactan-Cebu International Airport. Start or end your trip stress-free.',
-    features: ['Meet & greet', 'Flight tracking', 'Fixed rates'],
-    color: 'orange',
+      'Start your trip stress-free with our premium airport transfer service. We monitor your flight and ensure a smooth pickup.',
+    image: 'https://images.unsplash.com/photo-1464037866556-56549c887739?auto=format&fit=crop&q=80',
+    features: ['Flight tracking', 'Meet & greet service', 'Fixed competitive rates'],
+    color: 'cyan',
   },
   {
     icon: (
@@ -51,9 +59,11 @@ const services = [
       </svg>
     ),
     title: 'Tour Packages',
+    shortTitle: 'Tours',
     description:
-      "Exclusive Cebu tours from 1-day trips to 5D4N adventures. Discover the island's best attractions.",
-    features: ['1D to 5D4N packages', 'Top attractions', 'All-inclusive options'],
+      "From waterfalls to heritage sites, discover the best of Cebu with our curated tour packages designed for every type of traveler.",
+    image: 'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&q=80',
+    features: ['1D to 5D4N packages', 'Expert local guides', 'All-inclusive options'],
     color: 'emerald',
   },
   {
@@ -67,10 +77,12 @@ const services = [
         />
       </svg>
     ),
-    title: 'Custom Tours',
+    title: 'Custom Itinerary',
+    shortTitle: 'Custom',
     description:
-      'Design your own itinerary. We help create personalized experiences that fit your preferences and budget.',
-    features: ['Flexible scheduling', 'Personalized routes', 'Budget-friendly'],
+      'Your trip, your way. Our travel experts help you design a personalized itinerary that fits your specific preferences and budget.',
+    image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80',
+    features: ['Flexible scheduling', 'Personalized routes', 'Budget-friendly planning'],
     color: 'violet',
   },
   {
@@ -90,126 +102,131 @@ const services = [
         />
       </svg>
     ),
-    title: 'Cebu Transport',
+    title: 'City Transport',
+    shortTitle: 'Transport',
     description:
-      'Safe and convenient transport anywhere in Cebu. Perfect for personal trips, business, or group outings.',
-    features: ['City & provincial', 'Business travel', 'Group transport'],
+      'Safe, reliable, and convenient transport for business meetings, events, or simply getting around Cebu City and Mandaue.',
+    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80',
+    features: ['Business class vehicles', 'Professional chauffeurs', 'Hourly bookings'],
     color: 'rose',
   },
 ];
 
 const colorClasses = {
-  cyan: {
-    bg: 'bg-papaya/20',
-    icon: 'text-terracotta',
-    border: 'group-hover:border-papaya',
-  },
-  orange: {
-    bg: 'bg-mango/20',
-    icon: 'text-mango-dark',
-    border: 'group-hover:border-mango',
-  },
-  emerald: {
-    bg: 'bg-palm-light/20',
-    icon: 'text-palm',
-    border: 'group-hover:border-palm-light',
-  },
-  violet: {
-    bg: 'bg-coral/10',
-    icon: 'text-coral',
-    border: 'group-hover:border-coral/50',
-  },
-  rose: {
-    bg: 'bg-hibiscus/20',
-    icon: 'text-hibiscus-dark',
-    border: 'group-hover:border-hibiscus',
-  },
+  orange: { badge: 'bg-mango text-white', btn: 'bg-mango hover:bg-mango-dark' },
+  cyan: { badge: 'bg-terracotta text-white', btn: 'bg-terracotta hover:bg-terracotta/90' },
+  emerald: { badge: 'bg-palm text-white', btn: 'bg-palm hover:bg-palm/90' },
+  violet: { badge: 'bg-coral text-white', btn: 'bg-coral hover:bg-coral/90' },
+  rose: { badge: 'bg-hibiscus text-white', btn: 'bg-hibiscus hover:bg-hibiscus-dark' },
 };
 
 export function ServicesSection() {
+  const [activeId, setActiveId] = useState(0);
+
   return (
-    <section id="services" className="py-12 bg-slate-50 relative overflow-hidden">
+    <section id="services" className="py-24 bg-slate-50 relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-papaya/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-palm-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-papaya/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-palm-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-white text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm">
-            <span className="w-2 h-2 bg-coral rounded-full animate-pulse" />
-            Our Services
+          <div className="inline-flex items-center gap-2 bg-white text-slate-600 px-4 py-1.5 rounded-full text-sm font-medium mb-8 border border-slate-200 shadow-sm">
+            <span className="w-1.5 h-1.5 bg-terracotta rounded-full animate-pulse" />
+            Select a service to explore
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
-            Everything You Need for Your <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-coral to-mango bg-clip-text text-transparent">Cebu Adventure</span>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+            Tailored for Your <br className="hidden sm:block" />
+            <span className="text-terracotta">Cebu Experience</span>
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            From airport pickups to island tours, we&apos;ve got you covered with reliable
-            transportation services tailored to your needs.
-          </p>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Accordion Container */}
+        <div className="flex flex-col lg:flex-row gap-4 h-[920px] lg:h-[600px] w-full">
           {services.map((service, index) => {
+            const isActive = activeId === index;
             const colors = colorClasses[service.color as keyof typeof colorClasses];
+
             return (
               <div
                 key={index}
-                className={`group bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${colors.border}`}
+                onClick={() => setActiveId(index)}
+                className={`
+                  relative rounded-3xl overflow-hidden cursor-pointer transition-all duration-700 ease-in-out
+                  ${isActive ? 'flex-[10] lg:flex-[3]' : 'flex-[2] lg:flex-[0.5] hover:lg:flex-[0.75]'}
+                  group
+                `}
               >
-                {/* Icon */}
+                {/* Background Image */}
                 <div
-                  className={`w-14 h-14 ${colors.bg} rounded-xl flex items-center justify-center mb-4 ${colors.icon} group-hover:scale-110 transition-transform duration-300`}
-                >
-                  {service.icon}
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 ease-out group-hover:scale-105"
+                  style={{ backgroundImage: `url(${service.image})` }}
+                />
+
+                {/* Overlay - Darker when active to read text, Lighter when inactive to show image hint */}
+                <div
+                  className={`absolute inset-0 transition-opacity duration-500
+                    ${isActive ? 'bg-slate-900/40 lg:bg-gradient-to-r lg:from-slate-900/50 lg:via-slate-900/50 lg:to-transparent' : 'bg-slate-900/50 group-hover:bg-slate-900/40'}
+                  `}
+                />
+
+                {/* Active Content */}
+                <div className={`
+                  absolute inset-0 p-8 lg:p-12 flex flex-col justify-end lg:justify-center transition-all duration-500
+                  ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none hidden lg:flex'}
+                `}>
+                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit mb-4 ${colors.badge}`}>
+                    {service.shortTitle}
+                  </div>
+                  <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight max-w-lg">
+                    {service.title}
+                  </h3>
+                  <p className="text-slate-200 text-base lg:text-lg mb-8 max-w-md leading-relaxed">
+                    {service.description}
+                  </p>
+
+                  <ul className="space-y-3 mb-8">
+                    {service.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center gap-3 text-white/90">
+                        <svg className="w-5 h-5 text-mango flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button className={`
+                    w-fit px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center gap-2
+                    ${colors.btn}
+                  `}>
+                    Explore {service.shortTitle}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
                 </div>
 
-                {/* Content */}
-                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-coral transition-colors">{service.title}</h3>
-                <p className="text-slate-600 mb-4 text-sm leading-relaxed">{service.description}</p>
-
-                {/* Features */}
-                <ul className="space-y-2">
-                  {service.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-slate-500">
-                      <svg
-                        className={`w-4 h-4 ${colors.icon} flex-shrink-0`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                {/* Inactive Content - Vertical Text */}
+                <div className={`
+                  absolute inset-0 flex flex-col items-center justify-center transition-all duration-500
+                  ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+                `}>
+                  <div className="flex items-center gap-4 lg:gap-8 whitespace-nowrap lg:-rotate-90">
+                    {/* <div className="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center text-white backdrop-blur-sm shadow-lg lg:rotate-90">
+                      <div style={{ width: '24px', height: '24px' }}>
+                        {service.icon}
+                      </div>
+                    </div> */}
+                    <span className="text-2xl font-bold text-white tracking-[0.2em] uppercase drop-shadow-md">
+                      {service.shortTitle}
+                    </span>
+                  </div>
+                </div>
               </div>
             );
           })}
-        </div>
-
-        {/* CTA */}
-        <div className="text-center mt-16">
-          <a
-            href="#contact"
-            className="group inline-flex items-center gap-2 bg-gradient-to-r from-coral to-mango hover:from-coral-dark hover:to-mango-dark text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-lg shadow-coral/25 hover:shadow-xl hover:shadow-coral/30 hover:-translate-y-0.5"
-          >
-            Get Started Today
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </a>
         </div>
       </div>
     </section>
