@@ -33,9 +33,49 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Tour Not Found - EasyRideCebu' };
   }
 
+  const title = `${tour.title} - EasyRideCebu`;
+  const description = tour.description;
+  const url = `https://www.easyridecebutours.com/tours/${slug}`;
+  const images = [tour.image];
+
   return {
-    title: `${tour.title} - EasyRideCebu`,
-    description: tour.description,
+    title,
+    description,
+    keywords: [
+      tour.title,
+      "Cebu Tours",
+      "Cebu Car Rental",
+      "Easy Ride Cebu",
+      "EasyRideCebu",
+      "Travel Cebu",
+      "Tour Package",
+      ...tour.inclusions.slice(0, 5), // Include first 5 inclusions as keywords
+    ],
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "EasyRideCebu",
+      images: [
+        {
+          url: tour.image,
+          width: 1200,
+          height: 630,
+          alt: tour.title,
+        },
+      ],
+      type: "website",
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
+    },
+    alternates: {
+      canonical: url,
+    },
   };
 }
 
