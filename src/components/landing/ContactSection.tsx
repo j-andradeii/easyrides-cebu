@@ -311,7 +311,7 @@ export function ContactSection() {
                       <FormCheckbox
                         name="addDriver"
                         label="Add Driver"
-                        description="₱850/day (8 hours)"
+                        description="₱1000/day (8 hours)"
                       />
                       {addDriver && (
                         <svg className="w-5 h-5 text-mango shrink-0" fill="currentColor" viewBox="0 0 20 20">

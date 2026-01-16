@@ -303,7 +303,7 @@ export function HeroSection() {
                     <FormCheckbox
                       name="addDriver"
                       label="Add Driver"
-                      description="+₱850/day for a professional driver"
+                      description="+₱1000/day for a professional driver"
                     />
                   </div>
 
