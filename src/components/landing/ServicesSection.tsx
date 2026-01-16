@@ -22,7 +22,7 @@ const services = [
     image: 'https://www.mitsubishi-motors.com.ph/content/dam/mitsubishi-motors-ph/images/site-images/articles/2020/xpander-cross/Xpander-Cross-03.jpg',
     features: ['Unlimited mileage option', 'Comprehensive Insurance', '24/7 Roadside support'],
     color: 'orange',
-    link: '/#contact',
+    link: '/#fleet',
   },
   {
     icon: (
