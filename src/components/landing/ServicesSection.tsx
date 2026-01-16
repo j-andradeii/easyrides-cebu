@@ -20,7 +20,7 @@ const services = [
     shortTitle: 'Car Rentals',
     description:
       'Experience the freedom of the road. From the majestic CCLEX to the scenic mountain views of Tops, our fleet is ready for your adventure.',
-    image: 'https://www.mitsubishi-motors.com.ph/content/dam/mitsubishi-motors-ph/images/site-images/articles/2020/xpander-cross/Xpander-Cross-03.jpg',
+    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/destinator.jpg',
     features: ['Unlimited mileage option', 'Comprehensive Insurance', '24/7 Roadside support'],
     color: 'orange',
     link: '/#fleet',
@@ -175,7 +175,7 @@ export function ServicesSection() {
                 {/* Overlay - Darker when active to read text, Lighter when inactive to show image hint */}
                 <div
                   className={`absolute inset-0 transition-opacity duration-500
-                    ${isActive ? 'bg-slate-900/40 lg:bg-gradient-to-r lg:from-slate-900/50 lg:via-slate-900/50 lg:to-transparent' : 'bg-slate-900/50 group-hover:bg-slate-900/40'}
+                    ${isActive ? 'bg-slate-900/60 lg:bg-gradient-to-r lg:from-slate-900/50 lg:via-slate-900/50 lg:to-transparent' : 'bg-slate-900/50 group-hover:bg-slate-900/40'}
                   `}
                 />
 
