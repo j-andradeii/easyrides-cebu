@@ -74,6 +74,9 @@ export const metadata: Metadata = {
     description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
     images: ["/logo.jpg"],
   },
+  verification: {
+    google: "ooM8CHcb0sg-rAI2cHyam1gcOC4TJoAdhKBmHHi7mHo",
+  },
 };
 
 export default function RootLayout({
