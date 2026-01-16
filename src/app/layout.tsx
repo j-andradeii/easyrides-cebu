@@ -40,6 +40,7 @@ export const metadata: Metadata = {
     'Sedan Car Rental Cebu',
     'SUV Car Rental Cebu',
     'Van Car Rental Cebu',
+    'Easy Self-Driving Car Rental Cebu'
   ],
   icons: {
     icon: "/logo.jpg",
