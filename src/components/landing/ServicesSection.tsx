@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useAnchorScroll } from '@/hooks/useAnchorScroll';
 
 const services = [
   {
@@ -128,6 +129,7 @@ const colorClasses = {
 
 export function ServicesSection() {
   const [activeId, setActiveId] = useState(0);
+  const handleScroll = useAnchorScroll();
 
   return (
     <section id="services" className="py-24 bg-slate-50 relative overflow-hidden snap-y scroll-mt-15">
@@ -203,7 +205,10 @@ export function ServicesSection() {
                     ))}
                   </ul>
 
-                  <Link href={service.link} className={`
+                  <Link
+                    href={service.link}
+                    onClick={(e) => handleScroll(e, service.link)}
+                    className={`
                     w-fit px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center gap-2
                     ${colors.btn}
                   `}>
