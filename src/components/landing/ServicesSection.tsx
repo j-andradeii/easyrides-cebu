@@ -130,7 +130,7 @@ export function ServicesSection() {
   const [activeId, setActiveId] = useState(0);
 
   return (
-    <section id="services" className="py-24 bg-slate-50 relative overflow-hidden">
+    <section id="services" className="py-24 bg-slate-50 relative overflow-hidden snap-y scroll-mt-20">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-papaya/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-palm-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
