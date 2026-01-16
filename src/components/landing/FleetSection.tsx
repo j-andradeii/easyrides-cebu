@@ -30,7 +30,7 @@ const vehicles = [
 
 export function FleetSection() {
   return (
-    <section id="fleet" className="py-24 bg-slate-50 relative overflow-hidden">
+    <section id="fleet" className="py-2 bg-slate-50 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
         <div className="absolute top-20 left-20 w-72 h-72 bg-palm-light/5 rounded-full blur-3xl" />

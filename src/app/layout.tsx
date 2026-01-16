@@ -20,8 +20,18 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.easyridecebutours.com/"),
   title: "EasyRideCebu - Car Rentals and Tour Services",
   description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
+  keywords: [
+    "Easy",
+    "Ride",
+    "Cebu",
+    "Cebu Tours",
+    "Easy Cebu Car Rentals",
+    "Easy Tour Package",
+    "Easy Rentals",
+  ],
   icons: {
     icon: "/logo.jpg",
     shortcut: "/logo.jpg",
@@ -30,6 +40,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "EasyRideCebu - Car Rentals and Tour Services",
     description: "Car rentals and tour services in Cebu. Easy and reliable transportation for your travel needs.",
+    url: "https://www.easyridecebutours.com/",
+    siteName: "EasyRideCebu",
     images: [
       {
         url: "/logo.jpg",
@@ -39,6 +51,9 @@ export const metadata: Metadata = {
       },
     ],
     type: "website",
+  },
+  alternates: {
+    canonical: "/",
   },
   twitter: {
     card: "summary_large_image",
