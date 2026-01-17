@@ -4,120 +4,77 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAnchorScroll } from '@/hooks/useAnchorScroll';
 
-const services = [
-  {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2M6.343 6.343l1.414 1.414m8.486 8.486l1.414 1.414M6.343 17.657l1.414-1.414m8.486-8.486l1.414-1.414"
-        />
-      </svg>
-    ),
-    title: 'Car Rentals',
-    shortTitle: 'Car Rentals',
-    description:
-      'Experience the freedom of the road. From the majestic CCLEX to the scenic mountain views of Tops, our fleet is ready for your adventure.',
-    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/destinator.jpg',
-    features: ['Unlimited mileage option', 'Comprehensive Insurance', '24/7 Roadside support'],
-    color: 'orange',
-    link: '/#fleet',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M5 3l14 9-14 9V3z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M19 12H5m7-7v14"
-        />
-      </svg>
-    ),
-    title: 'Airport Transfers',
-    shortTitle: 'Transfers',
-    description:
-      'Start your trip stress-free with our premium airport transfer service. We monitor your flight and ensure a smooth pickup.',
-    image: 'https://s28477.pcdn.co/wp-content/uploads/2018/05/CEB_2A-984x554.jpg',
-    features: ['Flight tracking', 'Meet & greet service', 'Fixed competitive rates'],
-    color: 'cyan',
-    link: '/#contact',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-        />
-      </svg>
-    ),
-    title: 'Tour Packages',
-    shortTitle: 'Tours',
-    description:
-      "From waterfalls to heritage sites, discover the best of Cebu with our curated tour packages designed for every type of traveler.",
-    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/oslob.avif',
-    features: ['1D to 5D4N packages', 'Expert local guides', 'All-inclusive options'],
-    color: 'emerald',
-    link: '/tours',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-        />
-      </svg>
-    ),
-    title: 'Custom Itinerary',
-    shortTitle: 'Custom',
-    description:
-      'Your trip, your way. Our travel experts help you design a personalized itinerary that fits your specific preferences and budget.',
-    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/city_tour.png',
-    features: ['Flexible scheduling', 'Personalized routes', 'Budget-friendly planning'],
-    color: 'violet',
-    link: '/#contact',
-  },
-  {
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-    ),
-    title: 'City Transport',
-    shortTitle: 'Transport',
-    description:
-      'Safe, reliable, and convenient transport for business meetings, events, or simply getting around Cebu City and Mandaue.',
-    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80',
-    features: ['Business class vehicles', 'Professional chauffeurs', 'Hourly bookings'],
-    color: 'rose',
-    link: '/#contact',
-  },
-];
+import { servicesData } from '@/data/services';
+
+const serviceIcons = {
+  'car-rentals': (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2M6.343 6.343l1.414 1.414m8.486 8.486l1.414 1.414M6.343 17.657l1.414-1.414m8.486-8.486l1.414-1.414"
+      />
+    </svg>
+  ),
+  'airport-transfers': (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M5 3l14 9-14 9V3z"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M19 12H5m7-7v14"
+      />
+    </svg>
+  ),
+  'tour-packages': (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+      />
+    </svg>
+  ),
+  'custom-itinerary': (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+      />
+    </svg>
+  ),
+  'city-transport': (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+      />
+    </svg>
+  ),
+};
+
+const services = servicesData.map(service => ({
+  ...service,
+  icon: serviceIcons[service.id as keyof typeof serviceIcons]
+}));
 
 const colorClasses = {
   orange: { badge: 'bg-mango text-white', btn: 'bg-mango hover:bg-mango-dark' },

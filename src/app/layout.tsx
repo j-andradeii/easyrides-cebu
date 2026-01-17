@@ -5,6 +5,7 @@ import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primeicons/primeicons.css";
 import "./globals.css";
 import toursData from "@/data/tours.json";
+import { servicesData } from "@/data/services";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -60,6 +61,9 @@ export const metadata: Metadata = {
     'affordable tour package cebu',
     'cebu affordable tour package',
     'tour package moalboal',
+    ...servicesData.map((s) => s.title),
+    ...servicesData.map((s) => s.description),
+    ...servicesData.map((s) => s.shortTitle),
     ...toursData.tours.map((t) => t.title),
   ],
   icons: {
@@ -154,16 +158,27 @@ export default function RootLayout({
               "priceRange": "₱₱",
               "hasOfferCatalog": {
                 "@type": "OfferCatalog",
-                "name": "Cebu Tour Packages",
-                "itemListElement": toursData.tours.map((tour) => ({
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": tour.title,
-                    "description": tour.shortDescription,
-                    "url": `https://www.easyridecebutours.com/tours/${tour.slug}`
-                  }
-                }))
+                "name": "EasyRideCebu Services",
+                "itemListElement": [
+                  ...servicesData.map((service) => ({
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": service.title,
+                      "description": service.description,
+                      "url": `https://www.easyridecebutours.com${service.link}`
+                    }
+                  })),
+                  ...toursData.tours.map((tour) => ({
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": tour.title,
+                      "description": tour.shortDescription,
+                      "url": `https://www.easyridecebutours.com/tours/${tour.slug}`
+                    }
+                  }))
+                ]
               }
             })
           }}
