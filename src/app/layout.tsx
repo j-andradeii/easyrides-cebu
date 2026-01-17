@@ -69,6 +69,8 @@ export const metadata: Metadata = {
     ...servicesData.map((s) => s.description),
     ...servicesData.map((s) => s.shortTitle),
     ...toursData.tours.map((t) => t.title),
+    ...toursData.tours.map((t) => t.shortDescription),
+
   ],
   icons: {
     icon: "/logo.jpg",
