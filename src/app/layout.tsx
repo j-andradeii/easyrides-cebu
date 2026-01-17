@@ -65,6 +65,7 @@ export const metadata: Metadata = {
     'Explore Cebu Your Way',
     'Explore cebu rent a car',
     'Explore cebu tours',
+    'easy cebu tours',
     ...servicesData.map((s) => s.title),
     ...servicesData.map((s) => s.description),
     ...servicesData.map((s) => s.shortTitle),
