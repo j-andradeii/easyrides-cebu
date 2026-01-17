@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = `${tour.title} - EasyRideCebu`;
-  const description = tour.description;
+  const description = tour.shortDescription;
   const url = `https://www.easyridecebutours.com/tours/${slug}`;
   const images = [tour.image];
 
@@ -88,8 +88,37 @@ export default async function TourDetailPage({ params }: Props) {
     notFound();
   }
 
+  // Create JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": tour.title,
+    "description": tour.shortDescription,
+    "image": [tour.image],
+    "brand": {
+      "@type": "Brand",
+      "name": "EasyRideCebu"
+    },
+    "offers": {
+      "@type": "AggregateOffer",
+      "url": `https://www.easyridecebutours.com/tours/${tour.slug}`,
+      "priceCurrency": "PHP",
+      "lowPrice": tour.pricing.sedan.price,
+      "highPrice": tour.pricing.van.price,
+      "offerCount": 3,
+      "availability": "https://schema.org/InStock",
+      "itemCondition": "https://schema.org/NewCondition"
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 relative w-full max-w-full overflow-x-hidden">
+      {/* Structural SEO Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Background gradient overlay */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
