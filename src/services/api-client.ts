@@ -53,6 +53,7 @@ const buildHeaders = (options?: FetchOptions): HeadersInit => {
 
 const buildUrl = (endpoint: string): string => {
   const baseUrl = config.app.url;
+  console.log("baseUrl", baseUrl);
   // Remove leading slash if present to avoid double slashes
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
   return `${baseUrl}/${cleanEndpoint}`;
