@@ -145,8 +145,8 @@ export function ServicesSection() {
             Select a service to explore
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Tailored for Your <br className="hidden sm:block" />
-            <span className="text-terracotta">Cebu Experience</span>
+            Affordable <br className="hidden sm:block" />
+            <span className="text-terracotta">Car Rentals in Cebu</span> & Tour Packages
           </h2>
         </div>
 

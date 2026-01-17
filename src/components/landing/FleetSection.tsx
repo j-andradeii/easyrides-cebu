@@ -48,8 +48,8 @@ export function FleetSection() {
             Our Fleet
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Premium Vehicles for <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-palm to-palm-dark bg-clip-text text-transparent">Every Journey</span>
+            Our <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-palm to-palm-dark bg-clip-text text-transparent">Cebu Car Rental</span> Fleet
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Choose from our meticulously maintained fleet. Whether you need a compact city car

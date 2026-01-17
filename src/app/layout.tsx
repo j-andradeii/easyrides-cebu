@@ -102,6 +102,52 @@ export default function RootLayout({
         <PrimeReactProvider>
           {children}
         </PrimeReactProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": ["AutoRental", "LocalBusiness"],
+              "name": "EasyRideCebu",
+              "image": "https://www.easyridecebutours.com/logo.jpg",
+              "@id": "https://www.easyridecebutours.com",
+              "url": "https://www.easyridecebutours.com",
+              "telephone": "+639178046988",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Cebu City",
+                "addressCountry": "PH"
+              },
+              "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 10.3157,
+                "longitude": 123.8854
+              },
+              "openingHoursSpecification": [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  "dayOfWeek": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday"
+                  ],
+                  "opens": "08:00",
+                  "closes": "20:00"
+                },
+                {
+                  "@type": "OpeningHoursSpecification",
+                  "dayOfWeek": "Sunday",
+                  "opens": "09:00",
+                  "closes": "18:00"
+                }
+              ],
+              "priceRange": "₱₱"
+            })
+          }}
+        />
       </body>
     </html>
   );
