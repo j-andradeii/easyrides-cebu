@@ -61,6 +61,7 @@ export const metadata: Metadata = {
     'affordable tour package cebu',
     'cebu affordable tour package',
     'tour package moalboal',
+    'easy car rental cebu',
     ...servicesData.map((s) => s.title),
     ...servicesData.map((s) => s.description),
     ...servicesData.map((s) => s.shortTitle),
