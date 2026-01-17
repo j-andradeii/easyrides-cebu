@@ -52,7 +52,8 @@ export const metadata: Metadata = {
     "Easy Self-Driving Car Rental Cebu",
     "Cebu Car Rental",
     "Cebu Tour Package",
-    "Cebu Tour"
+    "Cebu Tour",
+    'cebu car rentals'
   ],
   icons: {
     icon: "/logo.jpg",
