@@ -4,6 +4,7 @@ import { PrimeReactProvider } from "primereact/api";
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primeicons/primeicons.css";
 import "./globals.css";
+import toursData from "@/data/tours.json";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -53,7 +54,13 @@ export const metadata: Metadata = {
     "Cebu Car Rental",
     "Cebu Tour Package",
     "Cebu Tour",
-    'cebu car rentals'
+    'cebu car rentals',
+    'cebu affordable car rental',
+    'affordable car rental',
+    'affordable tour package cebu',
+    'cebu affordable tour package',
+    'tour package moalboal',
+    ...toursData.tours.map((t) => t.title),
   ],
   icons: {
     icon: "/logo.jpg",
@@ -144,7 +151,20 @@ export default function RootLayout({
                   "closes": "18:00"
                 }
               ],
-              "priceRange": "₱₱"
+              "priceRange": "₱₱",
+              "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "Cebu Tour Packages",
+                "itemListElement": toursData.tours.map((tour) => ({
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": tour.title,
+                    "description": tour.shortDescription,
+                    "url": `https://www.easyridecebutours.com/tours/${tour.slug}`
+                  }
+                }))
+              }
             })
           }}
         />
