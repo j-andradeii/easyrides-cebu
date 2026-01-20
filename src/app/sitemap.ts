@@ -5,25 +5,54 @@ import { Tour } from '@/types/tour';
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://www.easyridecebutours.com';
 
-    // Static routes
-    const routes = [
-        '',
-        '/tours',
-    ].map((route) => ({
-        url: `${baseUrl}${route}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: route === '' ? 1 : 0.8,
-    }));
+    // Static routes with SEO priorities
+    const staticRoutes: MetadataRoute.Sitemap = [
+        {
+            url: baseUrl,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 1.0,
+        },
+        {
+            url: `${baseUrl}/tours`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.9,
+        },
+    ];
 
-    // Dynamic tour routes
+    // Dynamic tour routes - high priority for product/service pages
     const tours = toursData.tours as Tour[];
-    const tourRoutes = tours.map((tour) => ({
+
+    // Featured tours get higher priority
+    const tourRoutes: MetadataRoute.Sitemap = tours.map((tour) => ({
         url: `${baseUrl}/tours/${tour.slug}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
-        priority: 0.9, // High priority for product pages
+        priority: tour.featured ? 0.9 : 0.8,
     }));
 
-    return [...routes, ...tourRoutes];
+    // Section anchors for internal linking (these help with crawlability)
+    const sectionRoutes: MetadataRoute.Sitemap = [
+        {
+            url: `${baseUrl}/#services`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        {
+            url: `${baseUrl}/#fleet`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        {
+            url: `${baseUrl}/#contact`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+    ];
+
+    return [...staticRoutes, ...tourRoutes, ...sectionRoutes];
 }

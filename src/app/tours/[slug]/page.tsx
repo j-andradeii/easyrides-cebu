@@ -13,6 +13,8 @@ import { TourInquiryForm, TourGallery } from '@/components/tours';
 import toursData from '@/data/tours.json';
 import type { Tour } from '@/types/tour';
 
+const baseUrl = 'https://www.easyridecebutours.com';
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -23,59 +25,170 @@ export async function generateStaticParams() {
   return tours.map((tour) => ({ slug: tour.slug }));
 }
 
-// Generate metadata for each tour
+// Generate metadata for each tour (SEO optimized)
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const tours = toursData.tours as Tour[];
   const tour = tours.find((t) => t.slug === slug);
 
   if (!tour) {
-    return { title: 'Tour Not Found - EasyRideCebu' };
+    return { title: 'Tour Not Found' };
   }
 
-  const title = `${tour.title} - EasyRideCebu`;
-  const description = tour.shortDescription;
-  const url = `https://www.easyridecebutours.com/tours/${slug}`;
-  const images = [tour.image];
+  // Extract destinations from itinerary for keywords
+  const destinations = tour.itinerary
+    .filter((item) => !item.time && !item.activity.toLowerCase().includes('pick'))
+    .map((item) => item.activity)
+    .slice(0, 5);
+
+  // Build SEO-optimized title (50-60 chars)
+  const title = `${tour.title} | Cebu Tour Package from ₱${tour.pricing.sedan.price.toLocaleString()}`;
+
+  // Build SEO-optimized description (150-160 chars)
+  const description = `Book ${tour.title} in Cebu. ${tour.duration} tour starting at ₱${tour.pricing.sedan.price.toLocaleString()}. Includes vehicle, driver & fuel. ${tour.shortDescription.slice(0, 60)}`;
+
+  const url = `${baseUrl}/tours/${slug}`;
 
   return {
     title,
     description,
     keywords: [
-      tour.title,
-      "Cebu Tours",
-      "Cebu Car Rental",
-      "Easy Ride Cebu",
-      "EasyRideCebu",
-      "Travel Cebu",
-      "Tour Package",
-      ...tour.inclusions.slice(0, 5), // Include first 5 inclusions as keywords
+      tour.title.toLowerCase(),
+      `${tour.title.toLowerCase()} cebu`,
+      `${tour.title.toLowerCase()} package`,
+      'cebu tour package',
+      'cebu day tour',
+      'cebu tour with driver',
+      ...destinations.map((d) => `${d.toLowerCase()} tour`),
+      'affordable cebu tour',
+      'cebu travel package',
     ],
     openGraph: {
       title,
       description,
       url,
-      siteName: "EasyRideCebu",
+      siteName: 'EasyRideCebu',
       images: [
         {
           url: tour.image,
           width: 1200,
           height: 630,
-          alt: tour.title,
+          alt: `${tour.title} - Cebu Tour Package`,
         },
       ],
-      type: "website",
-      locale: "en_US",
+      type: 'website',
+      locale: 'en_US',
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title,
       description,
-      images,
+      images: [tour.image],
     },
     alternates: {
       canonical: url,
     },
+  };
+}
+
+// Generate TouristTrip structured data
+function generateTourSchema(tour: Tour) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TouristTrip',
+    name: tour.title,
+    description: tour.description,
+    url: `${baseUrl}/tours/${tour.slug}`,
+    image: [tour.image, ...(tour.gallery || [])],
+    touristType: 'Adventure travelers',
+    itinerary: {
+      '@type': 'ItemList',
+      itemListElement: tour.itinerary.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'TouristAttraction',
+          name: item.activity,
+        },
+      })),
+    },
+    offers: {
+      '@type': 'AggregateOffer',
+      lowPrice: tour.pricing.sedan.price,
+      highPrice: tour.pricing.van.price,
+      priceCurrency: 'PHP',
+      availability: 'https://schema.org/InStock',
+      validFrom: new Date().toISOString(),
+      offerCount: 3,
+    },
+    provider: {
+      '@type': 'TravelAgency',
+      name: 'EasyRideCebu',
+      url: baseUrl,
+      telephone: '+639178046988',
+    },
+  };
+}
+
+// Generate Breadcrumb structured data
+function generateBreadcrumbSchema(tour: Tour) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: baseUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Tours',
+        item: `${baseUrl}/tours`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: tour.title,
+        item: `${baseUrl}/tours/${tour.slug}`,
+      },
+    ],
+  };
+}
+
+// Generate FAQ structured data specific to each tour
+function generateFaqSchema(tour: Tour) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `How much does the ${tour.title} cost?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `The ${tour.title} starts from ₱${tour.pricing.sedan.price.toLocaleString()} for sedan (${tour.pricing.sedan.capacity}), ₱${tour.pricing.suv.price.toLocaleString()} for SUV (${tour.pricing.suv.capacity}), and ₱${tour.pricing.van.price.toLocaleString()} for van (${tour.pricing.van.capacity}). All rates include vehicle, driver/guide, and fuel.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `What is included in the ${tour.title}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `The ${tour.title} includes: ${tour.inclusions.join(', ')}. Not included: ${tour.exclusions.slice(0, 3).join(', ')}.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `How long is the ${tour.title}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `The ${tour.title} is a ${tour.duration} experience. ${tour.shortDescription}`,
+        },
+      },
+    ],
   };
 }
 
@@ -88,35 +201,26 @@ export default async function TourDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Create JSON-LD structured data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": tour.title,
-    "description": tour.shortDescription,
-    "image": [tour.image],
-    "brand": {
-      "@type": "Brand",
-      "name": "EasyRideCebu"
-    },
-    "offers": {
-      "@type": "AggregateOffer",
-      "url": `https://www.easyridecebutours.com/tours/${tour.slug}`,
-      "priceCurrency": "PHP",
-      "lowPrice": tour.pricing.sedan.price,
-      "highPrice": tour.pricing.van.price,
-      "offerCount": 3,
-      "availability": "https://schema.org/InStock",
-      "itemCondition": "https://schema.org/NewCondition"
-    }
-  };
-
   return (
     <main className="min-h-screen bg-slate-50 relative w-full max-w-full overflow-x-hidden">
-      {/* Structural SEO Data */}
+      {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateTourSchema(tour)),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateBreadcrumbSchema(tour)),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateFaqSchema(tour)),
+        }}
       />
 
       {/* Background gradient overlay */}

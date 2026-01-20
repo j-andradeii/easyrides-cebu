@@ -11,9 +11,107 @@ import { TourCard } from '@/components/tours';
 import toursData from '@/data/tours.json';
 import type { Tour } from '@/types/tour';
 
+const baseUrl = 'https://www.easyridecebutours.com';
+
 export const metadata: Metadata = {
-  title: 'Tour Packages - EasyRideCebu',
-  description: 'Explore our curated Cebu tour packages with all-inclusive transportation. City tours, safari adventures, canyoneering, and more.',
+  title: 'Cebu Tour Packages - City Tours, Adventure & Day Trips',
+  description:
+    'Browse affordable Cebu tour packages: Oslob whale sharks, Moalboal canyoneering, Simala Shrine, Safari, City tours. All-inclusive with vehicle, driver & fuel. Book now!',
+  keywords: [
+    'cebu tour packages',
+    'cebu day tours',
+    'oslob whale shark tour',
+    'moalboal canyoneering tour',
+    'cebu city tour',
+    'simala shrine tour',
+    'kawasan falls tour',
+    'cebu safari tour',
+    'bohol tour from cebu',
+    'south cebu tour',
+    'cebu adventure tour',
+    'affordable cebu tours',
+  ],
+  openGraph: {
+    title: 'Cebu Tour Packages - City Tours, Adventure & Day Trips | EasyRideCebu',
+    description:
+      'Browse affordable Cebu tour packages: Oslob whale sharks, Moalboal canyoneering, Simala Shrine, Safari, City tours. All-inclusive with vehicle, driver & fuel.',
+    url: `${baseUrl}/tours`,
+    siteName: 'EasyRideCebu',
+    images: [
+      {
+        url: '/og-tours.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Cebu Tour Packages - EasyRideCebu',
+      },
+    ],
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cebu Tour Packages - City Tours, Adventure & Day Trips',
+    description:
+      'Browse affordable Cebu tour packages: Oslob whale sharks, Moalboal canyoneering, Simala Shrine, Safari, City tours.',
+    images: ['/og-tours.jpg'],
+  },
+  alternates: {
+    canonical: `${baseUrl}/tours`,
+  },
+};
+
+// Generate ItemList structured data for tour listings
+function generateToursListSchema(tours: Tour[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Cebu Tour Packages',
+    description: 'Browse all available tour packages in Cebu, Philippines',
+    numberOfItems: tours.length,
+    itemListElement: tours.map((tour, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'TouristTrip',
+        name: tour.title,
+        description: tour.shortDescription,
+        url: `${baseUrl}/tours/${tour.slug}`,
+        image: tour.image,
+        offers: {
+          '@type': 'AggregateOffer',
+          priceCurrency: 'PHP',
+          lowPrice: tour.pricing.sedan.price,
+          highPrice: tour.pricing.van.price,
+          availability: 'https://schema.org/InStock',
+        },
+        provider: {
+          '@type': 'TravelAgency',
+          name: 'EasyRideCebu',
+          url: baseUrl,
+        },
+      },
+    })),
+  };
+}
+
+// Generate BreadcrumbList schema
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: baseUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Tours',
+      item: `${baseUrl}/tours`,
+    },
+  ],
 };
 
 export default function ToursPage() {
@@ -21,6 +119,20 @@ export default function ToursPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 relative overflow-x-hidden">
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateToursListSchema(tours)),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
+
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
 
