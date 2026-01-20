@@ -30,6 +30,7 @@ export const metadata: Metadata = {
     'south cebu tour',
     'cebu adventure tour',
     'affordable cebu tours',
+    'Easyride CEBU Car Rentals & Tour',
   ],
   openGraph: {
     title: 'Cebu Tour Packages - City Tours, Adventure & Day Trips | EasyRideCebu',

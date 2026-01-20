@@ -145,7 +145,7 @@ export function HeroSection() {
             </h1>
 
             <p className="text-lg sm:text-xl text-white mb-8 max-w-xl mx-auto lg:mx-0 drop-shadow-md font-medium">
-              Premium car rentals, seamless airport transfers, and curated tour packages.
+              Easyride CEBU Car Rentals & Tour offers premium car rentals, seamless airport transfers, and curated tour packages.
               Discover the Queen City of the South with comfort and flexibility.
             </p>
 
