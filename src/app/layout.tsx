@@ -55,6 +55,11 @@ export const metadata: Metadata = {
     "cebu travel package",
     "kawasan falls tour",
     "cebu highland tour",
+    'easy car rental cebu',
+    'easy ride cebu tours',
+    'easy ride cebu',
+    'easy car rental',
+    'cebu car rental'
   ],
 
   icons: {
