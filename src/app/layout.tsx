@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     title: "EasyRideCebu - Affordable Car Rentals & Tours | Cebu",
     description:
       "Book affordable car rentals and tour packages in Cebu. Airport transfers, city tours, Oslob whale sharks, Moalboal. Easy online booking!",
-    images: ["/og-image.jpg"],
+    images: ["/logo.jpg"],
   },
 
   verification: {
