@@ -8,7 +8,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "djuny0idasckxayv.public.blob.vercel-storage.com",
       },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
     ],
+    dangerouslyAllowSVG: true,
   },
 };
 export default nextConfig;

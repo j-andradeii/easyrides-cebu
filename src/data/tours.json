@@ -6,6 +6,16 @@
       "shortDescription": "Explore Cebu City's historical landmarks and scenic highland viewpoints in this comprehensive 8-hour tour.",
       "description": "Experience the best of Cebu City with our City & Uphill Tour. Visit iconic landmarks including the Temple of Leah, Sirao Flower Garden, and Tops Busay for panoramic views. Explore historical sites like Fort San Pedro, Sto. Nino Church, and Magellan's Cross. This tour combines cultural heritage with natural beauty for an unforgettable Cebu experience.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/city_tour.png",
+      "gallery": [
+        "https://placehold.co/600x600?text=Sirao+Garden",
+        "https://placehold.co/600x600?text=Temple+of+Leah",
+        "https://placehold.co/600x600?text=Tops+Busay",
+        "https://placehold.co/600x600?text=Fort+San+Pedro",
+        "https://placehold.co/600x600?text=Sto+Nino",
+        "https://placehold.co/600x600?text=Magellans+Cross",
+        "https://placehold.co/600x600?text=Heritage+Park",
+        "https://placehold.co/600x600?text=CCLEX"
+      ],
       "duration": "8 hours",
       "featured": true,
       "pricing": {
@@ -90,6 +100,16 @@
       "shortDescription": "Swim with sardines, watch sea turtles, and conquer thrilling canyoneering at Kawasan Falls.",
       "description": "Experience the ultimate Cebu adventure combining the marine wonders of Moalboal with the thrills of Kawasan Falls canyoneering. Swim with millions of sardines in their natural habitat, spot sea turtles at the coral garden, and challenge yourself with cliff jumps and waterfall rappelling. This action-packed tour is perfect for adventure seekers!",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/moalboal.png",
+      "gallery": [
+        "https://placehold.co/600x600?text=Moalboal+1",
+        "https://placehold.co/600x600?text=Moalboal+2",
+        "https://placehold.co/600x600?text=Moalboal+3",
+        "https://placehold.co/600x600?text=Moalboal+4",
+        "https://placehold.co/600x600?text=Moalboal+5",
+        "https://placehold.co/600x600?text=Moalboal+6",
+        "https://placehold.co/600x600?text=Moalboal+7",
+        "https://placehold.co/600x600?text=Moalboal+8"
+      ],
       "duration": "Full Day",
       "featured": true,
       "pricing": {
@@ -155,6 +175,16 @@
       "shortDescription": "Discover exotic wildlife at Cebu's premier safari and adventure park in Carmen.",
       "description": "Journey to Carmen, Cebu for an unforgettable wildlife experience at Cebu Safari Adventure Park. Get up close with exotic animals from around the world, enjoy scenic views of the Cebu highlands, and experience adventure activities. The park features diverse wildlife exhibits, bird sanctuaries, and family-friendly attractions.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/safari.jpg",
+      "gallery": [
+        "https://placehold.co/600x600?text=Safari+1",
+        "https://placehold.co/600x600?text=Safari+2",
+        "https://placehold.co/600x600?text=Safari+3",
+        "https://placehold.co/600x600?text=Safari+4",
+        "https://placehold.co/600x600?text=Safari+5",
+        "https://placehold.co/600x600?text=Safari+6",
+        "https://placehold.co/600x600?text=Safari+7",
+        "https://placehold.co/600x600?text=Safari+8"
+      ],
       "duration": "Full Day",
       "featured": true,
       "pricing": {
@@ -210,6 +240,16 @@
       "shortDescription": "Experience whale shark encounters and visit the miraculous Simala Shrine in one epic tour.",
       "description": "Start your day with an incredible whale shark encounter in Oslob, then explore the beautiful Simala Shrine. This tour combines marine adventure with spiritual experience, visiting multiple attractions in southern Cebu including the Oslob Cuartel, Monkey Sanctuary, and historic churches.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/oslob.avif",
+      "gallery": [
+        "https://placehold.co/600x600?text=Oslob+1",
+        "https://placehold.co/600x600?text=Oslob+2",
+        "https://placehold.co/600x600?text=Oslob+3",
+        "https://placehold.co/600x600?text=Oslob+4",
+        "https://placehold.co/600x600?text=Oslob+5",
+        "https://placehold.co/600x600?text=Oslob+6",
+        "https://placehold.co/600x600?text=Oslob+7",
+        "https://placehold.co/600x600?text=Oslob+8"
+      ],
       "duration": "Full Day",
       "featured": false,
       "pricing": {
@@ -289,6 +329,16 @@
       "shortDescription": "Discover the stunning West 35 Eco Mountain Resort and colorful flower gardens of Cebu.",
       "description": "Explore the beautiful highlands of western Cebu with visits to the stunning West 35 Eco Mountain Resort, Buwakan ni Alejandra flower garden, and Adventure Cafe zipline. Enjoy panoramic mountain views, colorful flower fields, and the famous Sirao Garden.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/cebu_west.png",
+      "gallery": [
+        "https://placehold.co/600x600?text=West+Cebu+1",
+        "https://placehold.co/600x600?text=West+Cebu+2",
+        "https://placehold.co/600x600?text=West+Cebu+3",
+        "https://placehold.co/600x600?text=West+Cebu+4",
+        "https://placehold.co/600x600?text=West+Cebu+5",
+        "https://placehold.co/600x600?text=West+Cebu+6",
+        "https://placehold.co/600x600?text=West+Cebu+7",
+        "https://placehold.co/600x600?text=West+Cebu+8"
+      ],
       "duration": "Full Day",
       "featured": false,
       "pricing": {
@@ -363,6 +413,16 @@
       "shortDescription": "Visit the miraculous Simala Shrine and enjoy Carcar's famous lechon and chicharon.",
       "description": "Experience a spiritual journey to the famous Simala Shrine, known for its miraculous healing powers and stunning castle-like architecture. The tour includes visits to Carcar for its famous lechon and chicharon, plus the Archbishop Teofilo Camomot Shrine.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/simala.jpg",
+      "gallery": [
+        "https://placehold.co/600x600?text=Simala+1",
+        "https://placehold.co/600x600?text=Simala+2",
+        "https://placehold.co/600x600?text=Simala+3",
+        "https://placehold.co/600x600?text=Simala+4",
+        "https://placehold.co/600x600?text=Simala+5",
+        "https://placehold.co/600x600?text=Simala+6",
+        "https://placehold.co/600x600?text=Simala+7",
+        "https://placehold.co/600x600?text=Simala+8"
+      ],
       "duration": "10 hours",
       "featured": false,
       "pricing": {
@@ -424,6 +484,16 @@
       "shortDescription": "Combine spiritual pilgrimage to Simala Shrine with scenic mountain viewpoints and heritage sites.",
       "description": "Experience the best of both worlds - spiritual enlightenment at Simala Shrine and breathtaking mountain views at Tops Busay and Temple of Leah. This comprehensive tour covers southern heritage sites and Cebu City's famous highland attractions.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/simala.jpg",
+      "gallery": [
+        "https://placehold.co/600x600?text=Simala+Mtn+1",
+        "https://placehold.co/600x600?text=Simala+Mtn+2",
+        "https://placehold.co/600x600?text=Simala+Mtn+3",
+        "https://placehold.co/600x600?text=Simala+Mtn+4",
+        "https://placehold.co/600x600?text=Simala+Mtn+5",
+        "https://placehold.co/600x600?text=Simala+Mtn+6",
+        "https://placehold.co/600x600?text=Simala+Mtn+7",
+        "https://placehold.co/600x600?text=Simala+Mtn+8"
+      ],
       "duration": "Full Day",
       "featured": false,
       "pricing": {
@@ -506,6 +576,16 @@
       "shortDescription": "The ultimate Cebu adventure: whale sharks, sardines, turtles, and canyoneering in one tour!",
       "description": "Experience Cebu's most thrilling attractions in one action-packed day! Start with whale shark encounters in Oslob, snorkel with sardines and turtles in Moalboal, and finish with exhilarating canyoneering at Kawasan Falls. This is the ultimate adventure tour for thrill-seekers!",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/oslob_moalboal_kawasan.png",
+      "gallery": [
+        "https://placehold.co/600x600?text=Adventure+1",
+        "https://placehold.co/600x600?text=Adventure+2",
+        "https://placehold.co/600x600?text=Adventure+3",
+        "https://placehold.co/600x600?text=Adventure+4",
+        "https://placehold.co/600x600?text=Adventure+5",
+        "https://placehold.co/600x600?text=Adventure+6",
+        "https://placehold.co/600x600?text=Adventure+7",
+        "https://placehold.co/600x600?text=Adventure+8"
+      ],
       "duration": "Full Day",
       "featured": false,
       "pricing": {
@@ -574,6 +654,16 @@
       "shortDescription": "Explore Bohol's famous Chocolate Hills, tarsiers, and scenic countryside attractions.",
       "description": "Discover the wonders of Bohol Island with this comprehensive countryside tour. Visit the iconic Chocolate Hills, see the adorable tarsiers at the sanctuary, cruise on the Loboc River, and explore historic churches and unique attractions like the Man-Made Forest.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/bohol.png",
+      "gallery": [
+        "https://placehold.co/600x600?text=Bohol+1",
+        "https://placehold.co/600x600?text=Bohol+2",
+        "https://placehold.co/600x600?text=Bohol+3",
+        "https://placehold.co/600x600?text=Bohol+4",
+        "https://placehold.co/600x600?text=Bohol+5",
+        "https://placehold.co/600x600?text=Bohol+6",
+        "https://placehold.co/600x600?text=Bohol+7",
+        "https://placehold.co/600x600?text=Bohol+8"
+      ],
       "duration": "Full Day",
       "featured": false,
       "pricing": {
@@ -652,6 +742,16 @@
       "shortDescription": "Convenient transfer service from Cebu to Hagnaya Port for Bantayan Island.",
       "description": "Hassle-free transfer service from Cebu City or Airport to Hagnaya Port, the gateway to beautiful Bantayan Island. The 3-hour journey takes you through scenic northern Cebu. Same rate applies for return trips from Hagnaya Port to Cebu.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/hagnaya.webp",
+      "gallery": [
+        "https://placehold.co/600x600?text=Hagnaya+1",
+        "https://placehold.co/600x600?text=Hagnaya+2",
+        "https://placehold.co/600x600?text=Hagnaya+3",
+        "https://placehold.co/600x600?text=Hagnaya+4",
+        "https://placehold.co/600x600?text=Hagnaya+5",
+        "https://placehold.co/600x600?text=Hagnaya+6",
+        "https://placehold.co/600x600?text=Hagnaya+7",
+        "https://placehold.co/600x600?text=Hagnaya+8"
+      ],
       "duration": "3 hours",
       "featured": false,
       "pricing": {
@@ -697,6 +797,16 @@
       "shortDescription": "Convenient transfer service from Cebu to Maya Port for Malapascua Island.",
       "description": "Hassle-free transfer service from Cebu City or Airport to Maya Port, the gateway to stunning Malapascua Island known for its thresher sharks. The 3.5-hour journey takes you through scenic northern Cebu. Same rate applies for return trips.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/maya.jpg",
+      "gallery": [
+        "https://placehold.co/600x600?text=Maya+1",
+        "https://placehold.co/600x600?text=Maya+2",
+        "https://placehold.co/600x600?text=Maya+3",
+        "https://placehold.co/600x600?text=Maya+4",
+        "https://placehold.co/600x600?text=Maya+5",
+        "https://placehold.co/600x600?text=Maya+6",
+        "https://placehold.co/600x600?text=Maya+7",
+        "https://placehold.co/600x600?text=Maya+8"
+      ],
       "duration": "3.5 hours",
       "featured": false,
       "pricing": {
@@ -742,6 +852,16 @@
       "shortDescription": "Visit Simala Shrine and explore the amazing Cebu Ocean Park aquarium.",
       "description": "Combine spiritual enlightenment with marine discovery! Visit the miraculous Simala Shrine, enjoy Carcar's famous delicacies, then explore Cebu Ocean Park's amazing underwater exhibits. A perfect blend of culture, food, and marine adventure.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/simala_oslob.png",
+      "gallery": [
+        "https://placehold.co/600x600?text=OceanPark+1",
+        "https://placehold.co/600x600?text=OceanPark+2",
+        "https://placehold.co/600x600?text=OceanPark+3",
+        "https://placehold.co/600x600?text=OceanPark+4",
+        "https://placehold.co/600x600?text=OceanPark+5",
+        "https://placehold.co/600x600?text=OceanPark+6",
+        "https://placehold.co/600x600?text=OceanPark+7",
+        "https://placehold.co/600x600?text=OceanPark+8"
+      ],
       "duration": "10 hours",
       "featured": false,
       "pricing": {
@@ -801,6 +921,16 @@
       "shortDescription": "Explore Cebu City's heritage sites and enjoy thrilling rides at Anjo World theme park.",
       "description": "Experience the best of Cebu City with a morning heritage tour followed by an exciting afternoon at Anjo World Theme Park. Visit historic landmarks like Fort San Pedro, Magellan's Cross, and Heritage Park, then enjoy thrilling rides and attractions at Cebu's premier theme park.",
       "image": "https://djuny0idasckxayv.public.blob.vercel-storage.com/tours/anjo_world.webp",
+      "gallery": [
+        "https://placehold.co/600x600?text=Anjo+World+1",
+        "https://placehold.co/600x600?text=Anjo+World+2",
+        "https://placehold.co/600x600?text=Anjo+World+3",
+        "https://placehold.co/600x600?text=Anjo+World+4",
+        "https://placehold.co/600x600?text=Anjo+World+5",
+        "https://placehold.co/600x600?text=Anjo+World+6",
+        "https://placehold.co/600x600?text=Anjo+World+7",
+        "https://placehold.co/600x600?text=Anjo+World+8"
+      ],
       "duration": "10 hours",
       "featured": false,
       "pricing": {

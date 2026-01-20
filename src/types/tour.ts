@@ -24,6 +24,7 @@ export interface Tour {
   shortDescription: string;
   description: string;
   image: string;
+  gallery?: string[];
   duration: string;
   featured: boolean;
   pricing: TourPricingOptions;

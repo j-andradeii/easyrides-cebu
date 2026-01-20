@@ -9,7 +9,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Navigation, Footer } from '@/components/landing';
-import { TourInquiryForm } from '@/components/tours';
+import { TourInquiryForm, TourGallery } from '@/components/tours';
 import toursData from '@/data/tours.json';
 import type { Tour } from '@/types/tour';
 
@@ -176,6 +176,11 @@ export default async function TourDetailPage({ params }: Props) {
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">About This Tour</h2>
                 <p className="text-slate-600 leading-relaxed break-words">{tour.description}</p>
               </div>
+
+              {/* Gallery Section */}
+              {tour.gallery && tour.gallery.length > 0 && (
+                <TourGallery images={tour.gallery} title={tour.title} />
+              )}
 
               {/* Pricing Table */}
               <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
