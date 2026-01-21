@@ -32,27 +32,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: tour.featured ? 0.9 : 0.8,
     }));
 
-    // Section anchors for internal linking (these help with crawlability)
-    const sectionRoutes: MetadataRoute.Sitemap = [
-        {
-            url: `${baseUrl}/#services`,
-            lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/#fleet`,
-            lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/#contact`,
-            lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.6,
-        },
-    ];
-
-    return [...staticRoutes, ...tourRoutes, ...sectionRoutes];
+    return [...staticRoutes, ...tourRoutes];
 }
