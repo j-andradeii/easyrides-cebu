@@ -62,6 +62,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...destinations.map((d) => `${d.toLowerCase()} tour`),
       'affordable cebu tour',
       'cebu travel package',
+      `easy ${tour.title.toLowerCase()} cebu`,
+      `easy ${tour.title.toLowerCase()} package`,
+      `easy tour ${tour.title.toLowerCase()} cebu`,
+      `easy tour ${tour.title.toLowerCase()} package`,
     ],
     openGraph: {
       title,
