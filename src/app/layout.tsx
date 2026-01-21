@@ -60,7 +60,9 @@ export const metadata: Metadata = {
     'easy ride cebu',
     'easy car rental',
     'cebu car rental',
-    'Easyride CEBU Car Rentals & Tour'
+    'Easyride CEBU Car Rentals & Tour',
+    'cebu easy rent a car',
+    'cebu car rental with driver'
   ],
 
   icons: {
