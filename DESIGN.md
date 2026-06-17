@@ -185,9 +185,9 @@ Other accepted gradient accents (used for variety per section, always brand toke
 </section>
 ```
 
-**Landing page section order & anchor IDs** (`src/app/page.tsx`):
-`#services` → `#fleet` → DriverBanner → `#tours` → `#pricing` → WhyChooseUs → `#contact` → Footer.
-Nav links and CTAs point at these IDs.
+**Landing page section order & anchor IDs** (`src/app/page.tsx`) — the page is a single conversion funnel (Attention → Interest → Desire → Trust → Action):
+HeroSection → TrustBar → `#services` → HowItWorks → `#fleet` → `#tours` → `#pricing` → WhyChooseUs → Testimonials → `#contact` → Footer.
+Nav links and CTAs point at these IDs; the repeated primary CTA always targets `#contact`. The unanchored funnel sections (TrustBar, HowItWorks, Testimonials) sit *between* the anchored ones so nav links keep working.
 
 ---
 

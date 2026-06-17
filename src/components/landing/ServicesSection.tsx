@@ -1,50 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { useAnchorScroll } from '@/hooks/useAnchorScroll';
 
 import { servicesData } from '@/data/services';
 
 const serviceIcons = {
   'car-rentals': (
-    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={1.5}
-        d="M8 7h8m-8 5h8m-4-10v2m0 12v2m-6-6H4m16 0h-2M6.343 6.343l1.414 1.414m8.486 8.486l1.414 1.414M6.343 17.657l1.414-1.414m8.486-8.486l1.414-1.414"
+        d="M8 17h8m-10 0h.01M18 17h.01M5 13l1.2-4.2A3 3 0 019.08 6h5.84a3 3 0 012.88 2.8L19 13m-14 0h14v5a1 1 0 01-1 1H6a1 1 0 01-1-1v-5z"
       />
     </svg>
   ),
   'airport-transfers': (
-    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={1.5}
-        d="M5 3l14 9-14 9V3z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M19 12H5m7-7v14"
+        d="M5 12h14M12 5l7 7-7 7M6 5l5 7-5 7"
       />
     </svg>
   ),
   'tour-packages': (
-    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={1.5}
-        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+        d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3zm0 0V3m6 18V6"
       />
     </svg>
   ),
   'custom-itinerary': (
-    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -54,7 +46,7 @@ const serviceIcons = {
     </svg>
   ),
   'city-transport': (
-    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -71,128 +63,146 @@ const serviceIcons = {
   ),
 };
 
-const services = servicesData.map(service => ({
+const services = servicesData.map((service) => ({
   ...service,
-  icon: serviceIcons[service.id as keyof typeof serviceIcons]
+  icon: serviceIcons[service.id as keyof typeof serviceIcons],
 }));
 
+const primaryServices = services.slice(0, 3);
+const supportingServices = services.slice(3);
+
 const colorClasses = {
-  orange: { badge: 'bg-mango text-white', btn: 'bg-mango hover:bg-mango-dark' },
-  cyan: { badge: 'bg-terracotta text-white', btn: 'bg-terracotta hover:bg-terracotta/90' },
-  emerald: { badge: 'bg-palm text-white', btn: 'bg-palm hover:bg-palm/90' },
-  violet: { badge: 'bg-coral text-white', btn: 'bg-coral hover:bg-coral/90' },
-  rose: { badge: 'bg-hibiscus text-white', btn: 'bg-hibiscus hover:bg-hibiscus-dark' },
+  orange: {
+    accent: 'text-mango bg-mango/10',
+    badge: 'text-mango-dark bg-mango/10 border-mango/20',
+    button: 'from-coral to-mango hover:from-coral-dark hover:to-mango-dark',
+  },
+  cyan: {
+    accent: 'text-terracotta bg-terracotta/10',
+    badge: 'text-terracotta bg-terracotta/10 border-terracotta/20',
+    button: 'from-terracotta to-coral hover:from-terracotta-dark hover:to-coral-dark',
+  },
+  emerald: {
+    accent: 'text-palm bg-palm/10',
+    badge: 'text-palm bg-palm/10 border-palm/20',
+    button: 'from-palm to-palm-dark hover:from-palm-light hover:to-palm',
+  },
+  violet: {
+    accent: 'text-coral bg-coral/10',
+    badge: 'text-coral bg-coral/10 border-coral/20',
+    button: 'from-coral to-mango hover:from-coral-dark hover:to-mango-dark',
+  },
+  rose: {
+    accent: 'text-hibiscus bg-hibiscus/10',
+    badge: 'text-hibiscus bg-hibiscus/10 border-hibiscus/20',
+    button: 'from-hibiscus to-terracotta hover:from-hibiscus-dark hover:to-terracotta-dark',
+  },
 };
 
+function getCtaLabel(link: string) {
+  if (link === '/#fleet') return 'View fleet';
+  if (link === '/tours') return 'Browse tours';
+  return 'Get a quote';
+}
+
 export function ServicesSection() {
-  const [activeId, setActiveId] = useState(0);
-  const handleScroll = useAnchorScroll();
-
   return (
-    <section id="services" className="py-24 bg-slate-50 relative overflow-hidden snap-y scroll-mt-15">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-papaya/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-palm-light/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+    <section id="services" className="relative overflow-hidden bg-cream py-14 sm:py-20 scroll-mt-15 border-t border-cream-dark/50">
+      <div className="absolute right-0 top-0 h-96 w-96 translate-x-1/3 rounded-full bg-papaya/10 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 h-80 w-80 -translate-x-1/3 rounded-full bg-palm-light/10 blur-3xl pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-white text-slate-600 px-4 py-1.5 rounded-full text-sm font-medium mb-8 border border-slate-200 shadow-sm">
-            <span className="w-1.5 h-1.5 bg-terracotta rounded-full animate-pulse" />
-            Select a service to explore
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-10 sm:mb-14 max-w-3xl text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-coral/20 bg-white px-4 py-2 text-sm font-medium text-coral shadow-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-coral" />
+            Ride Options
           </div>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Affordable <br className="hidden sm:block" />
-            <span className="text-terracotta">Car Rentals in Cebu</span> & Tour Packages
+          <h2 className="mb-4 text-3xl font-bold text-slate-900 sm:text-4xl lg:text-5xl">
+            Choose the easiest way to{' '}
+            <span className="bg-gradient-to-r from-coral to-mango bg-clip-text text-transparent">
+              move around Cebu
+            </span>
           </h2>
+          <p className="mx-auto max-w-2xl text-lg text-slate-600">
+            Start with the service that matches your trip. Every option leads to a clear quote, flexible schedule, and local support.
+          </p>
         </div>
 
-        {/* Accordion Container */}
-        <div className="flex flex-col lg:flex-row gap-4 h-[920px] lg:h-[600px] w-full">
-          {services.map((service, index) => {
-            const isActive = activeId === index;
-            const colors = colorClasses[service.color as keyof typeof colorClasses];
+        <div className="grid gap-6 lg:grid-cols-3">
+          {primaryServices.map((service) => {
+            const colors = colorClasses[service.color];
 
             return (
-              <div
-                key={index}
-                onClick={() => setActiveId(index)}
-                className={`
-                  relative rounded-3xl overflow-hidden cursor-pointer transition-all duration-700 ease-in-out
-                  ${isActive ? 'flex-[10] lg:flex-[3]' : 'flex-[2] lg:flex-[0.5] hover:lg:flex-[0.75]'}
-                  group
-                `}
+              <article
+                key={service.id}
+                className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                {/* Background Image */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 ease-out group-hover:scale-105"
-                  style={{ backgroundImage: `url(${service.image})` }}
-                />
-
-                {/* Overlay - Darker when active to read text, Lighter when inactive to show image hint */}
-                <div
-                  className={`absolute inset-0 transition-opacity duration-500
-                    ${isActive ? 'bg-slate-900/60 lg:bg-gradient-to-r lg:from-slate-900/50 lg:via-slate-900/50 lg:to-transparent' : 'bg-slate-900/50 group-hover:bg-slate-900/40'}
-                  `}
-                />
-
-                {/* Active Content */}
-                <div className={`
-                  absolute inset-0 p-8 lg:p-12 flex flex-col justify-end lg:justify-center transition-all duration-500
-                  ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none hidden lg:flex'}
-                `}>
-                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit mb-4 ${colors.badge}`}>
+                <div className="relative h-48 overflow-hidden bg-slate-100">
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-slate-950/10 to-transparent" />
+                  <div className={`absolute left-4 top-4 inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider ${colors.badge}`}>
                     {service.shortTitle}
                   </div>
-                  <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight max-w-lg">
-                    {service.title}
-                  </h3>
-                  <p className="text-slate-200 text-base lg:text-lg mb-8 max-w-md leading-relaxed font-semibold">
-                    {service.description}
-                  </p>
+                </div>
 
-                  <ul className="space-y-3 mb-8">
-                    {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-3 text-white/90 font-semibold" >
-                        <svg className="w-5 h-5 text-mango flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <div className="p-6">
+                  <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-xl ${colors.accent}`}>
+                    {service.icon}
+                  </div>
+                  <h3 className="mb-3 text-2xl font-bold text-slate-900">{service.title}</h3>
+                  <p className="mb-5 text-sm leading-relaxed text-slate-600">{service.description}</p>
+
+                  <div className="mb-6 space-y-2">
+                    {service.features.slice(0, 2).map((feature) => (
+                      <div key={feature} className="flex items-center gap-2 text-sm font-medium text-slate-600">
+                        <svg className="h-4 w-4 flex-shrink-0 text-palm" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.704 5.292a1 1 0 010 1.416l-7.25 7.25a1 1 0 01-1.416 0l-3.25-3.25a1 1 0 111.416-1.416l2.542 2.543 6.542-6.543a1 1 0 011.416 0z" clipRule="evenodd" />
                         </svg>
                         {feature}
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
 
                   <Link
                     href={service.link}
-                    onClick={(e) => handleScroll(e, service.link)}
-                    className={`
-                    w-fit px-8 py-4 rounded-xl font-bold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center gap-2
-                    ${colors.btn}
-                  `}>
-                    Explore {service.shortTitle}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    className={`inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r px-5 py-3 font-semibold text-white shadow-lg shadow-coral/15 transition-all hover:-translate-y-0.5 hover:shadow-xl ${colors.button}`}
+                  >
+                    {getCtaLabel(service.link)}
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                   </Link>
                 </div>
+              </article>
+            );
+          })}
+        </div>
 
-                {/* Inactive Content - Vertical Text */}
-                <div className={`
-                  absolute inset-0 flex flex-col items-center justify-center transition-all duration-500
-                  ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}
-                `}>
-                  <div className="flex items-center gap-4 lg:gap-8 whitespace-nowrap lg:-rotate-90">
-                    {/* <div className="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center text-white backdrop-blur-sm shadow-lg lg:rotate-90">
-                      <div style={{ width: '24px', height: '24px' }}>
-                        {service.icon}
-                      </div>
-                    </div> */}
-                    <span className="text-2xl font-bold text-white tracking-[0.2em] uppercase drop-shadow-md">
-                      {service.shortTitle}
-                    </span>
-                  </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          {supportingServices.map((service) => {
+            const colors = colorClasses[service.color];
+
+            return (
+              <Link
+                key={service.id}
+                href={service.link}
+                className="group flex items-center gap-5 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl ${colors.accent}`}>
+                  {service.icon}
                 </div>
-              </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-bold text-slate-900 transition-colors group-hover:text-coral">{service.title}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{service.description}</p>
+                </div>
+                <svg className="h-5 w-5 flex-shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
             );
           })}
         </div>

@@ -148,7 +148,7 @@ export default function RootLayout({
               logo: "https://www.easyridecebutours.com/logo.jpg",
               url: "https://www.easyridecebutours.com",
               telephone: "+639178046988",
-              email: "easyridecebu2023@gmail.com",
+              email: "trishiaandrade2708@gmail.com",
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "Cebu City",
@@ -247,7 +247,7 @@ export default function RootLayout({
                   name: "How much does a car rental in Cebu cost?",
                   acceptedAnswer: {
                     "@type": "Answer",
-                    text: "Car rental rates in Cebu start from ₱3,500 for sedans (1-3 pax), ₱4,500 for SUVs (4-6 pax), and ₱5,500-₱6,000 for vans (7-14 pax). All rates include driver, fuel, and hotel pickup/dropoff.",
+                    text: "Self-drive car rental rates in Cebu start at ₱1,500/day for sedans (5-seater), ₱2,500/day for SUVs (7-seater), and ₱3,500/day for vans (15-seater). You can add a professional driver for ₱1,000/day (8 hours). Airport transfers are priced separately, starting at ₱700 per trip.",
                   },
                 },
                 {

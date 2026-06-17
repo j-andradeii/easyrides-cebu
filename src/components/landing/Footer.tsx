@@ -38,7 +38,7 @@ export function Footer() {
               />
               <span className="text-xl font-bold text-white">EasyRideCebu</span>
             </div>
-            <p className="text-slate-400 text-sm mb-4">
+            <p className="text-slate-300 text-sm mb-4">
               Your trusted partner for car rentals, airport transfers, and curated tours in Cebu.
               Explore the Queen City of the South your way.
             </p>
@@ -82,7 +82,7 @@ export function Footer() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="text-slate-400 hover:text-mango transition-colors text-sm"
+                    className="text-slate-300 hover:text-mango transition-colors text-sm"
                   >
                     {link.label}
                   </a>
@@ -96,7 +96,7 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Our Services</h4>
             <ul className="space-y-2">
               {services.map((service) => (
-                <li key={service} className="text-slate-400 text-sm">
+                <li key={service} className="text-slate-300 text-sm">
                   {service}
                 </li>
               ))}
@@ -127,12 +127,12 @@ export function Footer() {
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span className="text-slate-400 text-sm">Cebu City, Philippines</span>
+                <span className="text-slate-300 text-sm">Cebu City, Philippines</span>
               </li>
               <li>
                 <a
                   href="tel:+639178046988"
-                  className="flex items-start gap-3 text-slate-400 hover:text-mango transition-colors"
+                  className="flex items-start gap-3 text-slate-300 hover:text-mango transition-colors"
                 >
                   <svg
                     className="w-5 h-5 text-mango mt-0.5 flex-shrink-0"
@@ -153,7 +153,7 @@ export function Footer() {
               <li>
                 <a
                   href="mailto:trishiaandrade2708@gmail.com"
-                  className="flex items-start gap-3 text-slate-400 hover:text-mango transition-colors"
+                  className="flex items-start gap-3 text-slate-300 hover:text-mango transition-colors"
                 >
                   <svg
                     className="w-5 h-5 text-mango mt-0.5 flex-shrink-0"
@@ -177,14 +177,14 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-400 text-sm">
             © {new Date().getFullYear()} EasyRideCebu. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <a href="#" className="text-slate-500 hover:text-mango transition-colors">
+            <a href="#" className="text-slate-400 hover:text-mango transition-colors">
               Privacy Policy
             </a>
-            <a href="#" className="text-slate-500 hover:text-mango transition-colors">
+            <a href="#" className="text-slate-400 hover:text-mango transition-colors">
               Terms of Service
             </a>
           </div>
@@ -194,7 +194,7 @@ export function Footer() {
         <div className="mt-8 text-center">
           <a
             href="#"
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-mango transition-colors text-sm"
+            className="inline-flex items-center gap-2 text-slate-300 hover:text-mango transition-colors text-sm"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />

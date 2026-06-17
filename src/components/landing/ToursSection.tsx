@@ -14,7 +14,7 @@ export function ToursSection() {
   const featuredTours = tours.filter((tour) => tour.featured).slice(0, 3);
 
   return (
-    <section id="tours" className="py-12 bg-gradient-to-b from-slate-50 via-cream-light/20 to-white relative overflow-hidden">
+    <section id="tours" className="py-12 bg-white relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}
       <div className="absolute top-20 left-0 w-72 h-72 bg-palm-light/20 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-0 w-80 h-80 bg-mango/10 rounded-full blur-3xl" />

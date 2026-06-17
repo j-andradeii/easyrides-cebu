@@ -177,7 +177,7 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-12 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden snap-y scroll-mt-15">
+    <section id="contact" className="py-12 bg-cream relative overflow-hidden snap-y scroll-mt-15 border-t border-cream-dark/50">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-4 right-4 z-50 animate-[slideIn_0.3s_ease-out]">
@@ -216,7 +216,7 @@ export function ContactSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 bg-white text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-4 shadow-sm border border-papaya/30">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -451,7 +451,7 @@ export function ContactSection() {
             </div>
 
             {/* Business Info */}
-            <div className="bg-slate-50 rounded-2xl p-6">
+            <div className="bg-white border border-slate-100 shadow-sm rounded-2xl p-6">
               <h3 className="text-lg font-bold text-slate-900 mb-4">Business Hours</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">

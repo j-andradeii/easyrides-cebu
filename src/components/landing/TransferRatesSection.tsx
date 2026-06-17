@@ -49,7 +49,7 @@ const transferRates = [
 
 export function TransferRatesSection() {
   return (
-    <section id="pricing" className="py-12 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
+    <section id="pricing" className="py-12 bg-cream relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-mango/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-coral/5 rounded-full blur-3xl" />
@@ -137,7 +137,7 @@ export function TransferRatesSection() {
 
         {/* Note */}
         <div className="mt-12 max-w-2xl mx-auto">
-          <div className="bg-slate-50 rounded-xl p-6">
+          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-6">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 bg-papaya/30 rounded-lg flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-terracotta" fill="currentColor" viewBox="0 0 20 20">
@@ -178,7 +178,7 @@ export function TransferRatesSection() {
               </svg>
             </div>
             <h4 className="font-semibold text-slate-900 mb-1">Flight Tracking</h4>
-            <p className="text-sm text-slate-500">We monitor your flight for any delays</p>
+            <p className="text-sm text-slate-600">We monitor your flight for any delays</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-papaya/30 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -197,7 +197,7 @@ export function TransferRatesSection() {
               </svg>
             </div>
             <h4 className="font-semibold text-slate-900 mb-1">Fixed Rates</h4>
-            <p className="text-sm text-slate-500">No surge pricing or hidden fees</p>
+            <p className="text-sm text-slate-600">No surge pricing or hidden fees</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-mango/30 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -222,7 +222,7 @@ export function TransferRatesSection() {
               </svg>
             </div>
             <h4 className="font-semibold text-slate-900 mb-1">Meet & Greet</h4>
-            <p className="text-sm text-slate-500">Driver waits at arrival with your name</p>
+            <p className="text-sm text-slate-600">Driver waits at arrival with your name</p>
           </div>
         </div>
       </div>

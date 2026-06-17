@@ -61,12 +61,12 @@ export function Navigation() {
               </svg>
               <span className="text-sm font-medium">Call Us</span>
             </a>
-            <a
+            <Link
               href="/#contact"
               className="bg-gradient-to-r from-cebu-red to-sunset-orange hover:from-cebu-red-dark hover:to-sunset-orange-dark text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md shadow-cebu-red/20"
             >
               Book Now
-            </a>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -116,13 +116,13 @@ export function Navigation() {
                   </svg>
                   Call
                 </a>
-                <a
+                <Link
                   href="/#contact"
                   className="flex-1 bg-gradient-to-r from-cebu-red to-sunset-orange hover:from-cebu-red-dark hover:to-sunset-orange-dark text-white px-4 py-2.5 rounded-lg font-semibold text-center transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Book Now
-                </a>
+                </Link>
               </div>
             </div>
           </div>

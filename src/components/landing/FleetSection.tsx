@@ -30,7 +30,7 @@ const vehicles = [
 
 export function FleetSection() {
   return (
-    <section id="fleet" className="py-2 bg-slate-50 relative overflow-hidden scroll-mt-15">
+    <section id="fleet" className="py-12 bg-cream relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
         <div className="absolute top-20 left-20 w-72 h-72 bg-palm-light/5 rounded-full blur-3xl" />
@@ -39,7 +39,7 @@ export function FleetSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-20">
+        <div className="text-center mb-12 sm:mb-20">
           <div className="inline-flex items-center gap-2 bg-white text-terracotta px-4 py-2 rounded-full text-sm font-medium mb-6 shadow-sm border border-slate-100">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terracotta opacity-75"></span>
@@ -53,7 +53,7 @@ export function FleetSection() {
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Choose from our meticulously maintained fleet. Whether you need a compact city car
-            or a spacious van for the whole family, we've got the perfect ride for you.
+            or a spacious van for the whole family, we&apos;ve got the perfect ride for you.
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export function FleetSection() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-1">{vehicle.type}</h3>
-                    <p className="text-slate-500 text-sm font-medium">{vehicle.models}</p>
+                    <p className="text-slate-600 text-sm font-medium">{vehicle.models}</p>
                   </div>
                   <div className="bg-slate-50 text-slate-600 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border border-slate-100">
                     {vehicle.capacity}
