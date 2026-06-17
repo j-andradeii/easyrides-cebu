@@ -256,14 +256,14 @@ export function HeroSection() {
                   />
                 )}
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid min-w-0 gap-4 sm:grid-cols-2">
                   <FormCalendar
                     name="pickupDate"
                     label={serviceType === 'tour' ? 'Tour date' : 'Pick-up date'}
                     placeholder="Select a date"
                     minDate={new Date()}
                     dateFormat="MM dd, yy"
-                    className="mb-0"
+                    className="mb-0 min-w-0"
                     inputClassName="hero-calendar"
                   />
 
@@ -273,7 +273,7 @@ export function HeroSection() {
                     label="Phone / WhatsApp"
                     placeholder="9XX XXX XXXX"
                     showRequired
-                    className="mb-0"
+                    className="mb-0 min-w-0"
                   />
                 </div>
 

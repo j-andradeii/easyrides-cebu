@@ -188,10 +188,15 @@ h1, h2, h3, h4, h5, h6 {
 /* Base Calendar Styles */
 .p-calendar {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .p-calendar .p-inputtext {
   width: 100%;
+  /* Allow the input to shrink inside the flex/grid track instead of
+     forcing its size-based intrinsic min-width (prevents mobile overflow). */
+  min-width: 0;
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
