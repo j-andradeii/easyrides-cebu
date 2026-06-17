@@ -114,7 +114,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-black/45 z-10" />
         {/* Overlay for readability */}
         <img
-          src="https://djuny0idasckxayv.public.blob.vercel-storage.com/kawasan.jpg"
+          src="https://firebasestorage.googleapis.com/v0/b/cebuano-language-cafe.firebasestorage.app/o/cclex.png?alt=media&token=9b67d13c-7b49-413c-af7f-8cb8b3d81a73"
           alt="Scenic Cebu City"
           className="w-full h-full object-cover saturate-[.60]"
         />
