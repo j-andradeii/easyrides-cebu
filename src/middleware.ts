@@ -1,47 +1,50 @@
 /**
  * Next.js Middleware
  *
- * Runs before routes are rendered
- * Used for authentication guards and route protection
+ * Runs before routes are rendered. Gates the admin portal (plan §9.4) by
+ * verifying the `auth-token` JWT signature — a cookie merely *existing* is not
+ * proof of anything, so the signature is checked with `jose` (Edge-safe).
+ *
+ * API routes are excluded by the matcher below; they enforce access themselves
+ * via `requireAdmin()` in each handler.
  */
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Define protected routes that require authentication
-const protectedRoutes = ['/dashboard', '/profile', '/settings'];
+import { AUTH_COOKIE, verifyAccessToken } from '@/lib/auth/jwt';
 
-// Define public routes that should redirect to dashboard if already authenticated
-const authRoutes = ['/login', '/register'];
+// Routes that require an authenticated admin
+const protectedRoutes = ['/admin'];
 
-export function middleware(request: NextRequest) {
+// Routes that should bounce to the portal when already authenticated
+const authRoutes = ['/admin/login'];
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get token from cookies
-  const token = request.cookies.get('auth-token')?.value;
-  const isAuthenticated = !!token;
-
-  // Check if the current route is protected
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  // Check if the current route is an auth route
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+  const isProtectedRoute =
+    protectedRoutes.some((route) => pathname.startsWith(route)) && !isAuthRoute;
 
-  // Redirect to login if accessing protected route without authentication
+  // Only pay for JWT verification on routes that care about it.
+  if (!isProtectedRoute && !isAuthRoute) {
+    return NextResponse.next();
+  }
+
+  const payload = await verifyAccessToken(request.cookies.get(AUTH_COOKIE)?.value);
+  const isAuthenticated = payload !== null;
+
   if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL('/admin/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect to dashboard if accessing auth routes while authenticated
   if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
 
-  // Continue with the request
   return NextResponse.next();
 }
 
@@ -50,7 +53,7 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - api (API routes)
+     * - api (API routes — they guard themselves with requireAdmin())
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)

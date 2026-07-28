@@ -13,6 +13,7 @@ import {
   ContactSection,
   Footer,
 } from '@/components/landing';
+import { getPublishedTestimonials } from '@/lib/crm/testimonials';
 
 /**
  * Landing page — built as a single conversion funnel.
@@ -21,7 +22,16 @@ import {
  * (Attention -> Interest -> Desire -> Trust -> Action), with a primary CTA
  * pointing at #contact repeated at each "ready to act" moment.
  */
-export default function Home() {
+/**
+ * Rebuilt hourly so reviews approved in /admin/reviews reach the landing page
+ * without a redeploy, while the page stays static for visitors.
+ */
+export const revalidate = 3600;
+
+export default async function Home() {
+  // Reviews approved in /admin/reviews replace the curated quotes (plan §7A.2).
+  const publishedReviews = await getPublishedTestimonials();
+
   return (
     <>
       {/* A11y: let keyboard / screen-reader users jump straight past the nav */}
@@ -59,7 +69,7 @@ export default function Home() {
         <WhyChooseUs />
 
         {/* 8. SOCIAL PROOF - guest voices right before the ask */}
-        <Testimonials />
+        <Testimonials reviews={publishedReviews} />
 
         {/* 9. ACTION - final conversion form */}
         <ContactSection />

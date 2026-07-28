@@ -2,14 +2,15 @@ import { ApiEventStatus, ApiEventType } from "@/models/api-event";
 import {apiClient} from "@/services/api-client"
 import { useApiEventStore } from "@/stores";
 
-export const submitQuery = async (data: any) => {
-    const eventType = ApiEventType.SUBMIT_QUERY;   
+export const submitQuery = async (data: Record<string, unknown>) => {
+    const eventType = ApiEventType.SUBMIT_QUERY;
     const apiEventStore = useApiEventStore.getState();
     try {
         apiEventStore.sendEvent({type: eventType,  status: ApiEventStatus.IN_PROGRESS, spinner: true });
-        await apiClient.post('/api/submit-booking', data)
+        await apiClient.post('/api/inquiries', data)
         apiEventStore.sendEvent({type: eventType,  status: ApiEventStatus.COMPLETED, spinner: true });
     } catch(error) {
         console.log(error);
+        apiEventStore.sendEvent({type: eventType,  status: ApiEventStatus.ERROR, spinner: true });
     }
 }

@@ -5,10 +5,37 @@
 > including an **admin login**, an **admin portal listing every inquiry**, and a
 > **per-inquiry workflow view** where each lead moves through the funnel and automations fire.
 
-- **Status:** Planning / design (no code written yet)
+- **Status:** ✅ **Implemented** (Phases 0–6) — 2026-07-28
 - **Owner:** Joseph
 - **Stack today:** Next.js 16 (App Router), React 19, TypeScript, Tailwind v4, PrimeReact, react-hook-form + zod, zustand
 - **Adds:** PostgreSQL + Drizzle ORM, JWT admin auth (jose + bcryptjs), Vercel Cron for automations
+
+### Running it locally
+
+```bash
+docker compose up -d          # app on :3000, Postgres on host port 5433
+npm run db:migrate            # apply migrations
+npm run db:seed               # pipeline + 7 stages + W1–W5
+npm run create-admin -- --email you@example.com --name "Your Name" --role owner
+# then sign in at http://localhost:3000/admin/login
+```
+
+> **Local Postgres port:** the container maps **5433**, not 5432 — this machine
+> runs a native `postgresql-x64-17` service that already owns 5432 and would
+> silently shadow the container.
+
+**Deviations from the design below, and why:**
+- **Sessions** are a single 8-hour JWT that slides on `/api/auth/me` rather than a
+  15-minute access token plus a refresh token. A staff portal wants a working
+  day; the refresh dance added moving parts without adding safety.
+- **Emails** are stored lower-cased in a `text` column instead of `CITEXT`, so the
+  schema stays portable across Postgres hosts with no extension required.
+- **The share hub** lives at `/thanks/[code]` (the customer's referral code)
+  rather than `/thanks/[token]` — the code is the value they hand out anyway.
+- **W5 assigns rewards, it does not pay them.** An owner approves each payout in
+  `/admin/referrals`; that is the last §7A.3 guardrail.
+- `opportunities` gained a `stage_changed_at` column to power the idle-lead drip
+  and the speed-to-lead metric.
 
 ---
 
@@ -988,51 +1015,51 @@ Add these to Vercel Project → Settings → Environment Variables too. **Never*
 ## 14. Implementation Roadmap (Phased)
 
 ### Phase 0 — Foundations (½ day)
-- [ ] Provision Neon/Vercel Postgres; add `DATABASE_URL`.
-- [ ] Add deps; create `src/db/client.ts`, `src/db/schema.ts`, `drizzle.config.ts`.
-- [ ] Generate + run first migration; seed pipeline + 7 stages + the 4 workflow rows.
+- [x] Provision Neon/Vercel Postgres; add `DATABASE_URL`.
+- [x] Add deps; create `src/db/client.ts`, `src/db/schema.ts`, `drizzle.config.ts`.
+- [x] Generate + run first migration; seed pipeline + 7 stages + the 4 workflow rows.
 - **Done when:** `npm run db:studio` shows all tables and seed data.
 
 ### Phase 1 — Persist inquiries to Postgres (1 day) ⟵ *core ask*
-- [ ] Extend `bookingSubmissionSchema` (`tourTitle`, `countryCode`, `utm`).
-- [ ] Build `src/app/api/inquiries/route.ts` intake transaction (upsert contact → inquiry → opportunity).
-- [ ] Enroll W1 inline (create tasks + activities; auto-reply can be a stub log first).
-- [ ] Flip `query.service.ts` to `/api/inquiries`.
+- [x] Extend `bookingSubmissionSchema` (`tourTitle`, `countryCode`, `utm`).
+- [x] Build `src/app/api/inquiries/route.ts` intake transaction (upsert contact → inquiry → opportunity).
+- [x] Enroll W1 inline (create tasks + activities; auto-reply can be a stub log first).
+- [x] Flip `query.service.ts` to `/api/inquiries`.
 - **Done when:** submitting any of the 3 forms creates a `contact`, `inquiry`, and `opportunity @ new_lead`; forms still show the success toast.
 
 ### Phase 2 — Admin auth + inquiries list (1–2 days) ⟵ *login + list*
-- [ ] `admin_users` seed script (`npm run create-admin`).
-- [ ] `/api/auth/login|logout|me`; update `middleware.ts` to JWT-verify `/admin/**`.
-- [ ] `/admin/login` page (reuse `loginSchema`); `/admin/layout.tsx` shell.
-- [ ] `/admin/inquiries` list (`GET /api/admin/inquiries`, DataTable, filters, pagination).
+- [x] `admin_users` seed script (`npm run create-admin`).
+- [x] `/api/auth/login|logout|me`; update `middleware.ts` to JWT-verify `/admin/**`.
+- [x] `/admin/login` page (reuse `loginSchema`); `/admin/layout.tsx` shell.
+- [x] `/admin/inquiries` list (`GET /api/admin/inquiries`, DataTable, filters, pagination).
 - **Done when:** you can log in and see every inquiry; logging out blocks `/admin`.
 
 ### Phase 3 — Per-inquiry workflow view + stage control (2 days) ⟵ *the "workflow" screen*
-- [ ] `GET /api/admin/inquiries/[id]` aggregate payload.
-- [ ] `/admin/inquiries/[id]` page: stage stepper, contact, inquiry details, activity timeline, tasks.
-- [ ] `PATCH /api/admin/opportunities/[id]` (stage/owner/status) + activity logging.
-- [ ] Add-note + create-task actions.
+- [x] `GET /api/admin/inquiries/[id]` aggregate payload.
+- [x] `/admin/inquiries/[id]` page: stage stepper, contact, inquiry details, activity timeline, tasks.
+- [x] `PATCH /api/admin/opportunities/[id]` (stage/owner/status) + activity logging.
+- [x] Add-note + create-task actions.
 - **Done when:** you can open a lead, move it through stages, add notes/tasks, and see the timeline update.
 
 ### Phase 4 — Automations live (2–3 days)
-- [ ] `/api/cron/workflows` runner + `vercel.json` cron.
-- [ ] Wire W2 (drip), W3 (quote→booking on stage change), W4 (post-booking).
-- [ ] Real messaging (email via Resend; WhatsApp click-to-chat links; SMS optional).
-- [ ] Active-automations panel + pause/exit controls on the detail page.
+- [x] `/api/cron/workflows` runner + `vercel.json` cron.
+- [x] Wire W2 (drip), W3 (quote→booking on stage change), W4 (post-booking).
+- [x] Real messaging (email via Resend; WhatsApp click-to-chat links; SMS optional).
+- [x] Active-automations panel + pause/exit controls on the detail page.
 - **Done when:** an untouched new lead automatically receives follow-ups and is marked lost after 72h; a booked lead gets confirmation + review requests.
 
 ### Phase 5 — Reporting & polish (1 day)
-- [ ] `/admin` dashboard: stage counts, conversion %, today's tasks, source breakdown.
-- [ ] Optional `/admin/pipeline` kanban.
-- [ ] Migrate historical Google Sheet rows; retire `appendToGoogleSheet`.
+- [x] `/admin` dashboard: stage counts, conversion %, today's tasks, source breakdown.
+- [x] Optional `/admin/pipeline` kanban.
+- [x] Migrate historical Google Sheet rows; retire `appendToGoogleSheet`.
 
 ### Phase 6 — Reviews, Feedback & Referrals (2–3 days) ⟵ *retention & virality (§7A)*
-- [ ] Add `referrals` + `reviews` tables; `contacts.referral_code` + `referred_by_contact_id`; generate codes.
-- [ ] `/review/[token]` (NPS + promoter/detractor routing) + `POST /api/reviews`.
-- [ ] `/r/[code]` warm landing → prefilled `/api/inquiries`; `/thanks/[token]` share hub (1-tap WhatsApp/Messenger).
-- [ ] Extend **W4** (review + referral invites); optional **W5 Referral Reward** with anti-abuse guardrails.
-- [ ] `/admin/reviews` (moderate → publish to `Testimonials`) and `/admin/referrals` (payouts + leaderboard).
-- [ ] Add NPS / referral-rate / k-factor to `/api/admin/metrics`.
+- [x] Add `referrals` + `reviews` tables; `contacts.referral_code` + `referred_by_contact_id`; generate codes.
+- [x] `/review/[token]` (NPS + promoter/detractor routing) + `POST /api/reviews`.
+- [x] `/r/[code]` warm landing → prefilled `/api/inquiries`; `/thanks/[token]` share hub (1-tap WhatsApp/Messenger).
+- [x] Extend **W4** (review + referral invites); optional **W5 Referral Reward** with anti-abuse guardrails.
+- [x] `/admin/reviews` (moderate → publish to `Testimonials`) and `/admin/referrals` (payouts + leaderboard).
+- [x] Add NPS / referral-rate / k-factor to `/api/admin/metrics`.
 - **Done when:** a completed trip triggers a review request; a promoter can 1-tap share a unique link; a referred friend's booking rewards both parties (pending admin approval).
 
 > **Fastest path to your core goal (DB + list + per-inquiry workflow):** Phases 1–3. Automations (Phase 4) and the reviews/referral layer (Phase 6) layer on without touching the public forms.

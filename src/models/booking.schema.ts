@@ -24,7 +24,9 @@ export const contactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
 
-// Combined booking schema for API validation
+// Combined booking schema for API validation.
+// The CRM intake route (/api/inquiries) validates against the richer
+// `inquirySubmissionSchema` in ./inquiry.schema.ts, which is a superset of this.
 export const bookingSubmissionSchema = z.object({
   // Required fields
   phone: z.string().min(10, 'Please enter a valid phone number'),
@@ -33,11 +35,21 @@ export const bookingSubmissionSchema = z.object({
   // Optional fields depending on form type
   fullName: z.string().optional(),
   email: z.string().email().optional(),
+  countryCode: z.string().optional(),
   serviceType: z.enum(['car-rental', 'airport-transfer', 'tour', 'custom']).optional(),
   vehicleType: z.enum(['sedan', 'suv', 'van']).optional(),
   preferredDate: z.string().optional(),
   message: z.string().optional(),
   addDriver: z.boolean().optional(),
+  tourTitle: z.string().optional(),
+  utm: z
+    .object({
+      source: z.string().optional(),
+      medium: z.string().optional(),
+      campaign: z.string().optional(),
+    })
+    .partial()
+    .optional(),
 });
 
 export type BookingSubmissionData = z.infer<typeof bookingSubmissionSchema>;
