@@ -396,7 +396,7 @@ async function evaluateCondition(
       return opportunity.status !== 'open';
 
     case 'won':
-      return opportunity.status === 'won' || stageKey === 'booked' || stageKey === 'completed';
+      return opportunity.status === 'won' || stageKey === 'booked';
 
     case 'lost':
       return opportunity.status === 'lost' || stageKey === 'lost';
@@ -695,6 +695,11 @@ export async function moveStage(input: MoveStageInput): Promise<void> {
       actor: input.actor ?? 'System',
     },
   });
+
+  // Winning or un-winning a deal changes what the customer is worth. Doing it
+  // here rather than in each caller means every path — agent click, kanban
+  // drag, quote acceptance, automation — keeps lifetime value honest.
+  await recalculateLifetimeValue(contact.id);
 
   // Retire any automation this stage change has made pointless *now*, rather
   // than leaving it showing as "running" until its next wait elapses.

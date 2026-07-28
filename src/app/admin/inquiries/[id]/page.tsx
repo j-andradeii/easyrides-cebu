@@ -15,6 +15,7 @@ import { useParams } from 'next/navigation';
 
 import { ActivityTimeline } from '@/components/admin/ActivityTimeline';
 import { AutomationsPanel } from '@/components/admin/AutomationsPanel';
+import { QuoteBuilder } from '@/components/admin/QuoteBuilder';
 import { StageStepper } from '@/components/admin/StageStepper';
 import { StatusBadge } from '@/components/admin/StageBadge';
 import { serviceLabel, sourceLabel, vehicleLabel } from '@/lib/crm/normalize';
@@ -410,6 +411,22 @@ export default function InquiryDetailPage() {
 
         {/* Right column — automations, tasks, timeline */}
         <div className="space-y-6 lg:col-span-3">
+          <Panel title="Quote">
+            <QuoteBuilder
+              quotes={detail.quotes}
+              busy={isBusy}
+              defaultLabel={`${serviceLabel(opportunity.serviceType)}${
+                vehicleLabel(opportunity.vehicleType) ? ` — ${vehicleLabel(opportunity.vehicleType)}` : ''
+              }`}
+              onSend={(payload) =>
+                mutate(
+                  () => inquiryService.sendQuote(opportunity.id, payload),
+                  'Quote sent — the lead is now at Quote Sent'
+                )
+              }
+            />
+          </Panel>
+
           <Panel title="Active automations">
             <AutomationsPanel
               enrollments={detail.enrollments}

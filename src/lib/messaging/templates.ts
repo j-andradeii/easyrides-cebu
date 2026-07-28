@@ -47,6 +47,8 @@ export interface TemplateContext {
   reviewUrl: string | null;
   /** Absolute /thanks/[token] share-hub URL, when the contact has a referral code. */
   shareUrl: string | null;
+  /** Absolute /quote/[token] checkout URL, when a live quote exists. */
+  quoteUrl: string | null;
   referralCode: string | null;
   businessWhatsApp: string;
   siteUrl: string;
@@ -54,10 +56,95 @@ export interface TemplateContext {
 
 export interface RenderedMessage {
   subject: string;
+  /** Plain-text body. Always present — it is the WhatsApp/SMS payload too. */
   body: string;
+  /** Optional branded HTML, used for email when a template provides it. */
+  html?: string;
 }
 
 const BRAND = 'EasyRideCebu';
+
+// --- HTML email shell -------------------------------------------------------
+
+/** Escapes values before they go anywhere near an HTML email body. */
+function esc(value: string | null | undefined): string {
+  return (value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Wraps content in a branded shell. Table-based with inline styles because
+ * that is what survives Gmail, Outlook and the Apple Mail renderers — this is
+ * not a place for modern CSS.
+ */
+function emailShell(options: {
+  heading: string;
+  preheader: string;
+  content: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  ctx: TemplateContext;
+}): string {
+  const { heading, preheader, content, ctaLabel, ctaUrl, ctx } = options;
+
+  const cta =
+    ctaLabel && ctaUrl
+      ? `<tr><td style="padding:8px 32px 24px;">
+           <a href="${esc(ctaUrl)}" style="display:inline-block;background:#DC2626;color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;padding:14px 28px;border-radius:12px;">${esc(ctaLabel)}</a>
+         </td></tr>`
+      : '';
+
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(heading)}</title></head>
+<body style="margin:0;padding:0;background:#F5F0E1;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0E1;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+        <tr><td style="background:linear-gradient(90deg,#DC2626,#F59E0B);padding:24px 32px;">
+          <div style="color:#ffffff;font-size:20px;font-weight:700;">${BRAND}</div>
+          <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:2px;">Car rentals · Airport transfers · Cebu tours</div>
+        </td></tr>
+        <tr><td style="padding:32px 32px 8px;">
+          <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#1A1A1A;">${esc(heading)}</h1>
+          ${content}
+        </td></tr>
+        ${cta}
+        <tr><td style="padding:8px 32px 28px;border-top:1px solid #eee;">
+          <p style="margin:16px 0 4px;font-size:13px;color:#666;">Need us sooner? We reply fastest on WhatsApp.</p>
+          <p style="margin:0;font-size:13px;">
+            <a href="https://wa.me/${esc(ctx.businessWhatsApp)}" style="color:#2D6A4F;text-decoration:none;font-weight:600;">WhatsApp +${esc(ctx.businessWhatsApp)}</a>
+            &nbsp;·&nbsp;
+            <a href="tel:+${esc(ctx.businessWhatsApp)}" style="color:#DC2626;text-decoration:none;font-weight:600;">Call us</a>
+          </p>
+        </td></tr>
+        <tr><td style="background:#FAF8F3;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#999;">${BRAND} · Cebu City, Philippines<br>Mon–Sat 8AM–8PM · Sun 9AM–6PM</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
+/** A two-column detail table for "here's what you asked for" summaries. */
+function detailRows(rows: [string, string | null][]): string {
+  const cells = rows
+    .filter(([, value]) => Boolean(value))
+    .map(
+      ([label, value]) =>
+        `<tr>
+           <td style="padding:6px 12px 6px 0;font-size:14px;color:#666;white-space:nowrap;">${esc(label)}</td>
+           <td style="padding:6px 0;font-size:14px;color:#1A1A1A;font-weight:600;">${esc(value)}</td>
+         </tr>`
+    )
+    .join('');
+
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;background:#FAF8F3;border-radius:10px;padding:12px 16px;width:100%;">${cells}</table>`;
+}
 
 function signOff(ctx: TemplateContext): string {
   return `— The ${BRAND} team\nWhatsApp: +${ctx.businessWhatsApp}\n${ctx.siteUrl}`;
@@ -71,20 +158,67 @@ function tripLine(ctx: TemplateContext): string {
 }
 
 const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> = {
-  instant_ack: (ctx) => ({
-    subject: `We got your inquiry, ${ctx.name}!`,
-    body: [
-      `Hi ${ctx.name},`,
-      ``,
-      `Thanks for reaching out to ${BRAND} — we have your request for ${tripLine(ctx)}.`,
-      ``,
-      `One of our team is checking availability right now and will message you within the hour during business hours (Mon–Sat 8AM–8PM, Sun 9AM–6PM).`,
-      ``,
-      `Need us faster? Message us on WhatsApp: https://wa.me/${ctx.businessWhatsApp}`,
-      ``,
-      signOff(ctx),
-    ].join('\n'),
-  }),
+  /**
+   * The first thing a customer hears after submitting any of the site forms.
+   * Its whole job is to confirm we have the inquiry and set the expectation
+   * that a quote is coming — speed-to-lead is this business's biggest lever,
+   * and a reply in seconds is what stops them messaging a competitor.
+   */
+  instant_ack: (ctx) => {
+    const summary: [string, string | null][] = [
+      ['Service', ctx.serviceLabel],
+      ['Tour', ctx.tourTitle],
+      ['Vehicle', ctx.vehicleLabel],
+      ['Preferred date', ctx.preferredDate],
+    ];
+
+    return {
+      subject: `We've got your inquiry, ${ctx.name} — your quote is on the way`,
+      // `null` drops a line; `''` is a deliberate blank line between paragraphs.
+      body: [
+        `Hi ${ctx.name},`,
+        ``,
+        `Thanks for reaching out to ${BRAND}. We've received your inquiry and a member of our team is putting your quote together now.`,
+        ``,
+        `Here's what we have:`,
+        `  Service:        ${ctx.serviceLabel}`,
+        ctx.tourTitle ? `  Tour:           ${ctx.tourTitle}` : null,
+        ctx.vehicleLabel ? `  Vehicle:        ${ctx.vehicleLabel}` : null,
+        ctx.preferredDate ? `  Preferred date: ${ctx.preferredDate}` : null,
+        ``,
+        `We'll reach out with your price and availability within the hour during business hours (Mon–Sat 8AM–8PM, Sun 9AM–6PM). If you sent this overnight, you'll hear from us first thing.`,
+        ``,
+        `No payment is needed to get a quote — you only pay once you're happy with the price.`,
+        ``,
+        `Need us sooner? Message us on WhatsApp: https://wa.me/${ctx.businessWhatsApp}`,
+        ``,
+        signOff(ctx),
+      ]
+        .filter((line): line is string => line !== null)
+        .join('\n'),
+
+      html: emailShell({
+        ctx,
+        heading: `We've got your inquiry, ${esc(ctx.name)}`,
+        preheader: `Your ${esc(ctx.serviceLabel)} quote is on the way — we reply within the hour.`,
+        content: `
+          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+            Thanks for reaching out to ${BRAND}. We've received your inquiry and a member of
+            our team is putting your quote together now.
+          </p>
+          ${detailRows(summary)}
+          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+            <strong>We'll reach out with your price and availability within the hour</strong>
+            during business hours. If you sent this overnight, you'll hear from us first thing.
+          </p>
+          <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+            No payment is needed to get a quote — you only pay once you're happy with the price.
+          </p>`,
+        ctaLabel: 'Chat with us on WhatsApp',
+        ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+      }),
+    };
+  },
 
   new_lead_alert: (ctx) => ({
     subject: `🆕 New lead — ${ctx.opportunityTitle}`,
@@ -141,7 +275,9 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       `Includes an air-conditioned vehicle, fuel and hotel/airport pickup. Entrance fees, parking and meals are billed separately.`,
       ``,
-      `To confirm, reply to this email or message us on WhatsApp: https://wa.me/${ctx.businessWhatsApp}`,
+      ctx.quoteUrl
+        ? `See the full breakdown and confirm your booking here:\n\n  ${ctx.quoteUrl}\n`
+        : `To confirm, reply to this email or message us on WhatsApp: https://wa.me/${ctx.businessWhatsApp}`,
       ``,
       signOff(ctx),
     ].join('\n'),
@@ -152,7 +288,10 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     body: [
       `Hi ${ctx.name}, just checking in on the quote we sent for ${tripLine(ctx)}.`,
       `We can still hold the vehicle, but ${ctx.preferredDate ?? 'that date'} books out fast. Want us to reserve it?`,
-    ].join('\n'),
+      ctx.quoteUrl ? `\nConfirm here: ${ctx.quoteUrl}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n'),
   }),
 
   lost_reason_prompt: (ctx) => ({

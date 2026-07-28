@@ -12,6 +12,7 @@ import { db, type DbExecutor } from '@/db/client';
 import {
   activities,
   contacts,
+  inquiries,
   opportunities,
   pipelineStages,
   pipelines,
@@ -23,6 +24,8 @@ import {
 import { DEFAULT_PIPELINE_ID, type StageKey } from '@/lib/funnel/stages';
 import type { TemplateContext } from '@/lib/messaging/templates';
 import { buildOpportunityTitle, firstName, serviceLabel, vehicleLabel } from './normalize';
+import { latestOpenQuoteUrl } from './quote-links';
+import { siteUrl } from './site';
 import { generateReferralCode, generateToken } from './tokens';
 
 // --- Stage lookups ----------------------------------------------------------
@@ -205,9 +208,8 @@ export async function ensureReviewToken(
 
 // --- Template context -------------------------------------------------------
 
-export function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
-}
+// Re-exported so existing importers keep resolving it from here.
+export { siteUrl };
 
 /**
  * Everything a message template needs, gathered in one read. Used by the
@@ -227,6 +229,15 @@ export async function buildTemplateContext(
     .orderBy(desc(reviews.createdAt))
     .limit(1);
 
+  // Tour enquiries name a specific tour; without this the acknowledgement email
+  // would say "Tour Package" and leave the customer wondering if we read it.
+  const [latestInquiry] = await executor
+    .select({ tourTitle: inquiries.tourTitle })
+    .from(inquiries)
+    .where(eq(inquiries.opportunityId, opportunity.id))
+    .orderBy(desc(inquiries.createdAt))
+    .limit(1);
+
   return {
     name: firstName(contact.fullName),
     fullName: contact.fullName,
@@ -235,7 +246,7 @@ export async function buildTemplateContext(
     serviceLabel: serviceLabel(opportunity.serviceType),
     vehicleLabel: vehicleLabel(opportunity.vehicleType),
     preferredDate: opportunity.preferredDate,
-    tourTitle: null,
+    tourTitle: latestInquiry?.tourTitle ?? null,
     opportunityTitle:
       opportunity.title || buildOpportunityTitle(opportunity.serviceType, contact.fullName, contact.phone),
     monetaryValue: opportunity.monetaryValue ?? '0',
@@ -243,6 +254,7 @@ export async function buildTemplateContext(
     adminUrl: `${base}/admin/inquiries/${opportunity.id}`,
     reviewUrl: latestReview ? `${base}/review/${latestReview.token}` : null,
     shareUrl: contact.referralCode ? `${base}/thanks/${contact.referralCode}` : null,
+    quoteUrl: await latestOpenQuoteUrl(opportunity.id, executor),
     referralCode: contact.referralCode,
     businessWhatsApp: process.env.WHATSAPP_BUSINESS_NUMBER ?? '639178046988',
     siteUrl: base,

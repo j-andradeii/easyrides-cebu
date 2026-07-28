@@ -25,6 +25,7 @@ import {
 } from '@/db/schema';
 import { AdminRouteError, requireAdmin } from '@/lib/auth/require-admin';
 import { getStages } from '@/lib/crm/repository';
+import { listQuotesForOpportunity } from '@/lib/crm/quotes';
 import { describeStep, type WorkflowDefinition } from '@/lib/workflows/definitions';
 import type { InquiryDetailResponse } from '@/models/crm.types';
 
@@ -74,6 +75,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       stages,
       owners,
       referredBy,
+      quoteRecords,
     ] = await Promise.all([
       db
         .select()
@@ -141,6 +143,8 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
             .where(eq(contacts.id, contact.referredByContactId))
             .limit(1)
         : Promise.resolve([]),
+
+      listQuotesForOpportunity(opportunity.id),
     ]);
 
     const payload: InquiryDetailResponse = {
@@ -289,6 +293,8 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       })),
 
       owners,
+
+      quotes: quoteRecords,
     };
 
     return NextResponse.json(payload);

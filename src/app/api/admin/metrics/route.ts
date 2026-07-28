@@ -25,10 +25,8 @@ export const dynamic = 'force-dynamic';
 
 /** The adjacent-stage hops we report a conversion rate for. */
 const CONVERSION_PATH: [string, string][] = [
-  ['new_lead', 'contacted'],
-  ['contacted', 'quote_sent'],
+  ['new_lead', 'quote_sent'],
   ['quote_sent', 'booked'],
-  ['booked', 'completed'],
 ];
 
 function rate(from: number, to: number): number {

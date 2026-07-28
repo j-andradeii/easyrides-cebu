@@ -110,6 +110,25 @@ export const updateEnrollment = async (
   return (await response.json()) as { success: true };
 };
 
+export interface SendQuoteInput {
+  lineItems: { label: string; description?: string; quantity: number; unitPrice: number }[];
+  discount?: number;
+  depositAmount?: number | null;
+  notes?: string;
+  validForDays: number;
+}
+
+export const sendQuote = async (
+  opportunityId: string,
+  input: SendQuoteInput
+): Promise<{ success: true; url: string; token: string }> => {
+  const response = await apiClient.post(
+    `/api/admin/opportunities/${opportunityId}/quotes`,
+    input
+  );
+  return (await response.json()) as { success: true; url: string; token: string };
+};
+
 export const getMetrics = async (): Promise<MetricsResponse> => {
   const response = await apiClient.get('/api/admin/metrics');
   return (await response.json()) as MetricsResponse;

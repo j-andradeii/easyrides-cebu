@@ -75,7 +75,10 @@ async function sendEmail(to: string, message: RenderedMessage): Promise<Delivery
         from,
         to: [to],
         subject: message.subject,
+        // Both parts when the template provides HTML: clients that block or
+        // can't render it still get a readable message.
         text: message.body,
+        ...(message.html ? { html: message.html } : {}),
       }),
     });
 

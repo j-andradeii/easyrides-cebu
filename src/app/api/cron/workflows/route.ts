@@ -11,6 +11,7 @@
 
 import { NextResponse } from 'next/server';
 
+import { expireLapsedQuotes } from '@/lib/crm/quotes';
 import { processDueEnrollments } from '@/lib/workflows/engine';
 
 export const runtime = 'nodejs';
@@ -48,10 +49,18 @@ async function run(request: Request) {
       return acc;
     }, {});
 
+    // Sweep quotes whose validity window has lapsed so the admin list and the
+    // customer's page agree on what is still live.
+    const expiredQuotes = await expireLapsedQuotes().catch((error) => {
+      console.error('[cron] quote expiry sweep failed:', error);
+      return 0;
+    });
+
     return NextResponse.json({
       processed: results.length,
       steps: results.reduce((total, result) => total + result.stepsExecuted, 0),
       summary,
+      expiredQuotes,
       durationMs: Date.now() - startedAt,
     });
   } catch (error) {

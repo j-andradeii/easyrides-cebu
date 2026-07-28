@@ -17,11 +17,8 @@ import type { MetricsResponse } from '@/models/crm.types';
 
 const STAGE_LABELS: Record<string, string> = {
   new_lead: 'New Lead',
-  contacted: 'Contacted',
   quote_sent: 'Quote Sent',
-  negotiation: 'Negotiation',
   booked: 'Booked',
-  completed: 'Completed',
   lost: 'Lost',
 };
 

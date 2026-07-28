@@ -10,6 +10,11 @@
 - **Stack today:** Next.js 16 (App Router), React 19, TypeScript, Tailwind v4, PrimeReact, react-hook-form + zod, zustand
 - **Adds:** PostgreSQL + Drizzle ORM, JWT admin auth (jose + bcryptjs), Vercel Cron for automations
 
+> 📘 **Using the portal day to day?** See
+> **[ADMIN_PORTAL_GUIDE.md](./ADMIN_PORTAL_GUIDE.md)** — how to read the funnel
+> stage bar, move a lead between stages, and drive the W1–W5 automations. This
+> document covers the design; that one covers the operating.
+
 ### Running it locally
 
 ```bash

@@ -132,7 +132,7 @@ const w3Quote: WorkflowDefinition = {
   key: 'w3_quote',
   name: 'W3 · Quote → Booking Conversion',
   description:
-    'Enrolls when an agent moves the deal to Quote Sent. Quotes are where the money is made or lost, so this sends the summary and two well-timed nudges before conceding the deal went cold.',
+    'Enrolls when a quote is sent. Quotes are where the money is made or lost, so this sends the link and two well-timed nudges before conceding the deal went cold.',
   trigger: 'stage.changed',
   triggerStage: 'quote_sent',
   exitWhen: [{ kind: 'closed' }, { kind: 'stage_at_or_beyond', stage: 'booked' }],
@@ -141,7 +141,6 @@ const w3Quote: WorkflowDefinition = {
     { type: 'wait', days: 1 },
     { type: 'exit_if', condition: { kind: 'won' } },
     { type: 'send_message', channel: 'whatsapp', template: 'quote_reminder', to: 'customer' },
-    { type: 'move_stage', stage: 'negotiation' },
     { type: 'create_task', title: 'Follow up on the quote personally', dueInMinutes: 60 },
     { type: 'wait', days: 2 },
     { type: 'exit_if', condition: { kind: 'won' } },
@@ -156,7 +155,7 @@ const w4Fulfillment: WorkflowDefinition = {
   key: 'w4_fulfillment',
   name: 'W4 · Fulfillment, Review & Re-Engagement',
   description:
-    'Enrolls when a deal is Booked. Confirms the booking, reminds both sides the day before, closes the trip out, then asks for a review at the peak-end moment and invites happy customers to refer a friend.',
+    'Enrolls when a deal is Booked. Confirms the booking, reminds both sides the day before, then asks for a review at the peak-end moment (a few hours after the trip) and invites happy customers to refer a friend.',
   trigger: 'stage.changed',
   triggerStage: 'booked',
   exitWhen: [{ kind: 'lost' }],
@@ -166,8 +165,9 @@ const w4Fulfillment: WorkflowDefinition = {
     { type: 'wait_until_trip_date', offsetHours: -24, fallbackDays: 3 },
     { type: 'send_message', channel: 'whatsapp', template: 'trip_reminder', to: 'customer' },
     { type: 'notify_admin', template: 'driver_reminder' },
+    // The deal stays at Booked once the trip happens — a finished trip is a won
+    // deal whose date has passed, so there is no separate "Completed" stage.
     { type: 'wait_until_trip_date', offsetHours: 3, fallbackDays: 4 },
-    { type: 'move_stage', stage: 'completed' },
     { type: 'update_lifetime_value' },
     { type: 'send_message', channel: 'email', template: 'review_request', to: 'customer' },
     { type: 'wait', days: 3 },

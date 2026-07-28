@@ -8,7 +8,7 @@
  */
 
 import { config as loadEnv } from 'dotenv';
-import { eq } from 'drizzle-orm';
+import { and, eq, notInArray, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -71,6 +71,38 @@ async function main() {
         });
     }
     console.log(`✔ ${STAGE_DEFINITIONS.length} pipeline stages`);
+
+    // Prune stages that are no longer part of the funnel. A stage still holding
+    // opportunities is left alone and reported — silently deleting it would
+    // either break the FK or orphan live deals.
+    const activeKeys = STAGE_DEFINITIONS.map((stage) => stage.key);
+    const staleStages = await db
+      .select({ id: schema.pipelineStages.id, key: schema.pipelineStages.key })
+      .from(schema.pipelineStages)
+      .where(
+        and(
+          eq(schema.pipelineStages.pipelineId, DEFAULT_PIPELINE_ID),
+          notInArray(schema.pipelineStages.key, activeKeys)
+        )
+      );
+
+    for (const stale of staleStages) {
+      const [{ count: inUse }] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.opportunities)
+        .where(eq(schema.opportunities.stageId, stale.id));
+
+      if (inUse > 0) {
+        console.warn(
+          `⚠ stage "${stale.key}" still holds ${inUse} opportunit${inUse === 1 ? 'y' : 'ies'} — ` +
+            'move them to a current stage, then re-run the seed to remove it.'
+        );
+        continue;
+      }
+
+      await db.delete(schema.pipelineStages).where(eq(schema.pipelineStages.id, stale.id));
+      console.log(`✔ removed retired stage "${stale.key}"`);
+    }
 
     // --- The workflow definitions (W1–W5) ---
     for (const workflow of WORKFLOW_DEFINITIONS) {

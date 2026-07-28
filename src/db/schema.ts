@@ -56,6 +56,15 @@ export const enrollmentStatusEnum = pgEnum('enrollment_status', [
   'failed',
 ]);
 
+export const quoteStatusEnum = pgEnum('quote_status', [
+  'sent',
+  'viewed',
+  'accepted',
+  'declined',
+  'expired',
+  'cancelled',
+]);
+
 export const referralStatusEnum = pgEnum('referral_status', [
   'pending',
   'clicked',
@@ -315,6 +324,52 @@ export const workflowEnrollments = pgTable(
   ]
 );
 
+// --- Quotes (the tokenized checkout page a customer receives) ---------------
+
+export const quotes = pgTable(
+  'quotes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    opportunityId: uuid('opportunity_id')
+      .notNull()
+      .references(() => opportunities.id, { onDelete: 'cascade' }),
+    contactId: uuid('contact_id')
+      .notNull()
+      .references(() => contacts.id, { onDelete: 'cascade' }),
+    /** The unguessable /quote/[token] value. */
+    token: text('token').notNull(),
+    status: quoteStatusEnum('status').notNull().default('sent'),
+    currency: text('currency').notNull().default('PHP'),
+    /** Ordered line items: [{ label, description, quantity, unitPrice, amount }] */
+    lineItems: jsonb('line_items').notNull(),
+    subtotal: numeric('subtotal', { precision: 12, scale: 2 }).notNull().default('0'),
+    discount: numeric('discount', { precision: 12, scale: 2 }).notNull().default('0'),
+    total: numeric('total', { precision: 12, scale: 2 }).notNull().default('0'),
+    /** Optional amount required up front to hold the booking. */
+    depositAmount: numeric('deposit_amount', { precision: 12, scale: 2 }),
+    notes: text('notes'),
+    /** Quotes expire so stale prices and availability can't be held against us. */
+    validUntil: timestamp('valid_until', { withTimezone: true }).notNull(),
+    sentAt: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(),
+    viewedAt: timestamp('viewed_at', { withTimezone: true }),
+    acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+    declinedAt: timestamp('declined_at', { withTimezone: true }),
+    declineReason: text('decline_reason'),
+    /** Which payment method the customer picked on the checkout page. */
+    paymentMethod: text('payment_method'),
+    /** Reference / receipt number they typed in after paying. */
+    paymentReference: text('payment_reference'),
+    createdBy: uuid('created_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('quotes_token_uidx').on(table.token),
+    index('quotes_opportunity_idx').on(table.opportunityId, table.createdAt.desc()),
+    index('quotes_status_idx').on(table.status),
+  ]
+);
+
 // --- Referrals (§7A) --------------------------------------------------------
 
 export const referrals = pgTable(
@@ -396,5 +451,6 @@ export type Activity = typeof activities.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type Workflow = typeof workflows.$inferSelect;
 export type WorkflowEnrollment = typeof workflowEnrollments.$inferSelect;
+export type Quote = typeof quotes.$inferSelect;
 export type Referral = typeof referrals.$inferSelect;
 export type Review = typeof reviews.$inferSelect;

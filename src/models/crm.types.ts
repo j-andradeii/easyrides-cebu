@@ -7,6 +7,7 @@
  */
 
 import type { AdminRole } from '@/lib/auth/jwt';
+import type { QuoteRecord } from '@/models/quote.schema';
 
 export interface AdminSummary {
   id: string;
@@ -197,6 +198,7 @@ export interface InquiryDetailResponse {
   enrollments: EnrollmentRecord[];
   reviews: ReviewRecord[];
   referrals: ReferralRecord[];
+  quotes: QuoteRecord[];
   stages: StageSummary[];
   owners: AdminSummary[];
 }

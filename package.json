@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
+    "db:reset-leads": "tsx scripts/reset-leads.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "import-sheet": "tsx scripts/import-sheet.ts"
   },
