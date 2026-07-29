@@ -66,6 +66,14 @@ export const quoteStatusEnum = pgEnum('quote_status', [
 ]);
 
 /**
+ * What a quote is asking to be paid.
+ *
+ * `full_payment` settles the whole booking; `partial_payment` is one
+ * instalment of it, which is why several can be live on the same deal.
+ */
+export const quoteTypeEnum = pgEnum('quote_type', ['full_payment', 'partial_payment']);
+
+/**
  * Where a payment sits in the "did the money actually arrive?" check.
  * `submitted` is what the customer claims; only a human moves it on.
  */
@@ -349,6 +357,8 @@ export const quotes = pgTable(
     /** The unguessable /quote/[token] value. */
     token: text('token').notNull(),
     status: quoteStatusEnum('status').notNull().default('sent'),
+    /** Whether this quote settles the booking or is one instalment of it. */
+    quoteType: quoteTypeEnum('quote_type').notNull().default('full_payment'),
     currency: text('currency').notNull().default('PHP'),
     /** Ordered line items: [{ label, description, quantity, unitPrice, amount }] */
     lineItems: jsonb('line_items').notNull(),

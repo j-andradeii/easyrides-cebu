@@ -65,7 +65,7 @@ async function countBookingConfirmations(opportunityId: string): Promise<number>
 
 /** Sends one booking email and records it on the deal's timeline. */
 async function sendBookingEmail(params: {
-  template: 'booking_confirmation' | 'booking_alert';
+  template: 'booking_confirmation' | 'payment_submitted';
   audience: 'customer' | 'admin';
   context: TemplateContext;
   opportunityId: string;
@@ -90,7 +90,7 @@ async function sendBookingEmail(params: {
     channel: 'email',
     subject:
       params.audience === 'admin'
-        ? `Booking alert sent to the team · ${result.subject}`
+        ? `Payment alert sent to the team · ${result.subject}`
         : result.subject,
     body: truncate(result.body, 2000),
     metadata: {
@@ -291,10 +291,10 @@ export async function POST(request: Request, context: { params: Promise<{ token:
         });
       }
 
-      // And the team's copy — they need to check the payment landed and put a
-      // driver on it.
+      // And the team's copy — someone has to check the money landed before a
+      // vehicle is committed.
       await sendBookingEmail({
-        template: 'booking_alert',
+        template: 'payment_submitted',
         audience: 'admin',
         context: templateContext,
         opportunityId: quote.opportunityId,

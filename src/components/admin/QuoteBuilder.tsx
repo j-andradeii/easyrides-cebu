@@ -11,7 +11,12 @@
 import { useMemo, useState } from 'react';
 
 import { formatDate, formatPeso } from '@/lib/format';
-import type { QuoteRecord } from '@/models/quote.schema';
+import {
+  QUOTE_TYPES,
+  QUOTE_TYPE_LABELS,
+  type QuoteRecord,
+  type QuoteType,
+} from '@/models/quote.schema';
 
 interface DraftLine {
   label: string;
@@ -38,7 +43,7 @@ interface QuoteBuilderProps {
   onSend: (payload: {
     lineItems: { label: string; description?: string; quantity: number; unitPrice: number }[];
     discount?: number;
-    depositAmount?: number | null;
+    quoteType: QuoteType;
     notes?: string;
     validForDays: number;
     supersedeOpen: boolean;
@@ -49,7 +54,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
   const [isOpen, setIsOpen] = useState(false);
   const [lines, setLines] = useState<DraftLine[]>([{ ...EMPTY_LINE, label: defaultLabel }]);
   const [discount, setDiscount] = useState('');
-  const [deposit, setDeposit] = useState('');
+  const [quoteType, setQuoteType] = useState<QuoteType>('full_payment');
   const [notes, setNotes] = useState('');
   const [validForDays, setValidForDays] = useState('7');
   /** False = this quote sits alongside the open one (a split payment). */
@@ -104,7 +109,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
     await onSend({
       lineItems,
       discount: totals.discount > 0 ? totals.discount : undefined,
-      depositAmount: deposit ? Number.parseFloat(deposit) : null,
+      quoteType,
       notes: notes.trim() || undefined,
       validForDays: Number.parseInt(validForDays, 10) || 7,
       supersedeOpen,
@@ -112,7 +117,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
 
     setLines([{ ...EMPTY_LINE, label: defaultLabel }]);
     setDiscount('');
-    setDeposit('');
+    setQuoteType('full_payment');
     setNotes('');
     setSupersedeOpen(true);
     setIsOpen(false);
@@ -147,6 +152,11 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                     >
                       {quote.status}
                     </span>
+                    {quote.quoteType === 'partial_payment' && (
+                      <span className="rounded bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
+                        {QUOTE_TYPE_LABELS.partial_payment}
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
                     Valid until {formatDate(quote.validUntil)}
@@ -279,18 +289,26 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
               />
             </label>
             <label className="text-xs text-slate-500">
-              Deposit ₱ <span className="text-slate-400">(optional)</span>
-              <input
-                type="number"
-                min="0"
-                step="100"
-                value={deposit}
-                onChange={(event) => setDeposit(event.target.value)}
-                placeholder="e.g. 2000"
-                className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
-              />
+              Quote type
+              <select
+                value={quoteType}
+                onChange={(event) => setQuoteType(event.target.value as QuoteType)}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
+              >
+                {QUOTE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {QUOTE_TYPE_LABELS[type]}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
+
+          <p className="-mt-1 text-[11px] text-slate-400">
+            {quoteType === 'partial_payment'
+              ? 'One instalment of this booking — the customer will be billed the rest separately.'
+              : 'Settles the whole booking in one payment.'}
+          </p>
 
           {openQuotes.length > 0 && (
             <fieldset className="rounded-lg border border-slate-200 p-2.5">
@@ -322,8 +340,8 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                   className="mt-0.5"
                 />
                 <span className="text-xs text-slate-600">
-                  <strong className="text-slate-800">Add a payment</strong> — for a deposit now and
-                  the balance later. Both links stay live and the deal value is the sum.
+                  <strong className="text-slate-800">Add a payment</strong> — another instalment
+                  alongside it. Both links stay live and the deal value is the sum.
                 </span>
               </label>
             </fieldset>

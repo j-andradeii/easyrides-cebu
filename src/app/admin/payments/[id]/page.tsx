@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { formatDate, formatDateTime, formatPeso } from '@/lib/format';
 import * as paymentService from '@/services/payment.service';
 import type { PaymentDetail, PaymentStatus } from '@/models/payment.schema';
+import { QUOTE_TYPE_LABELS, type QuoteType } from '@/models/quote.schema';
 
 const STATUS_TONES: Record<PaymentStatus, string> = {
   submitted: 'bg-amber-100 text-amber-800',
@@ -26,6 +27,11 @@ const STATUS_LABELS: Record<PaymentStatus, string> = {
   submitted: 'Needs checking',
   verified: 'Verified',
   rejected: 'Rejected',
+};
+
+const TYPE_TONES: Record<QuoteType, string> = {
+  full_payment: 'bg-slate-100 text-slate-700',
+  partial_payment: 'bg-indigo-100 text-indigo-700',
 };
 
 export default function AdminPaymentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -107,10 +113,19 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_TONES[payment.status]}`}>
             {STATUS_LABELS[payment.status]}
           </span>
+          <span className={`rounded px-2 py-0.5 text-xs font-medium ${TYPE_TONES[payment.quoteType]}`}>
+            {payment.quoteTypeLabel}
+          </span>
           <span className="text-sm text-slate-500">
             via {payment.methodLabel} · {formatDateTime(payment.createdAt)}
           </span>
         </div>
+
+        <p className="mt-1.5 text-sm text-slate-500">
+          {payment.quoteType === 'partial_payment'
+            ? 'One instalment of this booking — the rest is billed separately.'
+            : 'Settles the whole booking.'}
+        </p>
       </div>
 
       {error && (
@@ -179,6 +194,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
 
           <dl className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm">
             <Row label="Amount" value={formatPeso(payment.amount)} />
+            <Row label="Payment type" value={payment.quoteTypeLabel} />
             <Row label="Method" value={payment.methodLabel} />
             <Row label="Customer reference" value={payment.reference ?? '— none given —'} mono />
             <Row label="Submitted" value={formatDateTime(payment.createdAt)} />
@@ -272,7 +288,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
                     >
                       <span>{formatPeso(sibling.amount)}</span>
                       <span className="text-xs text-slate-500">
-                        {sibling.methodLabel} · {STATUS_LABELS[sibling.status]}
+                        {QUOTE_TYPE_LABELS[sibling.quoteType]} · {STATUS_LABELS[sibling.status]}
                       </span>
                     </Link>
                   </li>

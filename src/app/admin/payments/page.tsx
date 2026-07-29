@@ -145,6 +145,11 @@ export default function AdminPaymentsPage() {
                       >
                         {STATUS_LABELS[payment.status]}
                       </span>
+                      {payment.quoteType === 'partial_payment' && (
+                        <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                          {payment.quoteTypeLabel}
+                        </span>
+                      )}
                       {payment.hasProof ? (
                         <span className="inline-flex items-center gap-1 rounded bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">
                           <i className="pi pi-image text-[10px]" /> Screenshot

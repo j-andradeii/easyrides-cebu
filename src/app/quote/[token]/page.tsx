@@ -18,7 +18,7 @@ import { ProofOfPaymentField } from '@/components/quote/ProofOfPaymentField';
 import { DownloadQRButton } from '@/components/ui/DownloadQRButton';
 import { PAYMENT_METHODS, type PaymentMethod } from '@/data/payment-methods';
 import { formatDate, formatPeso } from '@/lib/format';
-import type { PublicQuote } from '@/models/quote.schema';
+import { QUOTE_TYPE_LABELS, type PublicQuote } from '@/models/quote.schema';
 
 export default function QuoteCheckoutPage() {
   const params = useParams<{ token: string }>();
@@ -248,9 +248,16 @@ export default function QuoteCheckoutPage() {
                 {quote.tripDate ? ` · ${formatDate(quote.tripDate)}` : ''}
               </p>
             </div>
-            <span className="shrink-0 rounded-lg bg-white/20 px-2.5 py-1 font-mono text-xs">
-              {quote.reference}
-            </span>
+            <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <span className="rounded-lg bg-white/20 px-2.5 py-1 font-mono text-xs">
+                {quote.reference}
+              </span>
+              {quote.quoteType === 'partial_payment' && (
+                <span className="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-medium">
+                  {QUOTE_TYPE_LABELS.partial_payment}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-1.5 text-sm">
@@ -301,9 +308,15 @@ export default function QuoteCheckoutPage() {
               </div>
             )}
             <div className="flex justify-between pt-1.5 text-lg font-bold text-slate-900">
-              <span>Total</span>
+              <span>{quote.quoteType === 'partial_payment' ? 'This payment' : 'Total'}</span>
               <span>{formatPeso(quote.total)}</span>
             </div>
+            {quote.quoteType === 'partial_payment' && (
+              <p className="pt-2 text-xs text-slate-500">
+                This is a <strong>partial payment</strong> toward your booking — the remaining
+                balance is billed separately.
+              </p>
+            )}
             {depositDue && (
               <p className="pt-2 text-xs text-slate-500">
                 A deposit of <strong>{formatPeso(depositDue)}</strong> secures your booking; the

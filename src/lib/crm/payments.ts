@@ -28,7 +28,13 @@ import {
 } from '@/db/schema';
 import { getPaymentMethod, paymentMethodLabel } from '@/data/payment-methods';
 import { resolveImageMime } from '@/lib/image-mime';
-import { PROOF_MAX_BYTES, type PaymentDetail, type PaymentRecord, type PaymentStatus } from '@/models/payment.schema';
+import {
+  PROOF_MAX_BYTES,
+  type PaymentDetail,
+  type PaymentRecord,
+  type PaymentStatus,
+} from '@/models/payment.schema';
+import { quoteTypeLabel, type QuoteType } from '@/models/quote.schema';
 import { buildOpportunityTitle, serviceLabel, vehicleLabel } from './normalize';
 import { quoteReference, quoteUrl } from './quote-links';
 
@@ -161,6 +167,8 @@ function toRecord(row: {
     method: payment.method,
     methodLabel: paymentMethodLabel(payment.method),
     reference: payment.reference,
+    quoteType: quote.quoteType as QuoteType,
+    quoteTypeLabel: quoteTypeLabel(quote.quoteType),
     hasProof: Boolean(payment.proofData),
     proofSize: payment.proofSize,
     createdAt: payment.createdAt.toISOString(),
@@ -229,8 +237,9 @@ export async function getPaymentDetail(paymentId: string): Promise<PaymentDetail
     .limit(1);
 
   const siblings = await db
-    .select()
+    .select({ payment: payments, quoteType: quotes.quoteType })
     .from(payments)
+    .innerJoin(quotes, eq(quotes.id, payments.quoteId))
     .where(eq(payments.opportunityId, row.payment.opportunityId))
     .orderBy(desc(payments.createdAt));
 
@@ -250,11 +259,12 @@ export async function getPaymentDetail(paymentId: string): Promise<PaymentDetail
     proofUrl: row.payment.proofData ? `/api/admin/payments/${row.payment.id}/proof` : null,
     proofMime: row.payment.proofMime,
     proofFilename: row.payment.proofFilename,
-    dealPayments: siblings.map((payment) => ({
+    dealPayments: siblings.map(({ payment, quoteType }) => ({
       id: payment.id,
       amount: payment.amount,
       method: payment.method,
       methodLabel: paymentMethodLabel(payment.method),
+      quoteType: quoteType as QuoteType,
       status: payment.status as PaymentStatus,
       createdAt: payment.createdAt.toISOString(),
     })),

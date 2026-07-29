@@ -15,7 +15,8 @@ export const TEMPLATE_KEYS = [
   'quote_reminder',
   'lost_reason_prompt',
   'booking_confirmation',
-  'booking_alert',
+  'payment_submitted',
+  'payment_verified',
   'trip_reminder',
   'driver_reminder',
   'review_request',
@@ -30,6 +31,27 @@ export const TEMPLATE_KEYS = [
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
 
 /**
+ * The quote currently in front of the customer — what "here is your price"
+ * emails are actually about. Null when nothing is awaiting payment.
+ *
+ * Its `total` is this quote's own amount, which on a partial payment is
+ * deliberately *not* the deal value: the deal is the sum of its instalments.
+ */
+export interface LiveQuoteSummary {
+  reference: string;
+  /** 'full_payment' | 'partial_payment' */
+  quoteType: string;
+  /** "Full payment" / "Partial payment" — already human-readable. */
+  typeLabel: string;
+  isPartial: boolean;
+  currency: string;
+  total: string;
+  url: string;
+  /** How long the price is held, formatted for Manila. */
+  validUntil: string;
+}
+
+/**
  * What the customer settled on when they confirmed the quote. Present only once
  * a quote on the deal has been accepted — the booking emails are the only
  * templates that read it.
@@ -37,6 +59,11 @@ export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
 export interface PaymentSummary {
   /** Human quote reference, e.g. "Q-8F3A21". */
   reference: string;
+  /** 'full_payment' | 'partial_payment' — what the settled quote was asking for. */
+  quoteType: string;
+  /** "Full payment" / "Partial payment". */
+  typeLabel: string;
+  isPartial: boolean;
   /** "GCash", "BPI Bank Transfer", "Cash on pickup"… */
   methodLabel: string;
   /** True when the money is handed over at pickup rather than sent up front. */
@@ -89,6 +116,8 @@ export interface TemplateContext {
   /** Absolute /quote/[token] checkout URL, when a live quote exists. */
   quoteUrl: string | null;
   referralCode: string | null;
+  /** The quote awaiting payment, when there is one. */
+  quote: LiveQuoteSummary | null;
   /** Set once a quote on this deal has been accepted; null before that. */
   payment: PaymentSummary | null;
   businessWhatsApp: string;
@@ -338,24 +367,85 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     ].join('\n'),
   }),
 
-  quote_summary: (ctx) => ({
-    subject: `Your ${BRAND} quote — ${ctx.serviceLabel}`,
-    body: [
-      `Hi ${ctx.name},`,
-      ``,
-      `Here's your quote for ${tripLine(ctx)}:`,
-      ``,
-      `  Total: ${money('PHP', ctx.monetaryValue)}`,
-      ``,
-      `Includes an air-conditioned vehicle, fuel and hotel/airport pickup. Entrance fees, parking and meals are billed separately.`,
-      ``,
-      ctx.quoteUrl
-        ? `See the full breakdown and confirm your booking here:\n\n  ${ctx.quoteUrl}\n`
-        : `To confirm, reply to this email or message us on WhatsApp: https://wa.me/${ctx.businessWhatsApp}`,
-      ``,
-      signOff(ctx),
-    ].join('\n'),
-  }),
+  /**
+   * The quote itself, emailed the moment an agent sends it. This is the link
+   * the whole funnel turns on, so it leads with the amount and the button and
+   * says plainly whether this is the full price or one instalment — a customer
+   * who thinks a partial payment settles the trip is a dispute waiting to happen.
+   */
+  quote_summary: (ctx) => {
+    const quote = ctx.quote;
+    const total = quote ? money(quote.currency, quote.total) : money('PHP', ctx.monetaryValue);
+    const url = quote?.url ?? ctx.quoteUrl;
+
+    const summary: [string, string | null][] = [
+      ['Reference', quote?.reference ?? null],
+      ['Service', ctx.serviceLabel],
+      ['Tour', ctx.tourTitle],
+      ['Vehicle', ctx.vehicleLabel],
+      ['Date', prettyDate(ctx.preferredDate)],
+      [quote?.isPartial ? 'This payment' : 'Total', total],
+      ['Payment type', quote?.typeLabel ?? null],
+      ['Price held until', quote?.validUntil ?? null],
+    ];
+
+    return {
+      subject: quote?.isPartial
+        ? `Your ${BRAND} payment request — ${total}`
+        : `Your ${BRAND} quote — ${total} for ${ctx.serviceLabel}`,
+      body: [
+        `Hi ${ctx.name},`,
+        ``,
+        quote?.isPartial
+          ? `Here's the next payment for ${tripLine(ctx)}:`
+          : `Here's your quote for ${tripLine(ctx)}:`,
+        ``,
+        quote ? `  Reference:    ${quote.reference}` : null,
+        `  ${quote?.isPartial ? 'This payment:' : 'Total:       '} ${total}`,
+        quote ? `  Payment type: ${quote.typeLabel}` : null,
+        quote ? `  Held until:   ${quote.validUntil}` : null,
+        ``,
+        quote?.isPartial
+          ? `This covers part of your booking — we'll send the rest separately.`
+          : `Includes an air-conditioned vehicle, fuel and hotel/airport pickup. Entrance fees, parking and meals are billed separately.`,
+        ``,
+        url
+          ? `See the full breakdown, pay, and confirm your booking here:\n\n  ${url}\n`
+          : `To confirm, reply to this email or message us on WhatsApp: https://wa.me/${ctx.businessWhatsApp}`,
+        ``,
+        `You can pay by GCash or bank transfer and upload a screenshot of your receipt on that page — it's the fastest way for us to confirm you.`,
+        ``,
+        signOff(ctx),
+      ]
+        .filter((line): line is string => line !== null)
+        .join('\n'),
+
+      html: emailShell({
+        ctx,
+        heading: quote?.isPartial
+          ? `Your next payment, ${esc(ctx.name)}`
+          : `Your quote, ${esc(ctx.name)}`,
+        preheader: `${esc(total)} · ${esc(tripLine(ctx))}`,
+        content: `
+          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+            ${
+              quote?.isPartial
+                ? `Here's the next payment for your booking. It covers <strong>part</strong> of the
+                   trip — we'll send the rest separately.`
+                : `Here's your quote. The price is held until the date below, and the button
+                   opens the page where you can pay and confirm.`
+            }
+          </p>
+          ${detailRows(summary)}
+          <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+            Pay by GCash or bank transfer, then upload a screenshot of your receipt on that
+            page — it is the fastest way for us to confirm your booking.
+          </p>`,
+        ctaLabel: quote?.isPartial ? `Pay ${total}` : 'View and confirm your quote',
+        ctaUrl: url ?? `https://wa.me/${ctx.businessWhatsApp}`,
+      }),
+    };
+  },
 
   quote_reminder: (ctx) => ({
     subject: `Still holding your ${prettyDate(ctx.preferredDate) ?? 'preferred'} slot`,
@@ -396,10 +486,8 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     // part this payment settled: `owed` means money is still to come, `split`
     // means this payment was never the whole booking either way.
     const owed = pay && Number.parseFloat(pay.outstanding) > 0 ? pay : null;
-    const split =
-      pay && (owed !== null || Number.parseFloat(pay.settledTotal) > Number.parseFloat(pay.total))
-        ? pay
-        : null;
+    const paidBefore = pay ? Number.parseFloat(pay.settledTotal) > Number.parseFloat(pay.total) : false;
+    const split = pay && (owed !== null || pay.isPartial || paidBefore) ? pay : null;
     const outstanding = owed ? money(owed.currency, owed.outstanding) : null;
 
     const paymentLine = !pay
@@ -408,13 +496,18 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         ? `You're paying at pickup — please have ${dueAtPickup} ready for your driver.`
         : `We're confirming your ${pay.methodLabel} payment now and will only message you if something doesn't match.`;
 
+    // Never claim a booking is settled off the back of a partial payment: the
+    // rest may simply not have been billed yet, and "nothing else is due" is
+    // the one sentence a customer will quote back at the pickup point.
     const outstandingLine = owed
       ? `That leaves ${outstanding} on this booking.${
           owed.outstandingUrl ? ` You can settle it here: ${owed.outstandingUrl}` : ''
         }`
-      : split
-        ? `That settles your booking in full — ${money(split.currency, split.settledTotal)} across all payments. Thank you!`
-        : null;
+      : pay?.isPartial
+        ? `That covers this instalment — we'll send your next payment request when it's due.`
+        : split
+          ? `That settles your booking in full — ${money(split.currency, split.settledTotal)} across all payments. Thank you!`
+          : null;
 
     const summary: [string, string | null][] = [
       ['Reference', pay?.reference ?? null],
@@ -423,10 +516,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ['Vehicle', ctx.vehicleLabel],
       ['Date', prettyDate(ctx.preferredDate)],
       [split ? 'This payment' : 'Total', total],
+      ['Payment type', pay?.isPartial ? pay.typeLabel : null],
       ['Deposit', pay?.depositAmount ? money(pay.currency, pay.depositAmount) : null],
       ['Balance at pickup', pay?.balanceDue ? money(pay.currency, pay.balanceDue) : null],
       ['Still to pay', outstanding],
-      ['Booking total', split ? money(split.currency, split.bookingTotal) : null],
+      ['Paid so far', !owed && paidBefore && pay ? money(pay.currency, pay.settledTotal) : null],
+      ['Booking total', owed ? money(owed.currency, owed.bookingTotal) : null],
       ['Payment method', pay?.methodLabel ?? null],
       ['Your payment reference', pay?.paymentReference ?? null],
       ['Confirmed', pay?.acceptedAt ?? null],
@@ -445,10 +540,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         ctx.vehicleLabel ? `  Vehicle:        ${ctx.vehicleLabel}` : null,
         ctx.preferredDate ? `  Date:           ${prettyDate(ctx.preferredDate)}` : null,
         `  ${split ? 'This payment:  ' : 'Total:         '} ${total}`,
+        pay?.isPartial ? `  Payment type:   ${pay.typeLabel}` : null,
         pay?.depositAmount ? `  Deposit:        ${money(pay.currency, pay.depositAmount)}` : null,
         pay?.balanceDue ? `  Balance:        ${money(pay.currency, pay.balanceDue)} at pickup` : null,
         owed ? `  Still to pay:   ${outstanding}` : null,
-        split ? `  Booking total:  ${money(split.currency, split.bookingTotal)}` : null,
+        !owed && paidBefore && pay ? `  Paid so far:    ${money(pay.currency, pay.settledTotal)}` : null,
+        owed ? `  Booking total:  ${money(owed.currency, owed.bookingTotal)}` : null,
         pay ? `  Payment method: ${pay.methodLabel}` : null,
         pay?.paymentReference ? `  Your reference: ${pay.paymentReference}` : null,
         ...(paymentLine ? [``, paymentLine] : []),
@@ -480,19 +577,13 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
               : ''
           }
           ${
-            owed
-              ? `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
-                   That leaves <strong>${esc(outstanding)}</strong> on this booking${
-                     owed.outstandingUrl ? ' — the button below opens it' : ''
-                   }.
-                 </p>`
-              : split
-                ? `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
-                     That settles your booking in full —
-                     <strong>${esc(money(split.currency, split.settledTotal))}</strong>
-                     across all payments. Thank you!
-                   </p>`
-                : ''
+            outstandingLine
+              ? `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">${esc(
+                  owed && owed.outstandingUrl
+                    ? `That leaves ${outstanding} on this booking — the button below opens it.`
+                    : outstandingLine
+                )}</p>`
+              : ''
           }
           <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
             We'll send your driver's name, vehicle and plate number the day before your trip.
@@ -510,11 +601,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
   },
 
   /**
-   * Fires at the same moment as the customer's confirmation. Written to be read
-   * on a phone lock screen: who paid, how much, by what method — and whether
-   * anyone still needs to check the money actually landed.
+   * The team's alert the moment a customer submits a payment. Its job is to get
+   * someone to *check the money arrived* — nothing in this system talks to a
+   * bank, so a claim sits unverified until a person opens their GCash app.
+   * Written to be read on a phone lock screen: who paid, how much, what type.
    */
-  booking_alert: (ctx) => {
+  payment_submitted: (ctx) => {
     const pay = ctx.payment;
     const total = pay ? money(pay.currency, pay.total) : money('PHP', ctx.monetaryValue);
     const owed = pay && Number.parseFloat(pay.outstanding) > 0 ? pay : null;
@@ -524,14 +616,15 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         : null;
 
     return {
-      subject: `💰 ${
-        owed ? 'Part-payment' : split ? 'Final payment' : 'Booking'
-      } confirmed — ${total} · ${ctx.opportunityTitle}`,
+      subject: `💰 Payment to verify — ${total}${
+        pay?.isPartial ? ' (partial)' : ''
+      } · ${ctx.opportunityTitle}`,
       body: [
-        `${ctx.fullName ?? 'A customer'} confirmed the booking${
-          pay ? ` and accepted quote ${pay.reference}` : ''
-        }.`,
+        `${ctx.fullName ?? 'A customer'} submitted a payment${
+          pay ? ` for quote ${pay.reference}` : ''
+        }. Please check it and mark it verified.`,
         ``,
+        pay ? `Type:      ${pay.typeLabel}` : null,
         `${split ? 'Paid now: ' : 'Total:    '} ${total}`,
         owed ? `Still due: ${money(owed.currency, owed.outstanding)} (quote still open)` : null,
         split
@@ -563,11 +656,97 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         `Trip:     ${tripLine(ctx)}`,
         ctx.tourTitle ? `Tour:     ${ctx.tourTitle}` : null,
         ``,
-        `Next: assign a driver and confirm the itinerary.`,
+        `Once the money is in, verify the payment — that is what tells the rest of the team a vehicle can be committed.`,
         `Open the lead: ${ctx.adminUrl}`,
       ]
         .filter((line): line is string => line !== null)
         .join('\n'),
+    };
+  },
+
+  /**
+   * Sent to the customer when an agent confirms the money arrived. Until this
+   * lands the customer has only our "we're checking" note, so it is the email
+   * that actually settles their mind — and it has to be explicit about whether
+   * the booking is now paid in full or still has instalments to come.
+   */
+  payment_verified: (ctx) => {
+    const pay = ctx.payment;
+    const total = pay ? money(pay.currency, pay.total) : money('PHP', ctx.monetaryValue);
+    const owed = pay && Number.parseFloat(pay.outstanding) > 0 ? pay : null;
+    const outstanding = owed ? money(owed.currency, owed.outstanding) : null;
+
+    // "Nothing else is due" is only ever said about a full payment with nothing
+    // outstanding. A partial payment leaves the rest to be billed, whether or
+    // not a quote for it exists yet.
+    const standing = !pay
+      ? `Your payment is confirmed.`
+      : owed
+        ? `That covers ${
+            pay.isPartial ? 'this instalment' : 'this payment'
+          } — ${outstanding} is still to come on this booking.`
+        : pay.isPartial
+          ? `That covers this instalment. We'll send your next payment request when it's due.`
+          : `Your booking is now paid in full. Nothing else is due.`;
+
+    const paidBefore = pay ? Number.parseFloat(pay.settledTotal) > Number.parseFloat(pay.total) : false;
+
+    const summary: [string, string | null][] = [
+      ['Reference', pay?.reference ?? null],
+      ['Payment received', total],
+      ['Payment type', pay?.typeLabel ?? null],
+      ['Paid by', pay?.methodLabel ?? null],
+      ['Still to pay', outstanding],
+      ['Paid so far', !owed && paidBefore && pay ? money(pay.currency, pay.settledTotal) : null],
+      ['Booking total', owed ? money(owed.currency, owed.bookingTotal) : null],
+      ['Service', ctx.serviceLabel],
+      ['Date', prettyDate(ctx.preferredDate)],
+    ];
+
+    return {
+      subject: `Payment received — ${total}${pay?.isPartial ? ' (partial payment)' : ''}`,
+      body: [
+        `Hi ${ctx.name},`,
+        ``,
+        `Good news — we've checked our account and your payment of ${total} came through.`,
+        ``,
+        pay ? `  Reference:    ${pay.reference}` : null,
+        `  Received:     ${total}`,
+        pay ? `  Payment type: ${pay.typeLabel}` : null,
+        pay ? `  Paid by:      ${pay.methodLabel}` : null,
+        owed ? `  Still to pay: ${outstanding}` : null,
+        !owed && paidBefore && pay ? `  Paid so far:  ${money(pay.currency, pay.settledTotal)}` : null,
+        owed ? `  Booking total: ${money(owed.currency, owed.bookingTotal)}` : null,
+        ``,
+        standing,
+        ...(owed?.outstandingUrl ? [``, `Settle the rest here: ${owed.outstandingUrl}`] : []),
+        ``,
+        `We'll send your driver's name, vehicle and plate number the day before your trip.`,
+        ``,
+        signOff(ctx),
+      ]
+        .filter((line): line is string => line !== null)
+        .join('\n'),
+
+      html: emailShell({
+        ctx,
+        heading: owed
+          ? `Payment received, ${esc(ctx.name)}`
+          : `You're all paid up, ${esc(ctx.name)}! 🎉`,
+        preheader: `${esc(total)} confirmed${owed ? ` · ${esc(outstanding ?? '')} still to pay` : ''}`,
+        content: `
+          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+            We've checked our account and your payment of <strong>${esc(total)}</strong> came
+            through. Thank you!
+          </p>
+          ${detailRows(summary)}
+          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">${esc(standing)}</p>
+          <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+            We'll send your driver's name, vehicle and plate number the day before your trip.
+          </p>`,
+        ctaLabel: owed?.outstandingUrl ? `Pay the remaining ${outstanding}` : 'Message us on WhatsApp',
+        ctaUrl: owed?.outstandingUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
+      }),
     };
   },
 

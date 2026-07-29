@@ -9,6 +9,8 @@
 
 import { z } from 'zod';
 
+import type { QuoteType } from './quote.schema';
+
 export const PAYMENT_STATUSES = ['submitted', 'verified', 'rejected'] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
@@ -40,6 +42,9 @@ export interface PaymentRecord {
   method: string;
   methodLabel: string;
   reference: string | null;
+  /** 'full_payment' | 'partial_payment' — what the settled quote was asking for. */
+  quoteType: QuoteType;
+  quoteTypeLabel: string;
   hasProof: boolean;
   proofSize: number | null;
   createdAt: string;
@@ -76,6 +81,7 @@ export interface PaymentDetail extends PaymentRecord {
     amount: string;
     method: string;
     methodLabel: string;
+    quoteType: QuoteType;
     status: PaymentStatus;
     createdAt: string;
   }[];

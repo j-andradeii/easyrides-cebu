@@ -35,6 +35,7 @@ import type {
   QuoteLineItem,
   QuoteRecord,
   QuoteStatus,
+  QuoteType,
 } from '@/models/quote.schema';
 
 // Callers import the whole quote surface from here.
@@ -188,14 +189,11 @@ export async function createQuote(params: {
         contactId: contact.id,
         token: generateToken(),
         status: 'sent',
+        quoteType: params.input.quoteType ?? 'full_payment',
         lineItems,
         subtotal: subtotal.toFixed(2),
         discount: discount.toFixed(2),
         total: total.toFixed(2),
-        depositAmount:
-          params.input.depositAmount !== null && params.input.depositAmount !== undefined
-            ? params.input.depositAmount.toFixed(2)
-            : null,
         notes: params.input.notes ?? null,
         validUntil,
         createdBy: params.adminUserId,
@@ -279,6 +277,7 @@ export async function resolveQuoteByToken(token: string): Promise<ResolvedQuote 
     publicQuote: {
       token: quote.token,
       status: effectiveStatus(quote),
+      quoteType: quote.quoteType as QuoteType,
       reference: quoteReference(quote.id),
       customerName: row.contact.fullName ?? 'there',
       serviceLabel: serviceLabel(row.opportunity.serviceType),
@@ -318,6 +317,7 @@ export async function listQuotesForOpportunity(
     id: quote.id,
     token: quote.token,
     status: effectiveStatus(quote),
+    quoteType: quote.quoteType as QuoteType,
     reference: quoteReference(quote.id),
     currency: quote.currency,
     lineItems: quote.lineItems as QuoteLineItem[],

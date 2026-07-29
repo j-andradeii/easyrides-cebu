@@ -65,13 +65,15 @@ export default function InquiryDetailPage() {
 
   /** Runs a mutation, then refreshes so automations fired server-side show up. */
   const mutate = useCallback(
-    async (action: () => Promise<unknown>, successMessage: string) => {
+    async <T,>(action: () => Promise<T>, successMessage: string | ((result: T) => string)) => {
       setIsBusy(true);
       setError(null);
       try {
-        await action();
+        const result = await action();
         await load();
-        setNotice(successMessage);
+        setNotice(
+          typeof successMessage === 'function' ? successMessage(result) : successMessage
+        );
       } catch (caught) {
         const message = (caught as { message?: string })?.message;
         setError(message ?? 'That action failed. Please try again.');
@@ -421,7 +423,14 @@ export default function InquiryDetailPage() {
               onSend={(payload) =>
                 mutate(
                   () => inquiryService.sendQuote(opportunity.id, payload),
-                  'Quote sent — the lead is now at Quote Sent'
+                  // Say where the quote actually went — "sent" is worth nothing
+                  // if the contact has no email or the provider refused it.
+                  (result) =>
+                    result.emailed && result.emailedTo
+                      ? `Quote emailed to ${result.emailedTo}`
+                      : `Quote created — ${
+                          result.emailError ?? 'email not sent'
+                        }. Copy the link and send it yourself.`
                 )
               }
             />

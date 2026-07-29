@@ -41,12 +41,12 @@ export function isQuoteExpired(quote: Pick<Quote, 'status' | 'validUntil'>): boo
  * a deposit already paid and a balance still open — so this deliberately looks
  * past settled quotes rather than reading only the newest row.
  */
-export async function latestOpenQuoteUrl(
+export async function latestOpenQuote(
   opportunityId: string,
   executor: DbExecutor = db
-): Promise<string | null> {
+): Promise<Quote | undefined> {
   const [row] = await executor
-    .select({ token: quotes.token })
+    .select()
     .from(quotes)
     .where(
       and(
@@ -58,7 +58,15 @@ export async function latestOpenQuoteUrl(
     .orderBy(desc(quotes.createdAt))
     .limit(1);
 
-  return row ? quoteUrl(row.token) : null;
+  return row;
+}
+
+export async function latestOpenQuoteUrl(
+  opportunityId: string,
+  executor: DbExecutor = db
+): Promise<string | null> {
+  const quote = await latestOpenQuote(opportunityId, executor);
+  return quote ? quoteUrl(quote.token) : null;
 }
 
 /**

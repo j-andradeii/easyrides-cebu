@@ -21,13 +21,20 @@ import {
   type Contact,
   type Opportunity,
   type PipelineStage,
+  type Quote,
 } from '@/db/schema';
 import { getPaymentMethod, paymentMethodLabel } from '@/data/payment-methods';
 import { DEFAULT_PIPELINE_ID, type StageKey } from '@/lib/funnel/stages';
-import type { PaymentSummary, TemplateContext } from '@/lib/messaging/templates';
+import { quoteTypeLabel } from '@/models/quote.schema';
+import type {
+  LiveQuoteSummary,
+  PaymentSummary,
+  TemplateContext,
+} from '@/lib/messaging/templates';
 import { buildOpportunityTitle, firstName, serviceLabel, vehicleLabel } from './normalize';
 import { latestPaymentForQuote } from './payments';
 import {
+  latestOpenQuote,
   latestOpenQuoteUrl,
   outstandingQuoteTotal,
   quoteReference,
@@ -228,24 +235,45 @@ const ACCEPTED_AT_FORMATTER = new Intl.DateTimeFormat('en-PH', {
   timeZone: 'Asia/Manila',
 });
 
+const VALID_UNTIL_FORMATTER = new Intl.DateTimeFormat('en-PH', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'Asia/Manila',
+});
+
 /**
- * The payment details behind a booking, for the confirmation emails. Reads the
- * most recently accepted quote on the deal — that is the only record of how the
- * customer chose to pay — and sets it against everything else on the deal, so a
- * booking split across payments can say what is left to settle.
+ * The quote currently in front of the customer. Its own total — never the deal
+ * value, which on a partial payment is the sum of every instalment.
  */
-async function loadPaymentSummary(
+export async function loadLiveQuoteSummary(
   opportunityId: string,
   executor: DbExecutor = db
-): Promise<PaymentSummary | null> {
-  const [quote] = await executor
-    .select()
-    .from(quotes)
-    .where(and(eq(quotes.opportunityId, opportunityId), eq(quotes.status, 'accepted')))
-    .orderBy(desc(quotes.acceptedAt))
-    .limit(1);
-
+): Promise<LiveQuoteSummary | null> {
+  const quote = await latestOpenQuote(opportunityId, executor);
   if (!quote) return null;
+
+  return {
+    reference: quoteReference(quote.id),
+    quoteType: quote.quoteType,
+    typeLabel: quoteTypeLabel(quote.quoteType),
+    isPartial: quote.quoteType === 'partial_payment',
+    currency: quote.currency,
+    total: quote.total,
+    url: quoteUrl(quote.token),
+    validUntil: VALID_UNTIL_FORMATTER.format(quote.validUntil),
+  };
+}
+
+/**
+ * The payment details behind one settled quote, set against the rest of the
+ * deal so a booking split across instalments can say what is left to pay.
+ */
+export async function paymentSummaryForQuote(
+  quote: Quote,
+  executor: DbExecutor = db
+): Promise<PaymentSummary> {
+  const opportunityId = quote.opportunityId;
 
   const [settledRow] = await executor
     .select({ total: sql<string>`coalesce(sum(${quotes.total}), 0)::text` })
@@ -267,6 +295,9 @@ async function loadPaymentSummary(
 
   return {
     reference: quoteReference(quote.id),
+    quoteType: quote.quoteType,
+    typeLabel: quoteTypeLabel(quote.quoteType),
+    isPartial: quote.quoteType === 'partial_payment',
     methodLabel: method?.label ?? paymentMethodLabel(quote.paymentMethod),
     paidOnPickup: method?.paidOnPickup ?? false,
     paymentReference: quote.paymentReference,
@@ -283,6 +314,21 @@ async function loadPaymentSummary(
     proofAttached: Boolean(payment?.proofData),
     adminPaymentUrl: payment ? `${siteUrl()}/admin/payments/${payment.id}` : null,
   };
+}
+
+/** The most recently settled quote on a deal, for the booking emails. */
+async function loadPaymentSummary(
+  opportunityId: string,
+  executor: DbExecutor = db
+): Promise<PaymentSummary | null> {
+  const [quote] = await executor
+    .select()
+    .from(quotes)
+    .where(and(eq(quotes.opportunityId, opportunityId), eq(quotes.status, 'accepted')))
+    .orderBy(desc(quotes.acceptedAt))
+    .limit(1);
+
+  return quote ? paymentSummaryForQuote(quote, executor) : null;
 }
 
 /**
@@ -330,6 +376,7 @@ export async function buildTemplateContext(
     shareUrl: contact.referralCode ? `${base}/thanks/${contact.referralCode}` : null,
     quoteUrl: await latestOpenQuoteUrl(opportunity.id, executor),
     referralCode: contact.referralCode,
+    quote: await loadLiveQuoteSummary(opportunity.id, executor),
     payment: await loadPaymentSummary(opportunity.id, executor),
     businessWhatsApp: process.env.WHATSAPP_BUSINESS_NUMBER ?? '639178046988',
     siteUrl: base,

@@ -26,11 +26,28 @@ export interface QuoteLineItem {
   amount: number;
 }
 
+export const QUOTE_TYPES = ['full_payment', 'partial_payment'] as const;
+export type QuoteType = (typeof QUOTE_TYPES)[number];
+
+/** How each type reads to a human — used in the portal, the page and the emails. */
+export const QUOTE_TYPE_LABELS: Record<QuoteType, string> = {
+  full_payment: 'Full payment',
+  partial_payment: 'Partial payment',
+};
+
+export function quoteTypeLabel(value: string | null | undefined): string {
+  return QUOTE_TYPE_LABELS[value as QuoteType] ?? 'Full payment';
+}
+
 /** Admin → POST /api/admin/opportunities/[id]/quotes */
 export const createQuoteSchema = z.object({
   lineItems: z.array(quoteLineItemSchema).min(1, 'Add at least one line item').max(25),
   discount: z.number().min(0).max(10_000_000).optional(),
-  depositAmount: z.number().min(0).max(10_000_000).nullable().optional(),
+  /**
+   * A partial payment is one instalment of a larger booking — it is what lets
+   * several quotes stay live on the same deal at once.
+   */
+  quoteType: z.enum(QUOTE_TYPES).default('full_payment'),
   notes: z.string().max(2000).optional(),
   /** How long the price is held. */
   validForDays: z.number().int().min(1).max(90).default(7),
@@ -41,8 +58,7 @@ export const createQuoteSchema = z.object({
    *
    * True (the default) is a corrected price: the customer should only ever be
    * looking at one live number. False keeps the existing quotes live so a deal
-   * can carry several at once — a deposit now and the balance later, or a trip
-   * split across payments.
+   * can carry several at once — the instalments of a partial-payment booking.
    */
   supersedeOpen: z.boolean().default(true),
 });
@@ -75,6 +91,7 @@ export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 export interface PublicQuote {
   token: string;
   status: QuoteStatus;
+  quoteType: QuoteType;
   reference: string;
   customerName: string;
   serviceLabel: string;
@@ -101,6 +118,7 @@ export interface QuoteRecord {
   id: string;
   token: string;
   status: QuoteStatus;
+  quoteType: QuoteType;
   reference: string;
   currency: string;
   lineItems: QuoteLineItem[];

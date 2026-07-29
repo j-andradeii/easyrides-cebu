@@ -12,6 +12,7 @@ import type {
   ReferralRecord,
   ReviewRecord,
 } from '@/models/crm.types';
+import type { QuoteType } from '@/models/quote.schema';
 
 export interface InquiryListFilters {
   query?: string;
@@ -113,7 +114,8 @@ export const updateEnrollment = async (
 export interface SendQuoteInput {
   lineItems: { label: string; description?: string; quantity: number; unitPrice: number }[];
   discount?: number;
-  depositAmount?: number | null;
+  /** Whether this quote settles the booking or is one instalment of it. */
+  quoteType: QuoteType;
   notes?: string;
   validForDays: number;
   /**
@@ -123,15 +125,25 @@ export interface SendQuoteInput {
   supersedeOpen?: boolean;
 }
 
+export interface SendQuoteResult {
+  success: true;
+  url: string;
+  token: string;
+  /** Whether the quote email actually left for the contact. */
+  emailed: boolean;
+  emailedTo: string | null;
+  emailError: string | null;
+}
+
 export const sendQuote = async (
   opportunityId: string,
   input: SendQuoteInput
-): Promise<{ success: true; url: string; token: string }> => {
+): Promise<SendQuoteResult> => {
   const response = await apiClient.post(
     `/api/admin/opportunities/${opportunityId}/quotes`,
     input
   );
-  return (await response.json()) as { success: true; url: string; token: string };
+  return (await response.json()) as SendQuoteResult;
 };
 
 export const getMetrics = async (): Promise<MetricsResponse> => {
