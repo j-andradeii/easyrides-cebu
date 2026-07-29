@@ -1,9 +1,5 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "crons": [
-    {
-      "path": "/api/cron/workflows",
-      "schedule": "*/5 * * * *"
+  {
+    "github": {
+      "enabled": false
     }
-  ]
-}
+  }
