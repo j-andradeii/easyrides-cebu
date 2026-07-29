@@ -145,7 +145,7 @@ export const pipelineStages = pgTable(
     pipelineId: uuid('pipeline_id')
       .notNull()
       .references(() => pipelines.id, { onDelete: 'cascade' }),
-    /** 'new_lead', 'contacted', ... — stable identifier used by the workflow engine */
+    /** 'new_lead', 'quote_sent', ... — stable identifier used by the workflow engine */
     key: text('key').notNull(),
     name: text('name').notNull(),
     sortOrder: integer('sort_order').notNull(),

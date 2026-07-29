@@ -200,6 +200,13 @@ export default function QuoteCheckoutPage() {
     Math.ceil((new Date(quote.validUntil).getTime() - Date.now()) / 86_400_000)
   );
 
+  // A deposit only counts when it is actually above zero. An admin who typed "0"
+  // stores "0.00", which is not null — without this the payment panel would tell
+  // the customer to send ₱0.00.
+  const depositDue =
+    quote.depositAmount && Number.parseFloat(quote.depositAmount) > 0 ? quote.depositAmount : null;
+  const amountDue = depositDue ?? quote.total;
+
   return (
     <main className="min-h-screen bg-cream px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-2xl space-y-5">
@@ -271,10 +278,10 @@ export default function QuoteCheckoutPage() {
               <span>Total</span>
               <span>{formatPeso(quote.total)}</span>
             </div>
-            {quote.depositAmount && Number.parseFloat(quote.depositAmount) > 0 && (
+            {depositDue && (
               <p className="pt-2 text-xs text-slate-500">
-                A deposit of <strong>{formatPeso(quote.depositAmount)}</strong> secures your
-                booking; the balance is due on the day.
+                A deposit of <strong>{formatPeso(depositDue)}</strong> secures your booking; the
+                balance is due on the day.
               </p>
             )}
           </div>
@@ -355,7 +362,10 @@ export default function QuoteCheckoutPage() {
                     <>
                       <Row label="Account name" value={method.accountName} />
                       <Row label="Account number" value={method.accountNumber} mono />
-                      <Row label="Amount" value={formatPeso(quote.depositAmount ?? quote.total)} />
+                      <Row
+                        label={depositDue ? 'Amount (deposit)' : 'Amount'}
+                        value={formatPeso(amountDue)}
+                      />
                     </>
                   )}
                   <p className="mt-3 text-slate-600">{method.instructions}</p>

@@ -46,7 +46,7 @@ async function main() {
       });
     console.log(`✔ pipeline "${DEFAULT_PIPELINE_NAME}"`);
 
-    // --- The 7 funnel stages ---
+    // --- The funnel stages (New Lead → Quote Sent → Booked, plus Lost) ---
     for (const stage of STAGE_DEFINITIONS) {
       await db
         .insert(schema.pipelineStages)

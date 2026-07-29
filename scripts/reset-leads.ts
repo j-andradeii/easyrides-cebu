@@ -4,7 +4,7 @@
  *   npm run db:reset-leads              # dry run — shows what would go
  *   npm run db:reset-leads -- --yes     # actually delete
  *
- * DELETES: contacts, inquiries, opportunities, activities, tasks,
+ * DELETES: contacts, inquiries, opportunities, quotes, activities, tasks,
  *          workflow_enrollments, reviews, referrals
  * KEEPS:   admin_users, pipelines, pipeline_stages, workflows
  *
@@ -25,6 +25,7 @@ const LEAD_TABLES = [
   'activities',
   'tasks',
   'workflow_enrollments',
+  'quotes',
   'reviews',
   'referrals',
   'inquiries',

@@ -20,7 +20,7 @@
 ```bash
 docker compose up -d          # app on :3000, Postgres on host port 5433
 npm run db:migrate            # apply migrations
-npm run db:seed               # pipeline + 7 stages + W1–W5
+npm run db:seed               # pipeline + 4 stages + W1–W5
 npm run create-admin -- --email you@example.com --name "Your Name" --role owner
 # then sign in at http://localhost:3000/admin/login
 ```
@@ -85,16 +85,15 @@ It's called a *funnel* because it's **wide at the top and narrow at the bottom**
 flowchart TD
     A["🌐 Visitor lands on easyridecebu site"] --> B["📝 Submits an inquiry<br/>(Hero form / Contact form / Tour page)"]
     B --> C["🆕 New Lead<br/>captured in DB"]
-    C --> D["📞 Contacted<br/>we reached out"]
-    D --> E["💬 Quote Sent<br/>price + availability given"]
-    E --> F["🤝 Negotiation / Follow-up"]
-    F --> G["✅ Booked (Won)<br/>customer confirmed + deposit"]
-    G --> H["🚗 Completed<br/>trip finished"]
-    H --> I["⭐ Review + 🔁 Repeat/Referral"]
-    F -.no response.-> X["❌ Lost<br/>(with reason)"]
-    E -.went cold.-> X
-    D -.no answer.-> X
+    C --> E["💬 Quote Sent<br/>priced checkout link with the customer"]
+    E --> G["✅ Booked (Won)<br/>customer accepted + chose how to pay"]
+    G --> I["🚗 Trip runs → ⭐ Review + 🔁 Repeat/Referral"]
+    E -.went cold.-> X["❌ Lost<br/>(with reason)"]
+    C -.no answer.-> X
 ```
+
+Reaching out, haggling and finishing the trip are **activities on the timeline**,
+not stages — see [§6](#6-the-funnel-pipeline-stages) for why the funnel stops at four.
 
 **Today, without a funnel system:** an inquiry lands in a Google Sheet, and whether anyone follows up depends on someone remembering to check the sheet. There is no record of *what stage* a lead is in, no automatic follow-up, and no way to measure conversion.
 
@@ -289,7 +288,7 @@ CREATE TABLE pipelines (
 CREATE TABLE pipeline_stages (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   pipeline_id UUID NOT NULL REFERENCES pipelines(id) ON DELETE CASCADE,
-  key         TEXT NOT NULL,          -- 'new_lead', 'contacted', ...
+  key         TEXT NOT NULL,          -- 'new_lead', 'quote_sent', ...
   name        TEXT NOT NULL,          -- 'New Lead'
   sort_order  INT  NOT NULL,
   probability INT  NOT NULL DEFAULT 0,-- 0..100, for weighted forecast
@@ -415,19 +414,20 @@ CREATE INDEX enrollments_due_idx ON workflow_enrollments (status, next_run_at);
 ### Seed data (run once)
 
 ```sql
--- Default pipeline + the 7 funnel stages
+-- Default pipeline + the 4 funnel stages
 INSERT INTO pipelines (id, name, is_default) VALUES
   ('00000000-0000-0000-0000-000000000001', 'Sales Pipeline', true);
 
 INSERT INTO pipeline_stages (pipeline_id, key, name, sort_order, probability, is_won, is_lost) VALUES
   ('00000000-0000-0000-0000-000000000001','new_lead','New Lead',1,10,false,false),
-  ('00000000-0000-0000-0000-000000000001','contacted','Contacted',2,25,false,false),
-  ('00000000-0000-0000-0000-000000000001','quote_sent','Quote Sent',3,50,false,false),
-  ('00000000-0000-0000-0000-000000000001','negotiation','Negotiation / Follow-up',4,70,false,false),
-  ('00000000-0000-0000-0000-000000000001','booked','Booked (Won)',5,100,true,false),
-  ('00000000-0000-0000-0000-000000000001','completed','Completed',6,100,true,false),
-  ('00000000-0000-0000-0000-000000000001','lost','Lost',7,0,false,true);
+  ('00000000-0000-0000-0000-000000000001','quote_sent','Quote Sent',2,50,false,false),
+  ('00000000-0000-0000-0000-000000000001','booked','Booked (Won)',3,100,true,false),
+  ('00000000-0000-0000-0000-000000000001','lost','Lost',4,0,false,true);
 ```
+
+> The seed script (`src/db/seed.ts`) is the source of truth and is idempotent —
+> it also **prunes retired stages**, refusing to drop one that still holds
+> opportunities so live deals are never orphaned.
 
 > **ORM choice:** we'll define the same schema in **Drizzle ORM** (`src/db/schema.ts`) so queries are fully typed and migrations are generated with `drizzle-kit`. See [Appendix](#18-appendix-reference-code-snippets) for the Drizzle version of two tables; the rest follow identically. `CITEXT` and `gen_random_uuid()` require `CREATE EXTENSION IF NOT EXISTS citext;` and `pgcrypto` (both preinstalled on Neon/Vercel Postgres).
 
@@ -435,19 +435,29 @@ INSERT INTO pipeline_stages (pipeline_id, key, name, sort_order, probability, is
 
 ## 6. The Funnel: Pipeline Stages
 
-These 7 stages are the "workflow" a user sees when they click into an inquiry — the path a lead travels. Every opportunity sits in exactly one stage at a time.
+These 4 stages are the "workflow" a user sees when they click into an inquiry — the path a lead travels. Every opportunity sits in exactly one stage at a time.
 
 | # | Stage (`key`) | Meaning | Entered by | Typical automation |
 |---|---|---|---|---|
 | 1 | **New Lead** (`new_lead`) | Just submitted a form | Intake (automatic) | W1 fires: instant reply + admin task |
-| 2 | **Contacted** (`contacted`) | You've reached out | Agent, or W2 when customer replies | W2 exits |
-| 3 | **Quote Sent** (`quote_sent`) | Price + availability given | Agent | W3 fires: quote follow-ups |
-| 4 | **Negotiation / Follow-up** (`negotiation`) | Discussing details/date | Agent | Reminder tasks |
-| 5 | **Booked (Won)** (`booked`) | Confirmed + deposit | Agent | W4 fires: fulfillment + reminders |
-| 6 | **Completed** (`completed`) | Trip finished | Agent, or W4 after trip date | W4: review + referral |
-| 7 | **Lost** (`lost`) | Didn't convert (reason recorded) | Agent, or W2/W3 timeout | All workflows exit |
+| 2 | **Quote Sent** (`quote_sent`) | A priced checkout link is with the customer | Automatic when an agent sends a quote | W3 fires: quote follow-ups |
+| 3 | **Booked (Won)** (`booked`) | Customer accepted and chose how to pay | The customer accepting their quote, or an agent | W4 fires: fulfillment + review + referral |
+| 4 | **Lost** (`lost`) | Didn't convert (reason recorded) | Agent, the customer declining, or a W2/W3 timeout | All workflows exit |
 
-**Conversion is measured between adjacent stages** (e.g. New Lead → Contacted rate, Quote Sent → Booked rate). See [§16](#16-funnel-reporting--analytics).
+### Why only four
+
+Every stage has to earn its place, because **a stage nobody updates is worse than
+no stage at all** — it makes the funnel report lie. Three candidates were cut:
+
+| Cut | Why |
+|---|---|
+| **Contacted** | Reaching out is an *activity* on the timeline (`message_out` / `call`), and the dashboard already measures speed-to-lead from it. As a stage it needed manual upkeep that nobody would do. |
+| **Negotiation / Follow-up** | Haggling happens *while* a quote is live. Superseding a quote already records the new price, so the stage added a click and no information. |
+| **Completed** | A finished trip is a **won deal whose trip date has passed** — `preferred_date` already tells you that, and W4 keys its review request off the date, not a stage. |
+
+**Conversion is measured between adjacent stages** (New Lead → Quote Sent rate, Quote Sent → Booked rate, overall Lead → Booked %). Fewer stages means each rate is one a human actually controls. See [§16](#16-funnel-reporting--analytics).
+
+**Lost is a side exit, not step 4.** It sorts last but a lead can drop into it from any stage, so `stageRank()` comparisons special-case it — see `src/lib/workflows/engine.ts`.
 
 ---
 
@@ -460,7 +470,7 @@ These are the four **GHL-style automations** you asked for. Each has a **trigger
 | # | Workflow | Trigger | Purpose | GHL analogy |
 |---|---|---|---|---|
 | **W1** | Instant Lead Capture & Response | `inquiry.created` | Never miss a lead; reply in seconds | "Form submitted" workflow |
-| **W2** | Speed-to-Lead Follow-Up (no-response drip) | opportunity idle in `new_lead`/`contacted` | Chase leads that go quiet | "No-show / nurture" drip |
+| **W2** | Speed-to-Lead Follow-Up (no-response drip) | opportunity idle in `new_lead` | Chase leads that go quiet | "No-show / nurture" drip |
 | **W3** | Quote → Booking Conversion | stage → `quote_sent` | Turn quotes into paid bookings | "Pipeline stage changed" workflow |
 | **W4** | Fulfillment, Review & Re-Engagement | stage → `booked` / trip date | Deliver, get reviews, win repeats | "Post-purchase" workflow |
 
@@ -503,7 +513,7 @@ flowchart TD
 
 ### W2 — Speed-to-Lead Follow-Up (No-Response Drip)
 
-**Trigger:** opportunity sits in `new_lead` or `contacted` without a reply.
+**Trigger:** opportunity sits in `new_lead` without a reply.
 **Exit conditions:** customer replies • stage advances to `quote_sent`+ • marked `lost`.
 
 ```mermaid
@@ -528,7 +538,7 @@ flowchart TD
 
 ### W3 — Quote → Booking Conversion
 
-**Trigger:** an agent moves the opportunity to `quote_sent`.
+**Trigger:** a quote is sent, which moves the opportunity to `quote_sent`.
 **Exit conditions:** stage → `booked` • marked `lost`.
 
 ```mermaid
@@ -537,7 +547,7 @@ flowchart TD
     S1 --> W1d["Wait 1 day"]
     W1d --> C1{"Booked?"}
     C1 -- yes --> WON["Move to Booked → request deposit → confirmation → start W4"]
-    C1 -- no --> R1["Reminder + gentle nudge, move to Negotiation"]
+    C1 -- no --> R1["Reminder + gentle nudge + task for an agent"]
     R1 --> W2d["Wait 2 days"]
     W2d --> C2{"Booked?"}
     C2 -- yes --> WON
@@ -869,8 +879,8 @@ Backed by `GET /api/admin/inquiries?query=&source=&stage=&owner=&page=&pageSize=
 │ ← Back      Juan dela Cruz · Van Tour             [ Won ] [ Lost ] [ ⋯ ]      │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  FUNNEL STAGE  (click a stage to advance the lead)                            │
-│  ●───────●───────◍───────○───────○───────○───────○                            │
-│  New    Contacted Quote  Negot.  Booked  Complete Lost      ← stage stepper   │
+│  ●───────◍───────○───────○                                                    │
+│  New    Quote    Booked  Lost                               ← stage stepper   │
 ├───────────────────────────────┬──────────────────────────────────────────────┤
 │  CONTACT                       │  ACTIVE AUTOMATIONS                          │
 │  📞 +63 917 804 6988  [WhatsApp]│  ⚙ W1 Instant Response …… ✅ completed        │
@@ -1022,7 +1032,7 @@ Add these to Vercel Project → Settings → Environment Variables too. **Never*
 ### Phase 0 — Foundations (½ day)
 - [x] Provision Neon/Vercel Postgres; add `DATABASE_URL`.
 - [x] Add deps; create `src/db/client.ts`, `src/db/schema.ts`, `drizzle.config.ts`.
-- [x] Generate + run first migration; seed pipeline + 7 stages + the 4 workflow rows.
+- [x] Generate + run first migration; seed pipeline + 4 stages + the workflow rows.
 - **Done when:** `npm run db:studio` shows all tables and seed data.
 
 ### Phase 1 — Persist inquiries to Postgres (1 day) ⟵ *core ask*
@@ -1088,20 +1098,20 @@ Add these to Vercel Project → Settings → Environment Variables too. **Never*
 The whole point of a funnel is measurement. `GET /api/admin/metrics` powers the dashboard:
 
 - **Stage counts:** open opportunities per stage (funnel bar chart).
-- **Conversion rates:** New→Contacted, Contacted→Quote, Quote→Booked, and overall Lead→Booked %.
-- **Speed-to-lead:** median time from `inquiry.created` → first `contacted` activity.
+- **Conversion rates:** New→Quote, Quote→Booked, and overall Lead→Booked %.
+- **Speed-to-lead:** median time from `inquiry.created` → the first outbound activity on the timeline (there is no "Contacted" stage to read it from).
 - **Source performance:** bookings and revenue by `source` (which form/channel converts best).
 - **Loss reasons:** grouped `opportunities.lost_reason` (why deals die).
 - **Revenue:** sum of `monetary_value` for `won` this week/month; weighted forecast using `stage.probability`.
 
 ```mermaid
 flowchart TD
-    A["New Leads: 120"] --> B["Contacted: 78 (65%)"]
-    B --> C["Quote Sent: 41 (53%)"]
+    A["New Leads: 120"] --> C["Quote Sent: 41 (34%)"]
     C --> D["Booked: 19 (46%)"]
-    D --> E["Completed: 18"]
+    A -.-> X["Lost: 61"]
+    C -.-> X
 ```
-Example read: only 53% of contacted leads get a quote → your team is slow to quote → prioritize W3 / quote templates.
+Example read: only 34% of leads ever get a quote → your team is slow to quote → prioritize W3 / quote templates.
 
 ---
 
