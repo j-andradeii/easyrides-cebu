@@ -11,7 +11,12 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { quotes } from '@/db/schema';
-import { quoteReference, resolveQuoteByToken } from '@/lib/crm/quotes';
+import {
+  hasAcceptedQuote,
+  quoteReference,
+  resolveQuoteByToken,
+  syncOpportunityValue,
+} from '@/lib/crm/quotes';
 import { loadOpportunityWithContact, logActivity } from '@/lib/crm/repository';
 import { moveStage } from '@/lib/workflows/engine';
 import { declineQuoteSchema } from '@/models/quote.schema';
@@ -61,8 +66,17 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       metadata: { quoteId: quote.id },
     });
 
+    // The declined price stops counting toward the forecast.
+    await syncOpportunityValue(quote.opportunityId);
+
     const loaded = await loadOpportunityWithContact(quote.opportunityId);
-    if (loaded) {
+
+    // Turning down a quote normally means the deal is dead — but not when the
+    // customer has already paid one on this booking. Declining the balance of a
+    // split payment is a conversation to have, not a lost deal.
+    const partPaid = await hasAcceptedQuote(quote.opportunityId);
+
+    if (loaded && !partPaid) {
       await moveStage({
         opportunity: loaded.opportunity,
         contact: loaded.contact,

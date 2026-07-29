@@ -41,6 +41,7 @@ interface QuoteBuilderProps {
     depositAmount?: number | null;
     notes?: string;
     validForDays: number;
+    supersedeOpen: boolean;
   }) => Promise<void>;
 }
 
@@ -51,8 +52,17 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
   const [deposit, setDeposit] = useState('');
   const [notes, setNotes] = useState('');
   const [validForDays, setValidForDays] = useState('7');
+  /** False = this quote sits alongside the open one (a split payment). */
+  const [supersedeOpen, setSupersedeOpen] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
+  // Only quotes the customer can still act on are at risk of being replaced —
+  // so the replace/add choice is only worth showing when one exists.
+  const openQuotes = useMemo(
+    () => quotes.filter((quote) => (quote.status === 'sent' || quote.status === 'viewed') && !quote.isExpired),
+    [quotes]
+  );
 
   const totals = useMemo(() => {
     const subtotal = lines.reduce((sum, line) => {
@@ -97,12 +107,14 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
       depositAmount: deposit ? Number.parseFloat(deposit) : null,
       notes: notes.trim() || undefined,
       validForDays: Number.parseInt(validForDays, 10) || 7,
+      supersedeOpen,
     });
 
     setLines([{ ...EMPTY_LINE, label: defaultLabel }]);
     setDiscount('');
     setDeposit('');
     setNotes('');
+    setSupersedeOpen(true);
     setIsOpen(false);
   };
 
@@ -280,6 +292,43 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
             </label>
           </div>
 
+          {openQuotes.length > 0 && (
+            <fieldset className="rounded-lg border border-slate-200 p-2.5">
+              <legend className="px-1 text-xs font-medium text-slate-600">
+                There {openQuotes.length === 1 ? 'is' : 'are'} {openQuotes.length} quote
+                {openQuotes.length === 1 ? '' : 's'} still awaiting payment
+              </legend>
+
+              <label className="flex cursor-pointer items-start gap-2 py-1">
+                <input
+                  type="radio"
+                  name="supersedeOpen"
+                  checked={supersedeOpen}
+                  onChange={() => setSupersedeOpen(true)}
+                  className="mt-0.5"
+                />
+                <span className="text-xs text-slate-600">
+                  <strong className="text-slate-800">Replace it</strong> — a corrected price. The
+                  old link stops working.
+                </span>
+              </label>
+
+              <label className="flex cursor-pointer items-start gap-2 py-1">
+                <input
+                  type="radio"
+                  name="supersedeOpen"
+                  checked={!supersedeOpen}
+                  onChange={() => setSupersedeOpen(false)}
+                  className="mt-0.5"
+                />
+                <span className="text-xs text-slate-600">
+                  <strong className="text-slate-800">Add a payment</strong> — for a deposit now and
+                  the balance later. Both links stay live and the deal value is the sum.
+                </span>
+              </label>
+            </fieldset>
+          )}
+
           <label className="block text-xs text-slate-500">
             Valid for (days)
             <input
@@ -331,7 +380,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
               className="flex-1 rounded-lg bg-coral px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-coral-dark disabled:opacity-40"
             >
               <i className="pi pi-send mr-1.5 text-xs" />
-              Send quote
+              {openQuotes.length > 0 && !supersedeOpen ? 'Send payment request' : 'Send quote'}
             </button>
             <button
               type="button"

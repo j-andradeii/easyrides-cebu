@@ -5,16 +5,28 @@
  * Sent (which fires W3); accepting one moves it to Booked (which fires W4). The
  * customer never logs in — the token in the URL is the authentication, which is
  * why it is unguessable and expires.
+ *
+ * A deal normally carries one live quote, but it can carry several: a deposit
+ * now and the balance nearer the trip, or a tour split across payments. That is
+ * why the deal value is always summed from the quotes rather than copied from
+ * whichever one was written last.
  */
 
 import 'server-only';
 
-import { and, desc, eq, inArray, lt } from 'drizzle-orm';
+import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm';
 
 import { db, type DbExecutor } from '@/db/client';
 import { adminUsers, contacts, opportunities, quotes, type Quote } from '@/db/schema';
 import { serviceLabel, vehicleLabel } from './normalize';
-import { isQuoteExpired, latestOpenQuoteUrl, quoteReference, quoteUrl } from './quote-links';
+import {
+  OPEN_QUOTE_STATUSES,
+  isQuoteExpired,
+  latestOpenQuoteUrl,
+  outstandingQuoteTotal,
+  quoteReference,
+  quoteUrl,
+} from './quote-links';
 import { loadOpportunityWithContact, logActivity } from './repository';
 import { generateToken } from './tokens';
 import type {
@@ -26,13 +38,55 @@ import type {
 } from '@/models/quote.schema';
 
 // Callers import the whole quote surface from here.
-export { isQuoteExpired, latestOpenQuoteUrl, quoteReference, quoteUrl };
+export {
+  isQuoteExpired,
+  latestOpenQuoteUrl,
+  outstandingQuoteTotal,
+  quoteReference,
+  quoteUrl,
+};
 
 /** Statuses a customer can still act on. */
-const OPEN_STATUSES = ['sent', 'viewed'] as const;
+const OPEN_STATUSES = OPEN_QUOTE_STATUSES;
+
+/**
+ * Statuses that count toward the deal value: what the customer has agreed to
+ * pay, plus what is still live in front of them. Declined, cancelled and
+ * expired quotes are dead money and must not inflate the forecast.
+ */
+const BILLABLE_STATUSES = [...OPEN_STATUSES, 'accepted'] as const;
 
 function round2(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+/**
+ * Re-points `opportunities.monetary_value` at the sum of the deal's billable
+ * quotes. Call after anything that creates, cancels or settles a quote — with
+ * partial payments the newest quote is only ever part of the picture.
+ */
+export async function syncOpportunityValue(
+  opportunityId: string,
+  executor: DbExecutor = db
+): Promise<string> {
+  const [row] = await executor
+    .select({ total: sql<string>`coalesce(sum(${quotes.total}), 0)::text` })
+    .from(quotes)
+    .where(
+      and(
+        eq(quotes.opportunityId, opportunityId),
+        inArray(quotes.status, [...BILLABLE_STATUSES])
+      )
+    );
+
+  const total = row?.total ?? '0';
+
+  await executor
+    .update(opportunities)
+    .set({ monetaryValue: total, updatedAt: new Date() })
+    .where(eq(opportunities.id, opportunityId));
+
+  return total;
 }
 
 
@@ -59,6 +113,20 @@ export function priceQuote(input: CreateQuoteInput): {
 }
 
 
+/** Has the customer already settled a quote on this deal? */
+export async function hasAcceptedQuote(
+  opportunityId: string,
+  executor: DbExecutor = db
+): Promise<boolean> {
+  const [row] = await executor
+    .select({ id: quotes.id })
+    .from(quotes)
+    .where(and(eq(quotes.opportunityId, opportunityId), eq(quotes.status, 'accepted')))
+    .limit(1);
+
+  return Boolean(row);
+}
+
 /** The effective status, accounting for a validity window that has lapsed. */
 export function effectiveStatus(quote: Pick<Quote, 'status' | 'validUntil'>): QuoteStatus {
   return isQuoteExpired(quote) ? 'expired' : (quote.status as QuoteStatus);
@@ -72,8 +140,13 @@ export interface CreateQuoteResult {
 }
 
 /**
- * Builds and sends a quote. Supersedes any quote still awaiting a decision, so
- * a customer can never be looking at two live prices for the same trip.
+ * Builds and sends a quote.
+ *
+ * By default it supersedes any quote still awaiting a decision, so a customer
+ * can never be looking at two competing prices for the same trip. Pass
+ * `supersedeOpen: false` when the new quote is *additional* rather than a
+ * correction — a balance to follow a deposit, or a second instalment — and both
+ * links stay live.
  */
 export async function createQuote(params: {
   opportunityId: string;
@@ -91,17 +164,22 @@ export async function createQuote(params: {
     Date.now() + (params.input.validForDays ?? 7) * 24 * 60 * 60 * 1000
   );
 
+  const supersedeOpen = params.input.supersedeOpen ?? true;
+
   const quote = await db.transaction(async (tx) => {
-    // Retire earlier open quotes on this deal.
-    await tx
-      .update(quotes)
-      .set({ status: 'cancelled', updatedAt: new Date() })
-      .where(
-        and(
-          eq(quotes.opportunityId, opportunity.id),
-          inArray(quotes.status, [...OPEN_STATUSES])
-        )
-      );
+    // Retire earlier open quotes on this deal — unless this one is meant to sit
+    // alongside them (a balance following a deposit).
+    if (supersedeOpen) {
+      await tx
+        .update(quotes)
+        .set({ status: 'cancelled', updatedAt: new Date() })
+        .where(
+          and(
+            eq(quotes.opportunityId, opportunity.id),
+            inArray(quotes.status, [...OPEN_STATUSES])
+          )
+        );
+    }
 
     const [created] = await tx
       .insert(quotes)
@@ -124,11 +202,9 @@ export async function createQuote(params: {
       })
       .returning();
 
-    // The quote total is the deal value — that's what the forecast should use.
-    await tx
-      .update(opportunities)
-      .set({ monetaryValue: total.toFixed(2), updatedAt: new Date() })
-      .where(eq(opportunities.id, opportunity.id));
+    // Every live quote together is the deal value — not just this one, which on
+    // a split payment is only part of what the customer owes.
+    await syncOpportunityValue(opportunity.id, tx);
 
     return created;
   });
@@ -139,11 +215,14 @@ export async function createQuote(params: {
     adminUserId: params.adminUserId,
     type: 'message_out',
     channel: 'email',
-    subject: `Quote ${quoteReference(quote.id)} sent — ${quote.currency} ${total.toFixed(2)}`,
+    subject: `Quote ${quoteReference(quote.id)} sent — ${quote.currency} ${total.toFixed(2)}${
+      supersedeOpen ? '' : ' (additional payment)'
+    }`,
     body: `Valid until ${validUntil.toISOString()}\n${quoteUrl(quote.token)}`,
     metadata: {
       quoteId: quote.id,
       total: total.toFixed(2),
+      supersedeOpen,
       link: null,
       quoteUrl: quoteUrl(quote.token),
     },
@@ -268,7 +347,13 @@ export async function expireLapsedQuotes(): Promise<number> {
     .update(quotes)
     .set({ status: 'expired', updatedAt: new Date() })
     .where(and(inArray(quotes.status, [...OPEN_STATUSES]), lt(quotes.validUntil, new Date())))
-    .returning({ id: quotes.id });
+    .returning({ id: quotes.id, opportunityId: quotes.opportunityId });
+
+  // A lapsed price is no longer money on the table, so the deals it was
+  // propping up need their value recomputed.
+  for (const opportunityId of new Set(expired.map((row) => row.opportunityId))) {
+    await syncOpportunityValue(opportunityId);
+  }
 
   return expired.length;
 }

@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: 'pi-chart-bar' },
   { href: '/admin/inquiries', label: 'Inquiries', icon: 'pi-inbox' },
   { href: '/admin/pipeline', label: 'Pipeline', icon: 'pi-th-large' },
+  { href: '/admin/payments', label: 'Payments', icon: 'pi-wallet' },
   { href: '/admin/reviews', label: 'Reviews', icon: 'pi-star' },
   { href: '/admin/referrals', label: 'Referrals', icon: 'pi-share-alt' },
 ];

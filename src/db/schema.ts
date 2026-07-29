@@ -65,6 +65,16 @@ export const quoteStatusEnum = pgEnum('quote_status', [
   'cancelled',
 ]);
 
+/**
+ * Where a payment sits in the "did the money actually arrive?" check.
+ * `submitted` is what the customer claims; only a human moves it on.
+ */
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'submitted',
+  'verified',
+  'rejected',
+]);
+
 export const referralStatusEnum = pgEnum('referral_status', [
   'pending',
   'clicked',
@@ -370,6 +380,63 @@ export const quotes = pgTable(
   ]
 );
 
+// --- Payments (what the customer says they sent) ----------------------------
+
+/**
+ * One row per payment a customer confirms on a quote page — including the
+ * screenshot they upload as proof.
+ *
+ * A quote can be paid in instalments, so payments hang off the quote rather
+ * than replacing its fields: the quote is the *price*, a payment is an
+ * *attempt to settle it*. Nothing here is evidence on its own — the reference
+ * number is typed by the customer and the screenshot is an image they chose —
+ * which is why every row starts at `submitted` and needs a human to verify it.
+ *
+ * The proof image is stored in the database and served through an
+ * admin-authenticated route rather than a public bucket: these are screenshots
+ * of people's banking apps, and an unguessable public URL is still a public URL.
+ */
+export const payments = pgTable(
+  'payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    quoteId: uuid('quote_id')
+      .notNull()
+      .references(() => quotes.id, { onDelete: 'cascade' }),
+    opportunityId: uuid('opportunity_id')
+      .notNull()
+      .references(() => opportunities.id, { onDelete: 'cascade' }),
+    contactId: uuid('contact_id')
+      .notNull()
+      .references(() => contacts.id, { onDelete: 'cascade' }),
+    amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    currency: text('currency').notNull().default('PHP'),
+    /** A key from `src/data/payment-methods.ts` — gcash, bpi, cash… */
+    method: text('method').notNull(),
+    /** The receipt / transaction number the customer typed in. */
+    reference: text('reference'),
+    status: paymentStatusEnum('status').notNull().default('submitted'),
+    /** The screenshot, base64-encoded. Null when they didn't upload one. */
+    proofData: text('proof_data'),
+    proofMime: text('proof_mime'),
+    proofFilename: text('proof_filename'),
+    /** Bytes of the decoded image — for showing a size without decoding it. */
+    proofSize: integer('proof_size'),
+    reviewedBy: uuid('reviewed_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    /** Why it was verified or rejected — shown on the lead timeline. */
+    reviewNote: text('review_note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('payments_created_idx').on(table.createdAt.desc()),
+    index('payments_status_idx').on(table.status),
+    index('payments_opportunity_idx').on(table.opportunityId),
+    index('payments_quote_idx').on(table.quoteId),
+  ]
+);
+
 // --- Referrals (§7A) --------------------------------------------------------
 
 export const referrals = pgTable(
@@ -452,5 +519,6 @@ export type Task = typeof tasks.$inferSelect;
 export type Workflow = typeof workflows.$inferSelect;
 export type WorkflowEnrollment = typeof workflowEnrollments.$inferSelect;
 export type Quote = typeof quotes.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
 export type Referral = typeof referrals.$inferSelect;
 export type Review = typeof reviews.$inferSelect;

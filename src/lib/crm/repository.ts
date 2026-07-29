@@ -6,7 +6,7 @@
 
 import 'server-only';
 
-import { and, desc, eq, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, isNull, or, sql } from 'drizzle-orm';
 
 import { db, type DbExecutor } from '@/db/client';
 import {
@@ -16,15 +16,23 @@ import {
   opportunities,
   pipelineStages,
   pipelines,
+  quotes,
   reviews,
   type Contact,
   type Opportunity,
   type PipelineStage,
 } from '@/db/schema';
+import { getPaymentMethod, paymentMethodLabel } from '@/data/payment-methods';
 import { DEFAULT_PIPELINE_ID, type StageKey } from '@/lib/funnel/stages';
-import type { TemplateContext } from '@/lib/messaging/templates';
+import type { PaymentSummary, TemplateContext } from '@/lib/messaging/templates';
 import { buildOpportunityTitle, firstName, serviceLabel, vehicleLabel } from './normalize';
-import { latestOpenQuoteUrl } from './quote-links';
+import { latestPaymentForQuote } from './payments';
+import {
+  latestOpenQuoteUrl,
+  outstandingQuoteTotal,
+  quoteReference,
+  quoteUrl,
+} from './quote-links';
 import { siteUrl } from './site';
 import { generateReferralCode, generateToken } from './tokens';
 
@@ -211,6 +219,72 @@ export async function ensureReviewToken(
 // Re-exported so existing importers keep resolving it from here.
 export { siteUrl };
 
+const ACCEPTED_AT_FORMATTER = new Intl.DateTimeFormat('en-PH', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'Asia/Manila',
+});
+
+/**
+ * The payment details behind a booking, for the confirmation emails. Reads the
+ * most recently accepted quote on the deal — that is the only record of how the
+ * customer chose to pay — and sets it against everything else on the deal, so a
+ * booking split across payments can say what is left to settle.
+ */
+async function loadPaymentSummary(
+  opportunityId: string,
+  executor: DbExecutor = db
+): Promise<PaymentSummary | null> {
+  const [quote] = await executor
+    .select()
+    .from(quotes)
+    .where(and(eq(quotes.opportunityId, opportunityId), eq(quotes.status, 'accepted')))
+    .orderBy(desc(quotes.acceptedAt))
+    .limit(1);
+
+  if (!quote) return null;
+
+  const [settledRow] = await executor
+    .select({ total: sql<string>`coalesce(sum(${quotes.total}), 0)::text` })
+    .from(quotes)
+    .where(and(eq(quotes.opportunityId, opportunityId), eq(quotes.status, 'accepted')));
+
+  const method = getPaymentMethod(quote.paymentMethod);
+  const total = Number.parseFloat(quote.total);
+  const deposit = quote.depositAmount ? Number.parseFloat(quote.depositAmount) : null;
+  // A deposit that covers the whole trip leaves nothing to collect at pickup.
+  const balance = deposit !== null && deposit > 0 && deposit < total ? total - deposit : null;
+
+  const settledTotal = settledRow?.total ?? quote.total;
+  const outstanding = await outstandingQuoteTotal(opportunityId, executor);
+  const hasOutstanding = Number.parseFloat(outstanding) > 0;
+
+  // The payment carries the screenshot; the team's alert links straight to it.
+  const payment = await latestPaymentForQuote(quote.id, executor);
+
+  return {
+    reference: quoteReference(quote.id),
+    methodLabel: method?.label ?? paymentMethodLabel(quote.paymentMethod),
+    paidOnPickup: method?.paidOnPickup ?? false,
+    paymentReference: quote.paymentReference,
+    currency: quote.currency,
+    total: quote.total,
+    depositAmount: quote.depositAmount,
+    balanceDue: balance !== null ? balance.toFixed(2) : null,
+    settledTotal,
+    outstanding,
+    bookingTotal: (Number.parseFloat(settledTotal) + Number.parseFloat(outstanding)).toFixed(2),
+    outstandingUrl: hasOutstanding ? await latestOpenQuoteUrl(opportunityId, executor) : null,
+    acceptedAt: quote.acceptedAt ? ACCEPTED_AT_FORMATTER.format(quote.acceptedAt) : null,
+    quoteUrl: quoteUrl(quote.token),
+    proofAttached: Boolean(payment?.proofData),
+    adminPaymentUrl: payment ? `${siteUrl()}/admin/payments/${payment.id}` : null,
+  };
+}
+
 /**
  * Everything a message template needs, gathered in one read. Used by the
  * workflow engine and by the review/referral routes.
@@ -256,6 +330,7 @@ export async function buildTemplateContext(
     shareUrl: contact.referralCode ? `${base}/thanks/${contact.referralCode}` : null,
     quoteUrl: await latestOpenQuoteUrl(opportunity.id, executor),
     referralCode: contact.referralCode,
+    payment: await loadPaymentSummary(opportunity.id, executor),
     businessWhatsApp: process.env.WHATSAPP_BUSINESS_NUMBER ?? '639178046988',
     siteUrl: base,
   };

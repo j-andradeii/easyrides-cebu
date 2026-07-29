@@ -36,6 +36,15 @@ export const createQuoteSchema = z.object({
   validForDays: z.number().int().min(1).max(90).default(7),
   /** Send the quote email/WhatsApp immediately (default true). */
   notify: z.boolean().default(true),
+  /**
+   * Whether this quote retires the ones already awaiting a decision.
+   *
+   * True (the default) is a corrected price: the customer should only ever be
+   * looking at one live number. False keeps the existing quotes live so a deal
+   * can carry several at once — a deposit now and the balance later, or a trip
+   * split across payments.
+   */
+  supersedeOpen: z.boolean().default(true),
 });
 
 export type CreateQuoteInput = z.infer<typeof createQuoteSchema>;

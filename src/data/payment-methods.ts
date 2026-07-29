@@ -28,6 +28,12 @@ export interface PaymentMethod {
   instructions: string;
   /** Ask for a reference/receipt number after paying. */
   requiresReference: boolean;
+  /**
+   * True when the money changes hands at pickup rather than up front. The
+   * booking emails read this to decide between "we're confirming your payment"
+   * and "have the amount ready for your driver".
+   */
+  paidOnPickup: boolean;
 }
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
@@ -44,6 +50,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     instructions:
       'Open GCash → Scan QR (or Send Money to the number above) → enter the amount → confirm. Keep the reference number from your receipt.',
     requiresReference: true,
+    paidOnPickup: false,
   },
   {
     key: 'bpi',
@@ -58,6 +65,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     instructions:
       'Open your BPI app → Scan QR (or transfer to the account above) → enter the amount → confirm. Keep the reference number from your receipt.',
     requiresReference: true,
+    paidOnPickup: false,
   },
   {
     key: 'cash',
@@ -71,6 +79,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     instructions:
       'Hand the payment to your driver at pickup. Please have the exact amount ready where possible.',
     requiresReference: false,
+    paidOnPickup: true,
   },
 ];
 

@@ -25,7 +25,8 @@
 9. [Controlling a running automation](#9-controlling-a-running-automation)
 10. [Troubleshooting](#10-troubleshooting)
 11. [Quotes: the checkout page](#12-quotes-the-checkout-page)
-12. [File map](#11-file-map)
+12. [Payments: checking the money arrived](#13-payments-checking-the-money-arrived)
+13. [File map](#11-file-map)
 
 ---
 
@@ -77,8 +78,8 @@ A ₱20,000 deal at New Lead contributes **₱2,000** to the forecast. Send the 
 and it jumps to **₱10,000**. That's how you forecast revenue without guessing.
 
 > ⚠️ **A deal with a value of ₱0 contributes nothing to the forecast, at any
-> stage.** Sending a quote sets the deal value automatically from the quote
-> total, so in practice this only bites leads you never quoted.
+> stage.** Sending a quote sets the deal value automatically from the total of
+> its live quotes, so in practice this only bites leads you never quoted.
 
 Stages live in the `pipeline_stages` table as rows, not as a hard-coded enum, so
 they can be renamed or reordered later without a migration.
@@ -326,12 +327,27 @@ On the lead detail screen, open the **Quote** panel → **Build a quote**:
 That single action:
 
 - creates the quote and its private link,
-- sets the deal value to the quote total (so your forecast is right),
+- sets the deal value to the total of every live quote (so your forecast is right),
 - moves the lead to **Quote Sent**, and
 - starts **W3**, which emails the link and chases if they go quiet.
 
-Sending a second quote **supersedes** the first, so a customer can never be
-looking at two live prices for the same trip.
+### A second quote: replace, or split the payment
+
+When a quote is still awaiting payment, building another one asks you which you
+mean:
+
+| Choice | Use it for | What happens |
+|---|---|---|
+| **Replace it** *(default)* | A corrected price | The earlier quote is cancelled and its link stops working — a customer can never be looking at two competing prices for the same trip |
+| **Add a payment** | A deposit now and the balance later, or a trip split across instalments | Both links stay live, and the deal value becomes the **sum** of them |
+
+With a split payment the customer pays each link separately, and **each payment
+sends its own confirmation**: the first says what's left to settle (with the
+link to settle it), the last says the booking is paid in full. Your team gets an
+alert per payment, labelled *Part-payment* or *Final payment*.
+
+Turning down the balance on a booking that is already part-paid does **not**
+mark the deal Lost — the decline is logged for you to chase.
 
 ### What the customer sees at `/quote/[token]`
 
@@ -363,10 +379,18 @@ customer's page always agree.
 
 | They tap | What happens |
 |---|---|
-| **Confirm my booking** | Quote → `accepted` (payment method + reference recorded) · lead → **Booked** · deal value set to the quote total · **W4 starts** · your team gets a "BOOKED" alert |
-| **No thanks** | Quote → `declined` with their reason · lead → **Lost**, reason recorded for the "Why deals died" report |
+| **Confirm my booking** | Quote → `accepted` (payment method + reference recorded) · lead → **Booked** · deal value re-summed from the live quotes · **W4 starts** · the customer is emailed their receipt · your team gets a "Booking confirmed" alert |
+| **No thanks** | Quote → `declined` with their reason · lead → **Lost**, reason recorded for the "Why deals died" report — unless another quote on the deal is already paid |
 
 Accepting twice is treated as a double-tap, not an error.
+
+**The two emails on payment.** The customer's receipt repeats every number they
+saw at checkout — reference, trip, amount, payment method, their own reference
+number — so it's the thing they screenshot at the pickup point. The team's alert
+carries the same figures plus a reminder that a transfer reference is what the
+customer *typed*, not a verified receipt: check the money landed before you
+commit a vehicle. Both are sent even if the W4 automation is switched off, and a
+failure to send can never fail the booking.
 
 ### Adding your payment QR codes
 
@@ -382,6 +406,49 @@ account details with a "QR coming soon" placeholder instead of a scan panel.
   …
 }
 ```
+
+---
+
+## 13. Payments: checking the money arrived
+
+Nothing in this system talks to your bank. When a customer taps **Confirm my
+booking** they are *claiming* they paid — so every confirmation files a payment
+record for a human to check, and **`/admin/payments`** is that queue.
+
+### What the customer sends
+
+Under the account details on the quote page, GCash and BPI customers get two
+ways to evidence the transfer:
+
+- the **reference number** from their receipt, and
+- a **screenshot** of the payment — picked from their phone, downscaled and
+  re-encoded in the browser so a 12 MP photo still uploads on a Cebu 4G signal.
+
+They must supply **at least one of the two** before the confirm button unlocks.
+Cash on pickup asks for neither — there is no money yet.
+
+### Working the queue
+
+| Screen | What it gives you |
+|---|---|
+| **`/admin/payments`** | Every payment, newest first. Filter to **Needs checking** to see only what nobody has looked at. Each row shows the amount, method, customer, quote reference and whether a screenshot came with it |
+| **`/admin/payments/[id]`** | The screenshot full-size, the customer's reference number, and the lead it belongs to — service, trip date, stage, phone, email, quote total, and what has been verified so far. Buttons to open the lead, view the quote, or call |
+
+Open your GCash or bank app, find the transfer, then hit **Verify** (or
+**Reject**, with a note). Either way the decision is written to the lead's
+timeline, so whoever picks up the phone next can see it.
+
+> A payment being *verified* does not move the deal — the booking was already
+> confirmed when the customer accepted the quote. Verifying is bookkeeping:
+> it's how you know a vehicle can be committed.
+
+### Where the screenshots live
+
+In the database, served through `/api/admin/payments/[id]/proof`, which refuses
+anyone without an admin session. They are screenshots of people's banking apps,
+so they deliberately do **not** get a public URL. Uploads are capped at 4 MB and
+the file type is checked by reading the image's magic bytes, never the
+browser-supplied content type.
 
 ---
 
@@ -404,4 +471,10 @@ account details with a "QR coming soon" placeholder instead of a scan panel.
 | Customer checkout page | `src/app/quote/[token]/page.tsx` |
 | Quote builder panel | `src/components/admin/QuoteBuilder.tsx` |
 | **Payment methods + QR URLs** | `src/data/payment-methods.ts` |
+| Payment records, proof storage, review | `src/lib/crm/payments.ts` |
+| Customer's screenshot upload field | `src/components/quote/ProofOfPaymentField.tsx` |
+| In-browser image downscale / re-encode | `src/lib/image-to-webp.ts` |
+| Image type sniffing (magic bytes) | `src/lib/image-mime.ts` |
+| Payments queue + detail screens | `src/app/admin/payments/` |
+| Proof image endpoint (admin only) | `src/app/api/admin/payments/[id]/proof/route.ts` |
 | QR save button (mobile share sheet) | `src/components/ui/DownloadQRButton.tsx` |

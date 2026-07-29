@@ -5,16 +5,33 @@
  * moves to **Booked**, and W4 (confirmation → trip reminder → review → referral)
  * takes over. The stage move goes through `moveStage()` so a referral converting
  * here still triggers W5.
+ *
+ * Two emails leave on this request: the customer's booking confirmation (their
+ * receipt) and the team's alert (go check the payment and assign a driver).
+ * Neither is allowed to fail the booking — the money and the deal are already
+ * committed by the time they are sent.
  */
 
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { opportunities, quotes } from '@/db/schema';
-import { isQuoteExpired, quoteReference, resolveQuoteByToken } from '@/lib/crm/quotes';
+import { activities, opportunities, quotes } from '@/db/schema';
+import { truncate } from '@/lib/crm/normalize';
+import {
+  ProofRejectedError,
+  prepareProof,
+  recordPayment,
+  type ProofUpload,
+} from '@/lib/crm/payments';
+import {
+  isQuoteExpired,
+  quoteReference,
+  resolveQuoteByToken,
+  syncOpportunityValue,
+} from '@/lib/crm/quotes';
 import { buildTemplateContext, loadOpportunityWithContact, logActivity } from '@/lib/crm/repository';
-import { deliverMessage } from '@/lib/messaging';
+import { deliverMessage, type TemplateContext } from '@/lib/messaging';
 import { moveStage } from '@/lib/workflows/engine';
 import { getPaymentMethod } from '@/data/payment-methods';
 import { acceptQuoteSchema } from '@/models/quote.schema';
@@ -22,10 +39,106 @@ import { acceptQuoteSchema } from '@/models/quote.schema';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * How many booking confirmations this deal has on its timeline.
+ *
+ * Counted either side of the stage move to see whether W4 sent one: the
+ * workflow runs synchronously inside `moveStage`, so anything it sent is
+ * already recorded by the time we count again. Comparing counts rather than
+ * timestamps keeps this exact when a deal is paid in instalments — an earlier
+ * payment's receipt must not suppress this one's.
+ */
+async function countBookingConfirmations(opportunityId: string): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(activities)
+    .where(
+      and(
+        eq(activities.opportunityId, opportunityId),
+        eq(activities.type, 'message_out'),
+        sql`${activities.metadata} ->> 'template' = 'booking_confirmation'`
+      )
+    );
+
+  return row?.count ?? 0;
+}
+
+/** Sends one booking email and records it on the deal's timeline. */
+async function sendBookingEmail(params: {
+  template: 'booking_confirmation' | 'booking_alert';
+  audience: 'customer' | 'admin';
+  context: TemplateContext;
+  opportunityId: string;
+  contactId: string;
+  quoteId: string;
+}): Promise<void> {
+  const result = await deliverMessage({
+    channel: 'email',
+    template: params.template,
+    context: params.context,
+    audience: params.audience,
+  });
+
+  if (result.error) {
+    console.error(`[quote] ${params.template} email failed:`, result.error);
+  }
+
+  await logActivity({
+    opportunityId: params.opportunityId,
+    contactId: params.contactId,
+    type: params.audience === 'admin' ? 'workflow' : 'message_out',
+    channel: 'email',
+    subject:
+      params.audience === 'admin'
+        ? `Booking alert sent to the team · ${result.subject}`
+        : result.subject,
+    body: truncate(result.body, 2000),
+    metadata: {
+      template: params.template,
+      quoteId: params.quoteId,
+      delivered: result.delivered,
+      provider: result.provider,
+      error: result.error ?? null,
+    },
+  });
+}
+
+/**
+ * The checkout page posts multipart form data when the customer attaches a
+ * screenshot, and plain JSON when they don't. Reading both keeps the payload
+ * honest either way rather than forcing every confirmation through multipart.
+ */
+async function readSubmission(request: Request): Promise<{
+  fields: unknown;
+  proofFile: File | null;
+}> {
+  const contentType = request.headers.get('content-type') ?? '';
+
+  if (!contentType.includes('multipart/form-data')) {
+    return { fields: await request.json().catch(() => null), proofFile: null };
+  }
+
+  const form = await request.formData();
+  const proof = form.get('proofOfPayment');
+
+  return {
+    fields: {
+      paymentMethod: String(form.get('paymentMethod') ?? ''),
+      paymentReference: String(form.get('paymentReference') ?? '') || undefined,
+    },
+    proofFile: proof instanceof File && proof.size > 0 ? proof : null,
+  };
+}
+
 export async function POST(request: Request, context: { params: Promise<{ token: string }> }) {
   const { token } = await context.params;
 
-  const parsed = acceptQuoteSchema.safeParse(await request.json().catch(() => null));
+  const submission = await readSubmission(request).catch(() => null);
+  if (!submission) {
+    return NextResponse.json({ message: 'We could not read that submission' }, { status: 400 });
+  }
+
+  const parsed = acceptQuoteSchema.safeParse(submission.fields);
   if (!parsed.success) {
     return NextResponse.json({ message: 'Choose how you would like to pay' }, { status: 400 });
   }
@@ -33,6 +146,24 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const method = getPaymentMethod(parsed.data.paymentMethod);
   if (!method) {
     return NextResponse.json({ message: 'That payment method is not available' }, { status: 400 });
+  }
+
+  // Validate the screenshot before anything is written: a rejected image must
+  // leave the quote untouched so the customer can retry on the same link.
+  let proof: ProofUpload | null = null;
+  if (submission.proofFile) {
+    try {
+      proof = await prepareProof(submission.proofFile, submission.proofFile.name);
+    } catch (error) {
+      if (error instanceof ProofRejectedError) {
+        return NextResponse.json({ message: error.message }, { status: 400 });
+      }
+      console.error('[quote] proof upload failed:', error);
+      return NextResponse.json(
+        { message: 'We could not read that image. Please try another screenshot.' },
+        { status: 400 }
+      );
+    }
   }
 
   try {
@@ -79,6 +210,19 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       return NextResponse.json({ message: 'Could not confirm this booking' }, { status: 500 });
     }
 
+    // The payment record is what /admin/payments works from — one row per
+    // settlement attempt, holding the screenshot and awaiting a human check.
+    const payment = await recordPayment({
+      quoteId: quote.id,
+      opportunityId: quote.opportunityId,
+      contactId: quote.contactId,
+      amount: quote.total,
+      currency: quote.currency,
+      method: method.key,
+      reference: parsed.data.paymentReference,
+      proof,
+    });
+
     await logActivity({
       opportunityId: quote.opportunityId,
       contactId: quote.contactId,
@@ -89,27 +233,30 @@ export async function POST(request: Request, context: { params: Promise<{ token:
         `Total: ${quote.currency} ${quote.total}`,
         `Payment method: ${method.label}`,
         parsed.data.paymentReference ? `Reference: ${parsed.data.paymentReference}` : null,
+        proof ? 'Proof of payment: screenshot attached' : 'Proof of payment: none attached',
       ]
         .filter(Boolean)
         .join('\n'),
       metadata: {
         quoteId: quote.id,
+        paymentId: payment.id,
         paymentMethod: method.key,
         paymentReference: parsed.data.paymentReference ?? null,
+        proofAttached: Boolean(proof),
       },
     });
 
-    // Make sure the deal value reflects what they actually agreed to.
-    await db
-      .update(opportunities)
-      .set({ monetaryValue: quote.total, updatedAt: now })
-      .where(eq(opportunities.id, quote.opportunityId));
+    // Make sure the deal value reflects what they actually agreed to — every
+    // live quote on the deal, since a booking can be split across payments.
+    await syncOpportunityValue(quote.opportunityId);
 
     const [refreshed] = await db
       .select()
       .from(opportunities)
       .where(eq(opportunities.id, quote.opportunityId))
       .limit(1);
+
+    const confirmationsBefore = await countBookingConfirmations(quote.opportunityId);
 
     if (refreshed) {
       await moveStage({
@@ -120,17 +267,44 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       });
     }
 
-    // Tell the team a booking just landed — they need to assign a driver.
-    const templateContext = await buildTemplateContext(loaded.opportunity, loaded.contact);
-    await deliverMessage({
-      channel: 'email',
-      template: 'new_lead_alert',
-      context: {
-        ...templateContext,
-        opportunityTitle: `BOOKED — ${templateContext.opportunityTitle} (${method.label})`,
-      },
-      audience: 'admin',
-    }).catch((error) => console.error('[quote] admin booking alert failed:', error));
+    // Built from the refreshed deal so both emails quote the amount the
+    // customer actually agreed to, along with how they chose to pay it.
+    const templateContext = await buildTemplateContext(
+      refreshed ?? loaded.opportunity,
+      loaded.contact
+    );
+
+    try {
+      // The customer's receipt. Normally W4 sends it the instant the deal hits
+      // Booked; this covers the cases where it can't — the automation being
+      // switched off, or the deal already sitting at Booked (the second
+      // instalment of a split payment) so no stage change fired. Every payment
+      // gets confirmed in writing.
+      if ((await countBookingConfirmations(quote.opportunityId)) === confirmationsBefore) {
+        await sendBookingEmail({
+          template: 'booking_confirmation',
+          audience: 'customer',
+          context: templateContext,
+          opportunityId: quote.opportunityId,
+          contactId: quote.contactId,
+          quoteId: quote.id,
+        });
+      }
+
+      // And the team's copy — they need to check the payment landed and put a
+      // driver on it.
+      await sendBookingEmail({
+        template: 'booking_alert',
+        audience: 'admin',
+        context: templateContext,
+        opportunityId: quote.opportunityId,
+        contactId: quote.contactId,
+        quoteId: quote.id,
+      });
+    } catch (error) {
+      // The booking is committed; a mail problem must not tell the customer it failed.
+      console.error('[quote] booking emails failed:', error);
+    }
 
     return NextResponse.json({ success: true, alreadyAccepted: false });
   } catch (error) {

@@ -15,6 +15,7 @@ export const TEMPLATE_KEYS = [
   'quote_reminder',
   'lost_reason_prompt',
   'booking_confirmation',
+  'booking_alert',
   'trip_reminder',
   'driver_reminder',
   'review_request',
@@ -27,6 +28,44 @@ export const TEMPLATE_KEYS = [
 ] as const;
 
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
+
+/**
+ * What the customer settled on when they confirmed the quote. Present only once
+ * a quote on the deal has been accepted — the booking emails are the only
+ * templates that read it.
+ */
+export interface PaymentSummary {
+  /** Human quote reference, e.g. "Q-8F3A21". */
+  reference: string;
+  /** "GCash", "BPI Bank Transfer", "Cash on pickup"… */
+  methodLabel: string;
+  /** True when the money is handed over at pickup rather than sent up front. */
+  paidOnPickup: boolean;
+  /** The receipt/transaction number they typed in, when they gave one. */
+  paymentReference: string | null;
+  currency: string;
+  /** Raw numeric strings — run them through `money()` before display. */
+  total: string;
+  depositAmount: string | null;
+  /** Total minus deposit, when a deposit was asked for. */
+  balanceDue: string | null;
+  /** Everything accepted on this deal so far, including the payment just made. */
+  settledTotal: string;
+  /** Still-live quotes the customer has yet to pay — "0" for a settled booking. */
+  outstanding: string;
+  /** What the whole booking comes to: settled + outstanding. */
+  bookingTotal: string;
+  /** The link to settle what's outstanding, when there is something to settle. */
+  outstandingUrl: string | null;
+  /** When they confirmed, already formatted for Manila time. */
+  acceptedAt: string | null;
+  /** Absolute /quote/[token] link — doubles as the customer's receipt. */
+  quoteUrl: string | null;
+  /** Whether the customer attached a screenshot of the transfer. */
+  proofAttached: boolean;
+  /** Absolute /admin/payments/[id] link, for the team's alert. */
+  adminPaymentUrl: string | null;
+}
 
 export interface TemplateContext {
   /** Customer first name, or a friendly fallback. */
@@ -50,6 +89,8 @@ export interface TemplateContext {
   /** Absolute /quote/[token] checkout URL, when a live quote exists. */
   quoteUrl: string | null;
   referralCode: string | null;
+  /** Set once a quote on this deal has been accepted; null before that. */
+  payment: PaymentSummary | null;
   businessWhatsApp: string;
   siteUrl: string;
 }
@@ -150,10 +191,43 @@ function signOff(ctx: TemplateContext): string {
   return `— The ${BRAND} team\nWhatsApp: +${ctx.businessWhatsApp}\n${ctx.siteUrl}`;
 }
 
+/**
+ * "PHP 12,500" — thousands separated, centavos only when they exist. Amounts
+ * arrive as numeric strings from the database, so this also guards against a
+ * bare "12500.00" landing in an email.
+ */
+function money(currency: string, amount: string | number | null | undefined): string {
+  const value = typeof amount === 'string' ? Number.parseFloat(amount) : (amount ?? 0);
+  if (!Number.isFinite(value)) return `${currency} 0`;
+
+  const hasCentavos = Math.round(value * 100) % 100 !== 0;
+  return `${currency} ${value.toLocaleString('en-PH', {
+    minimumFractionDigits: hasCentavos ? 2 : 0,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+const TRIP_DATE_FORMATTER = new Intl.DateTimeFormat('en-PH', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  // The stored value is date-only, so it parses as UTC midnight. Reading it
+  // back in Manila (UTC+8) keeps the day the customer actually picked.
+  timeZone: 'Asia/Manila',
+});
+
+/** "Aug 14, 2026" — nobody wants "2026-08-14" in their booking confirmation. */
+function prettyDate(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : TRIP_DATE_FORMATTER.format(date);
+}
+
 function tripLine(ctx: TemplateContext): string {
   const parts = [ctx.serviceLabel];
   if (ctx.vehicleLabel) parts.push(ctx.vehicleLabel);
-  if (ctx.preferredDate) parts.push(`on ${ctx.preferredDate}`);
+  const date = prettyDate(ctx.preferredDate);
+  if (date) parts.push(`on ${date}`);
   return parts.join(' · ');
 }
 
@@ -169,7 +243,7 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ['Service', ctx.serviceLabel],
       ['Tour', ctx.tourTitle],
       ['Vehicle', ctx.vehicleLabel],
-      ['Preferred date', ctx.preferredDate],
+      ['Preferred date', prettyDate(ctx.preferredDate)],
     ];
 
     return {
@@ -184,7 +258,7 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         `  Service:        ${ctx.serviceLabel}`,
         ctx.tourTitle ? `  Tour:           ${ctx.tourTitle}` : null,
         ctx.vehicleLabel ? `  Vehicle:        ${ctx.vehicleLabel}` : null,
-        ctx.preferredDate ? `  Preferred date: ${ctx.preferredDate}` : null,
+        ctx.preferredDate ? `  Preferred date: ${prettyDate(ctx.preferredDate)}` : null,
         ``,
         `We'll reach out with your price and availability within the hour during business hours (Mon–Sat 8AM–8PM, Sun 9AM–6PM). If you sent this overnight, you'll hear from us first thing.`,
         ``,
@@ -242,7 +316,7 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     subject: `Still planning your trip, ${ctx.name}?`,
     body: [
       `Hi ${ctx.name}, this is ${BRAND} following up on your ${ctx.serviceLabel} request.`,
-      `Are the dates still ${ctx.preferredDate ?? 'flexible'}? Reply here and we'll lock in a vehicle for you.`,
+      `Are the dates still ${prettyDate(ctx.preferredDate) ?? 'flexible'}? Reply here and we'll lock in a vehicle for you.`,
     ].join('\n'),
   }),
 
@@ -271,7 +345,7 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       `Here's your quote for ${tripLine(ctx)}:`,
       ``,
-      `  Total: PHP ${ctx.monetaryValue}`,
+      `  Total: ${money('PHP', ctx.monetaryValue)}`,
       ``,
       `Includes an air-conditioned vehicle, fuel and hotel/airport pickup. Entrance fees, parking and meals are billed separately.`,
       ``,
@@ -284,10 +358,10 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
   }),
 
   quote_reminder: (ctx) => ({
-    subject: `Still holding your ${ctx.preferredDate ?? 'preferred'} slot`,
+    subject: `Still holding your ${prettyDate(ctx.preferredDate) ?? 'preferred'} slot`,
     body: [
       `Hi ${ctx.name}, just checking in on the quote we sent for ${tripLine(ctx)}.`,
-      `We can still hold the vehicle, but ${ctx.preferredDate ?? 'that date'} books out fast. Want us to reserve it?`,
+      `We can still hold the vehicle, but ${prettyDate(ctx.preferredDate) ?? 'that date'} books out fast. Want us to reserve it?`,
       ctx.quoteUrl ? `\nConfirm here: ${ctx.quoteUrl}` : '',
     ]
       .filter(Boolean)
@@ -304,32 +378,204 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     ].join('\n'),
   }),
 
-  booking_confirmation: (ctx) => ({
-    subject: `Booking confirmed — ${tripLine(ctx)}`,
-    body: [
-      `Hi ${ctx.name},`,
-      ``,
-      `You're booked! Here are your details:`,
-      ``,
-      `  Service: ${ctx.serviceLabel}`,
-      ctx.vehicleLabel ? `  Vehicle: ${ctx.vehicleLabel}` : '',
-      ctx.preferredDate ? `  Date:    ${ctx.preferredDate}` : '',
-      ctx.tourTitle ? `  Tour:    ${ctx.tourTitle}` : '',
-      `  Total:   PHP ${ctx.monetaryValue}`,
-      ``,
-      `We'll send your driver's details the day before. Any changes, message us any time.`,
-      ``,
-      signOff(ctx),
-    ]
-      .filter(Boolean)
-      .join('\n'),
-  }),
+  /**
+   * The receipt the customer gets the moment they confirm and pay on the quote
+   * page. It has to do two jobs at once: reassure them the money and the
+   * booking landed, and be the thing they screenshot at the pickup point — so
+   * every number they were shown at checkout is repeated back here.
+   *
+   * A transfer is only ever *reported* by the customer until someone checks the
+   * account, so the copy says "confirming your payment", never "received".
+   */
+  booking_confirmation: (ctx) => {
+    const pay = ctx.payment;
+    const total = pay ? money(pay.currency, pay.total) : money('PHP', ctx.monetaryValue);
+    const dueAtPickup = pay?.balanceDue ? money(pay.currency, pay.balanceDue) : total;
+
+    // A booking paid in instalments needs the receipt to be clear about which
+    // part this payment settled: `owed` means money is still to come, `split`
+    // means this payment was never the whole booking either way.
+    const owed = pay && Number.parseFloat(pay.outstanding) > 0 ? pay : null;
+    const split =
+      pay && (owed !== null || Number.parseFloat(pay.settledTotal) > Number.parseFloat(pay.total))
+        ? pay
+        : null;
+    const outstanding = owed ? money(owed.currency, owed.outstanding) : null;
+
+    const paymentLine = !pay
+      ? null
+      : pay.paidOnPickup
+        ? `You're paying at pickup — please have ${dueAtPickup} ready for your driver.`
+        : `We're confirming your ${pay.methodLabel} payment now and will only message you if something doesn't match.`;
+
+    const outstandingLine = owed
+      ? `That leaves ${outstanding} on this booking.${
+          owed.outstandingUrl ? ` You can settle it here: ${owed.outstandingUrl}` : ''
+        }`
+      : split
+        ? `That settles your booking in full — ${money(split.currency, split.settledTotal)} across all payments. Thank you!`
+        : null;
+
+    const summary: [string, string | null][] = [
+      ['Reference', pay?.reference ?? null],
+      ['Service', ctx.serviceLabel],
+      ['Tour', ctx.tourTitle],
+      ['Vehicle', ctx.vehicleLabel],
+      ['Date', prettyDate(ctx.preferredDate)],
+      [split ? 'This payment' : 'Total', total],
+      ['Deposit', pay?.depositAmount ? money(pay.currency, pay.depositAmount) : null],
+      ['Balance at pickup', pay?.balanceDue ? money(pay.currency, pay.balanceDue) : null],
+      ['Still to pay', outstanding],
+      ['Booking total', split ? money(split.currency, split.bookingTotal) : null],
+      ['Payment method', pay?.methodLabel ?? null],
+      ['Your payment reference', pay?.paymentReference ?? null],
+      ['Confirmed', pay?.acceptedAt ?? null],
+    ];
+
+    return {
+      subject: `Booking confirmed${pay ? ` (${pay.reference})` : ''} — ${tripLine(ctx)}`,
+      body: [
+        `Hi ${ctx.name},`,
+        ``,
+        `You're booked! Here are your details:`,
+        ``,
+        pay ? `  Reference:      ${pay.reference}` : null,
+        `  Service:        ${ctx.serviceLabel}`,
+        ctx.tourTitle ? `  Tour:           ${ctx.tourTitle}` : null,
+        ctx.vehicleLabel ? `  Vehicle:        ${ctx.vehicleLabel}` : null,
+        ctx.preferredDate ? `  Date:           ${prettyDate(ctx.preferredDate)}` : null,
+        `  ${split ? 'This payment:  ' : 'Total:         '} ${total}`,
+        pay?.depositAmount ? `  Deposit:        ${money(pay.currency, pay.depositAmount)}` : null,
+        pay?.balanceDue ? `  Balance:        ${money(pay.currency, pay.balanceDue)} at pickup` : null,
+        owed ? `  Still to pay:   ${outstanding}` : null,
+        split ? `  Booking total:  ${money(split.currency, split.bookingTotal)}` : null,
+        pay ? `  Payment method: ${pay.methodLabel}` : null,
+        pay?.paymentReference ? `  Your reference: ${pay.paymentReference}` : null,
+        ...(paymentLine ? [``, paymentLine] : []),
+        ...(outstandingLine ? [``, outstandingLine] : []),
+        ``,
+        `We'll send your driver's name, vehicle and plate number the day before your trip. Any changes, message us any time — the earlier the better.`,
+        ...(pay?.quoteUrl ? [``, `Your booking details: ${pay.quoteUrl}`] : []),
+        ``,
+        signOff(ctx),
+      ]
+        .filter((line): line is string => line !== null)
+        .join('\n'),
+
+      html: emailShell({
+        ctx,
+        heading: `You're booked, ${esc(ctx.name)}! 🎉`,
+        preheader: owed
+          ? `Confirmed: ${esc(tripLine(ctx))} · ${esc(outstanding ?? '')} still to pay`
+          : `Confirmed: ${esc(tripLine(ctx))} · ${esc(total)}`,
+        content: `
+          <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+            Thanks for booking with ${BRAND} — your trip is confirmed. Keep this email
+            handy${pay ? `; <strong>${esc(pay.reference)}</strong> is your reference` : ''}.
+          </p>
+          ${detailRows(summary)}
+          ${
+            paymentLine
+              ? `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">${esc(paymentLine)}</p>`
+              : ''
+          }
+          ${
+            owed
+              ? `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+                   That leaves <strong>${esc(outstanding)}</strong> on this booking${
+                     owed.outstandingUrl ? ' — the button below opens it' : ''
+                   }.
+                 </p>`
+              : split
+                ? `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+                     That settles your booking in full —
+                     <strong>${esc(money(split.currency, split.settledTotal))}</strong>
+                     across all payments. Thank you!
+                   </p>`
+                : ''
+          }
+          <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+            We'll send your driver's name, vehicle and plate number the day before your trip.
+            Need to change something? Message us — the earlier the better.
+          </p>`,
+        ctaLabel: owed?.outstandingUrl
+          ? `Pay the remaining ${outstanding}`
+          : pay?.quoteUrl
+            ? 'View your booking'
+            : 'Message us on WhatsApp',
+        ctaUrl:
+          owed?.outstandingUrl ?? pay?.quoteUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
+      }),
+    };
+  },
+
+  /**
+   * Fires at the same moment as the customer's confirmation. Written to be read
+   * on a phone lock screen: who paid, how much, by what method — and whether
+   * anyone still needs to check the money actually landed.
+   */
+  booking_alert: (ctx) => {
+    const pay = ctx.payment;
+    const total = pay ? money(pay.currency, pay.total) : money('PHP', ctx.monetaryValue);
+    const owed = pay && Number.parseFloat(pay.outstanding) > 0 ? pay : null;
+    const split =
+      pay && (owed !== null || Number.parseFloat(pay.settledTotal) > Number.parseFloat(pay.total))
+        ? pay
+        : null;
+
+    return {
+      subject: `💰 ${
+        owed ? 'Part-payment' : split ? 'Final payment' : 'Booking'
+      } confirmed — ${total} · ${ctx.opportunityTitle}`,
+      body: [
+        `${ctx.fullName ?? 'A customer'} confirmed the booking${
+          pay ? ` and accepted quote ${pay.reference}` : ''
+        }.`,
+        ``,
+        `${split ? 'Paid now: ' : 'Total:    '} ${total}`,
+        owed ? `Still due: ${money(owed.currency, owed.outstanding)} (quote still open)` : null,
+        split
+          ? `Booking:   ${money(split.currency, split.bookingTotal)} all in${
+              owed ? '' : ' — settled in full'
+            }`
+          : null,
+        pay ? `Payment:   ${pay.methodLabel}` : null,
+        pay?.paymentReference ? `Their ref: ${pay.paymentReference}` : null,
+        pay?.depositAmount ? `Deposit:   ${money(pay.currency, pay.depositAmount)}` : null,
+        pay?.balanceDue ? `Balance:   ${money(pay.currency, pay.balanceDue)} due at pickup` : null,
+        pay?.acceptedAt ? `Confirmed: ${pay.acceptedAt}` : null,
+        ``,
+        pay && !pay.paidOnPickup
+          ? `⚠️ Check the money actually landed before you commit a vehicle — the reference above is what the customer typed in, not a verified receipt.`
+          : `💵 Cash on pickup — the driver collects ${
+              pay?.balanceDue ? money(pay.currency, pay.balanceDue) : total
+            }.`,
+        pay && !pay.paidOnPickup
+          ? pay.proofAttached
+            ? `📎 They attached a screenshot — open it and mark the payment verified:`
+            : `📎 No screenshot attached. Match it by reference, then mark it verified:`
+          : null,
+        pay?.adminPaymentUrl && !pay.paidOnPickup ? `   ${pay.adminPaymentUrl}` : null,
+        ``,
+        `Customer: ${ctx.fullName ?? '(no name)'}`,
+        `Phone:    ${ctx.phone ?? '(not given)'}`,
+        `Email:    ${ctx.email ?? '(not given)'}`,
+        `Trip:     ${tripLine(ctx)}`,
+        ctx.tourTitle ? `Tour:     ${ctx.tourTitle}` : null,
+        ``,
+        `Next: assign a driver and confirm the itinerary.`,
+        `Open the lead: ${ctx.adminUrl}`,
+      ]
+        .filter((line): line is string => line !== null)
+        .join('\n'),
+    };
+  },
 
   trip_reminder: (ctx) => ({
     subject: `See you tomorrow, ${ctx.name}!`,
     body: [
       `Hi ${ctx.name}, your ${ctx.serviceLabel} with ${BRAND} is tomorrow${
-        ctx.preferredDate ? ` (${ctx.preferredDate})` : ''
+        ctx.preferredDate ? ` (${prettyDate(ctx.preferredDate)})` : ''
       }.`,
       `Your driver will message you with the plate number and pickup time. Safe travels!`,
     ].join('\n'),

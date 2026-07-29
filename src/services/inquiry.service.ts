@@ -116,6 +116,11 @@ export interface SendQuoteInput {
   depositAmount?: number | null;
   notes?: string;
   validForDays: number;
+  /**
+   * False keeps quotes already awaiting a decision live alongside this one —
+   * how a booking gets split across payments. Defaults to true server-side.
+   */
+  supersedeOpen?: boolean;
 }
 
 export const sendQuote = async (

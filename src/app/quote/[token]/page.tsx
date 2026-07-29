@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+import { ProofOfPaymentField } from '@/components/quote/ProofOfPaymentField';
 import { DownloadQRButton } from '@/components/ui/DownloadQRButton';
 import { PAYMENT_METHODS, type PaymentMethod } from '@/data/payment-methods';
 import { formatDate, formatPeso } from '@/lib/format';
@@ -29,6 +30,7 @@ export default function QuoteCheckoutPage() {
 
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [reference, setReference] = useState('');
+  const [proof, setProof] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
@@ -56,6 +58,14 @@ export default function QuoteCheckoutPage() {
     [selectedMethod]
   );
 
+  /**
+   * A transfer has to arrive with something we can match it against — the
+   * reference number they were told to keep, or a screenshot of the receipt.
+   * Cash on pickup has nothing to show yet, so it needs neither.
+   */
+  const hasProofOfPayment =
+    !method?.requiresReference || Boolean(reference.trim()) || proof !== null;
+
   const accept = useCallback(async () => {
     if (!token || !selectedMethod) return;
 
@@ -63,13 +73,29 @@ export default function QuoteCheckoutPage() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/quote/${encodeURIComponent(token)}/accept`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Multipart only when there is a file to carry — a confirmation without a
+      // screenshot stays a small JSON post.
+      let body: BodyInit;
+      let headers: HeadersInit | undefined;
+
+      if (proof) {
+        const form = new FormData();
+        form.append('paymentMethod', selectedMethod);
+        if (reference.trim()) form.append('paymentReference', reference.trim());
+        form.append('proofOfPayment', proof, proof.name);
+        body = form;
+      } else {
+        headers = { 'Content-Type': 'application/json' };
+        body = JSON.stringify({
           paymentMethod: selectedMethod,
           paymentReference: reference.trim() || undefined,
-        }),
+        });
+      }
+
+      const response = await fetch(`/api/quote/${encodeURIComponent(token)}/accept`, {
+        method: 'POST',
+        headers,
+        body,
       });
 
       const data = (await response.json()) as { message?: string };
@@ -81,7 +107,7 @@ export default function QuoteCheckoutPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [token, selectedMethod, reference]);
+  }, [token, selectedMethod, reference, proof]);
 
   const decline = useCallback(async () => {
     if (!token) return;
@@ -371,23 +397,36 @@ export default function QuoteCheckoutPage() {
                   <p className="mt-3 text-slate-600">{method.instructions}</p>
 
                   {method.requiresReference && (
-                    <div className="mt-4">
-                      <label
-                        htmlFor="payment-reference"
-                        className="mb-1.5 block text-xs font-medium text-slate-500"
-                      >
-                        Reference number{' '}
-                        <span className="text-slate-400">(optional, but speeds things up)</span>
-                      </label>
-                      <input
-                        id="payment-reference"
-                        value={reference}
-                        onChange={(event) => setReference(event.target.value)}
-                        placeholder="e.g. 0123456789"
-                        maxLength={120}
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    <>
+                      <div className="mt-4">
+                        <label
+                          htmlFor="payment-reference"
+                          className="mb-1.5 block text-xs font-medium text-slate-500"
+                        >
+                          Reference number{' '}
+                          <span className="text-slate-400">(from your receipt)</span>
+                        </label>
+                        <input
+                          id="payment-reference"
+                          value={reference}
+                          onChange={(event) => setReference(event.target.value)}
+                          placeholder="e.g. 0123456789"
+                          maxLength={120}
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                        />
+                      </div>
+
+                      <ProofOfPaymentField
+                        value={proof}
+                        onChange={setProof}
+                        disabled={isSubmitting}
                       />
-                    </div>
+
+                      <p className="mt-2 text-xs text-slate-400">
+                        Send us either one — the reference number or the screenshot — and we&apos;ll
+                        match your payment.
+                      </p>
+                    </>
                   )}
                 </div>
               </div>
@@ -406,16 +445,22 @@ export default function QuoteCheckoutPage() {
           <button
             type="button"
             onClick={accept}
-            disabled={!selectedMethod || isSubmitting}
+            disabled={!selectedMethod || !hasProofOfPayment || isSubmitting}
             className="w-full rounded-xl bg-gradient-to-r from-coral to-mango px-6 py-4 font-semibold text-white shadow-lg shadow-coral/25 transition-all hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
           >
             {isSubmitting ? 'Confirming…' : 'Confirm my booking'}
           </button>
 
-          {!selectedMethod && (
+          {!selectedMethod ? (
             <p className="mt-2 text-center text-xs text-slate-400">
               Choose a payment method above to continue
             </p>
+          ) : (
+            !hasProofOfPayment && (
+              <p className="mt-2 text-center text-xs text-slate-400">
+                Add your reference number or a screenshot of your payment to continue
+              </p>
+            )
           )}
 
           <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
