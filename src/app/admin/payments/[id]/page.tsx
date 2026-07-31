@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 
+import { LeadReference } from '@/components/admin/LeadReference';
 import { formatDate, formatDateTime, formatPeso } from '@/lib/format';
 import * as paymentService from '@/services/payment.service';
 import type { PaymentDetail, PaymentStatus } from '@/models/payment.schema';
@@ -30,7 +31,7 @@ const STATUS_LABELS: Record<PaymentStatus, string> = {
 };
 
 const TYPE_TONES: Record<QuoteType, string> = {
-  full_payment: 'bg-slate-100 text-slate-700',
+  full_payment: 'bg-slate-100 text-slate-800',
   partial_payment: 'bg-indigo-100 text-indigo-700',
 };
 
@@ -80,7 +81,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-slate-500">
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
         <i className="pi pi-spin pi-spinner mr-2 text-xl" /> Loading payment…
       </div>
     );
@@ -89,10 +90,10 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
   if (!payment) {
     return (
       <div className="space-y-4">
-        <Link href="/admin/payments" className="text-sm text-slate-500 hover:text-slate-800">
+        <Link href="/admin/payments" className="text-sm text-slate-600 hover:text-slate-800">
           <i className="pi pi-arrow-left mr-1.5 text-xs" /> Back to payments
         </Link>
-        <p className="rounded-xl border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-600">
           {error ?? 'This payment no longer exists.'}
         </p>
       </div>
@@ -101,10 +102,22 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
 
   const isPending = payment.status === 'submitted';
 
+  /**
+   * Verifying is the one decision on this page that moves money in the real
+   * world — it is what tells the team the cash landed and the trip can be
+   * assigned. Once it is made, the buttons lock.
+   *
+   * Rejected deliberately stays actionable: a customer who re-sends a correct
+   * screenshot, or an agent who mis-clicked, needs a way forward, and rejecting
+   * never released anything. So this locks on 'verified' only, not on any
+   * decision having been made.
+   */
+  const isLocked = payment.status === 'verified';
+
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/payments" className="text-sm text-slate-500 hover:text-slate-800">
+        <Link href="/admin/payments" className="text-sm text-slate-600 hover:text-slate-800">
           <i className="pi pi-arrow-left mr-1.5 text-xs" /> Back to payments
         </Link>
 
@@ -116,12 +129,12 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${TYPE_TONES[payment.quoteType]}`}>
             {payment.quoteTypeLabel}
           </span>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-600">
             via {payment.methodLabel} · {formatDateTime(payment.createdAt)}
           </span>
         </div>
 
-        <p className="mt-1.5 text-sm text-slate-500">
+        <p className="mt-1.5 text-sm text-slate-600">
           {payment.quoteType === 'partial_payment'
             ? 'One instalment of this booking — the rest is billed separately.'
             : 'Settles the whole booking.'}
@@ -140,7 +153,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
       <div className="grid gap-6 lg:grid-cols-5">
         {/* The evidence */}
         <section className="rounded-xl border border-slate-200 bg-white p-5 lg:col-span-3">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600">
             Proof of payment
           </h2>
 
@@ -158,7 +171,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
                   className="mx-auto max-h-[28rem] w-auto object-contain"
                 />
               </button>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
                 <span className="truncate">
                   {payment.proofFilename ?? 'screenshot'}
                   {payment.proofSize ? ` · ${(payment.proofSize / 1024).toFixed(0)} KB` : ''}
@@ -176,16 +189,16 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
             </>
           ) : (
             <div className="rounded-xl border border-dashed border-slate-300 px-6 py-12 text-center">
-              <i className="pi pi-image mb-2 text-2xl text-slate-300" />
-              <p className="text-sm text-slate-500">
+              <i className="pi pi-image mb-2 text-2xl text-slate-400" />
+              <p className="text-sm text-slate-600">
                 The customer didn&apos;t upload a screenshot.
               </p>
               {payment.reference ? (
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-slate-500">
                   Match it against their reference number instead.
                 </p>
               ) : (
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-slate-500">
                   No reference number either — call them before assigning a vehicle.
                 </p>
               )}
@@ -209,7 +222,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
           </dl>
 
           {payment.reviewNote && (
-            <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+            <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
               {payment.reviewNote}
             </p>
           )}
@@ -218,21 +231,25 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
         {/* The lead it belongs to */}
         <div className="space-y-6 lg:col-span-2">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600">
               The booking
             </h2>
 
-            <p className="font-medium text-slate-900">{payment.opportunityTitle}</p>
-            <p className="mt-0.5 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-slate-900">{payment.opportunityTitle}</p>
+              <LeadReference reference={payment.leadReference} />
+            </div>
+            <p className="mt-0.5 text-sm text-slate-600">
               {payment.serviceLabel}
               {payment.vehicleLabel ? ` · ${payment.vehicleLabel}` : ''}
               {payment.tripDate ? ` · ${formatDate(payment.tripDate)}` : ''}
             </p>
-            <span className="mt-2 inline-block rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            <span className="mt-2 inline-block rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
               {payment.stage}
             </span>
 
             <dl className="mt-4 space-y-2 border-t border-slate-100 pt-4 text-sm">
+              <Row label="Lead reference" value={payment.leadReference} mono />
               <Row label="Customer" value={payment.customerName ?? '—'} />
               <Row label="Phone" value={payment.customerPhone ?? '—'} />
               <Row label="Email" value={payment.customerEmail ?? '—'} />
@@ -252,14 +269,14 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
                 href={payment.quoteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
               >
                 View the quote
               </a>
               {payment.customerPhone && (
                 <a
                   href={`tel:${payment.customerPhone}`}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
                 >
                   <i className="pi pi-phone mr-1 text-[10px]" /> Call
                 </a>
@@ -269,10 +286,10 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
 
           {payment.dealPayments.length > 1 && (
             <section className="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-600">
                 All payments on this booking
               </h2>
-              <p className="mb-3 text-xs text-slate-500">
+              <p className="mb-3 text-xs text-slate-600">
                 This trip is being paid in instalments.
               </p>
               <ul className="space-y-2">
@@ -283,11 +300,11 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
                       className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm ${
                         sibling.id === payment.id
                           ? 'bg-coral/10 text-coral'
-                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                          : 'bg-slate-50 text-slate-800 hover:bg-slate-100'
                       }`}
                     >
                       <span>{formatPeso(sibling.amount)}</span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-600">
                         {QUOTE_TYPE_LABELS[sibling.quoteType]} · {STATUS_LABELS[sibling.status]}
                       </span>
                     </Link>
@@ -298,38 +315,54 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
           )}
 
           <section className="rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              {isPending ? 'Did the money arrive?' : 'Change the decision'}
+            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-600">
+              {isLocked ? 'Payment verified' : isPending ? 'Did the money arrive?' : 'Change the decision'}
             </h2>
-            <p className="mb-3 text-xs text-slate-500">
-              Check your GCash or bank app against the screenshot before you verify — nothing here
-              is proof on its own.
+            <p className="mb-3 text-xs text-slate-600">
+              {isLocked
+                ? 'This payment is confirmed and can no longer be changed here. If it was verified by mistake, open the lead and log a note so there is a record of the correction.'
+                : 'Check your GCash or bank app against the screenshot before you verify — nothing here is proof on its own.'}
             </p>
 
-            <textarea
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              rows={2}
-              maxLength={500}
-              placeholder="Optional note — e.g. 'Landed 2:41 PM, ref matches'"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-            />
+            {isLocked ? (
+              <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+                <i className="pi pi-check-circle mt-0.5 text-xs" />
+                <span>
+                  {formatPeso(payment.amount)} verified
+                  {payment.reviewedAt ? ` on ${formatDateTime(payment.reviewedAt)}` : ''}
+                  {payment.reviewedByName ? ` by ${payment.reviewedByName}` : ''}.
+                </span>
+              </div>
+            ) : (
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                rows={2}
+                maxLength={500}
+                placeholder="Optional note — e.g. 'Landed 2:41 PM, ref matches'"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+            )}
 
             <div className="mt-3 flex gap-2">
               <button
                 type="button"
-                disabled={isBusy}
+                disabled={isBusy || isLocked}
                 onClick={() => review('verify')}
-                className="flex-1 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
+                // aria-disabled would still be announced as actionable; a real
+                // `disabled` is what stops a double-verify from a stale tab.
+                title={isLocked ? 'Already verified' : undefined}
+                className="flex-1 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:hover:bg-slate-200"
               >
-                <i className="pi pi-check mr-1.5 text-xs" />
-                Verify
+                <i className={`pi ${isLocked ? 'pi-check-circle' : 'pi-check'} mr-1.5 text-xs`} />
+                {isLocked ? 'Verified' : 'Verify'}
               </button>
               <button
                 type="button"
-                disabled={isBusy}
+                disabled={isBusy || isLocked}
                 onClick={() => review('reject')}
-                className="flex-1 rounded-lg border border-red-200 px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-40"
+                title={isLocked ? 'Cannot reject a verified payment' : undefined}
+                className="flex-1 rounded-lg border border-red-200 px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-500 disabled:hover:bg-transparent"
               >
                 <i className="pi pi-times mr-1.5 text-xs" />
                 Reject
@@ -369,7 +402,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className="shrink-0 text-slate-500">{label}</dt>
+      <dt className="shrink-0 text-slate-600">{label}</dt>
       <dd className={`truncate text-right font-medium text-slate-900 ${mono ? 'font-mono' : ''}`}>
         {value}
       </dd>

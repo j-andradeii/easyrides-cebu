@@ -10,7 +10,7 @@ import { formatDateTime } from '@/lib/format';
 import type { ActivityRecord } from '@/models/crm.types';
 
 const TYPE_STYLES: Record<string, { icon: string; tone: string; label: string }> = {
-  note: { icon: 'pi-pencil', tone: 'bg-slate-100 text-slate-600', label: 'Note' },
+  note: { icon: 'pi-pencil', tone: 'bg-slate-100 text-slate-700', label: 'Note' },
   stage_change: { icon: 'pi-flag', tone: 'bg-coral/10 text-coral', label: 'Stage' },
   message_out: { icon: 'pi-send', tone: 'bg-sky-100 text-sky-700', label: 'Sent' },
   message_in: { icon: 'pi-comment', tone: 'bg-emerald-100 text-emerald-700', label: 'Received' },
@@ -19,15 +19,15 @@ const TYPE_STYLES: Record<string, { icon: string; tone: string; label: string }>
   task_created: { icon: 'pi-check-square', tone: 'bg-amber-100 text-amber-700', label: 'Task' },
   task_completed: { icon: 'pi-check', tone: 'bg-emerald-100 text-emerald-700', label: 'Done' },
   workflow: { icon: 'pi-cog', tone: 'bg-indigo-100 text-indigo-700', label: 'Automation' },
-  system: { icon: 'pi-info-circle', tone: 'bg-slate-100 text-slate-600', label: 'System' },
+  system: { icon: 'pi-info-circle', tone: 'bg-slate-100 text-slate-700', label: 'System' },
 };
 
-const FALLBACK = { icon: 'pi-circle', tone: 'bg-slate-100 text-slate-600', label: 'Event' };
+const FALLBACK = { icon: 'pi-circle', tone: 'bg-slate-100 text-slate-700', label: 'Event' };
 
 export function ActivityTimeline({ activities }: { activities: ActivityRecord[] }) {
   if (activities.length === 0) {
     return (
-      <p className="text-sm text-slate-500 py-6 text-center">
+      <p className="text-sm text-slate-600 py-6 text-center">
         Nothing has happened on this lead yet.
       </p>
     );
@@ -54,20 +54,20 @@ export function ActivityTimeline({ activities }: { activities: ActivityRecord[] 
                 <span className="text-sm font-medium text-slate-900">
                   {activity.subject ?? style.label}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500">
                   {activity.adminName ?? 'Automation'} · {formatDateTime(activity.createdAt)}
                 </span>
               </div>
 
               {activity.body && (
-                <p className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-600">
+                <p className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-700">
                   {activity.body}
                 </p>
               )}
 
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
                 {activity.channel && (
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500">
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">
                     {activity.channel}
                   </span>
                 )}

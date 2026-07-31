@@ -191,6 +191,23 @@ export const opportunities = pgTable(
       .notNull()
       .references(() => pipelineStages.id),
     ownerId: uuid('owner_id').references(() => adminUsers.id, { onDelete: 'set null' }),
+    /**
+     * The lead reference an agent reads out on the phone — "L-001042".
+     *
+     * Stored rather than derived from the id (the way `quoteReference()` slices
+     * a UUID) for two reasons: a sequence cannot collide, whereas six hex chars
+     * off a UUID start colliding around a few thousand rows; and a customer can
+     * actually repeat this one back to you.
+     *
+     * Filled by a column DEFAULT reading `opportunities_reference_seq`, so
+     * every insert path gets one — intake, the seed, the admin "Add lead"
+     * dialog, and anything added later — without a single line of app code
+     * needing to remember. See migration 0004.
+     */
+    reference: text('reference')
+      .notNull()
+      .unique()
+      .default(sql`'L-' || lpad(nextval('opportunities_reference_seq')::text, 6, '0')`),
     title: text('title').notNull(),
     status: oppStatusEnum('status').notNull().default('open'),
     serviceType: text('service_type'),

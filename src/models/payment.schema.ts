@@ -53,6 +53,15 @@ export interface PaymentRecord {
   reviewNote: string | null;
   /** The lead this payment belongs to. */
   opportunityId: string;
+  /**
+   * The LEAD's reference, e.g. "L-001042".
+   *
+   * Deliberately not called `reference` — that name is already taken on this
+   * type by the customer's own receipt number, and `quoteReference` by the
+   * quote being settled. Three different references live on one payment row,
+   * so each is named for what it identifies.
+   */
+  leadReference: string;
   opportunityTitle: string;
   contactId: string;
   customerName: string | null;

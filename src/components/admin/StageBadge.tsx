@@ -2,7 +2,7 @@
 
 import { getStageDefinition } from '@/lib/funnel/stages';
 
-const FALLBACK_TONE = 'bg-slate-100 text-slate-700 border-slate-200';
+const FALLBACK_TONE = 'bg-slate-100 text-slate-800 border-slate-200';
 
 export function StageBadge({
   stageKey,
@@ -28,8 +28,8 @@ export function StageBadge({
 const STATUS_TONES: Record<string, string> = {
   open: 'bg-sky-100 text-sky-800 border-sky-200',
   won: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  lost: 'bg-slate-200 text-slate-700 border-slate-300',
-  abandoned: 'bg-slate-200 text-slate-700 border-slate-300',
+  lost: 'bg-slate-200 text-slate-800 border-slate-300',
+  abandoned: 'bg-slate-200 text-slate-800 border-slate-300',
 };
 
 export function StatusBadge({ status, className = '' }: { status: string; className?: string }) {

@@ -173,10 +173,10 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
               <h2 id="new-lead-title" className="text-lg font-bold text-slate-900">
                 Add a lead
               </h2>
-              <p className="mt-0.5 text-sm text-slate-500">
+              <p className="mt-0.5 text-sm text-slate-600">
                 For walk-ins and phone calls. Existing customers are matched by phone or email.
               </p>
-              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
                 <i className="pi pi-info-circle text-[11px]" />
                 No automated email is sent for leads added here — follow up yourself.
               </p>
@@ -186,7 +186,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
               onClick={onClose}
               disabled={isSaving}
               aria-label="Close"
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
+              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40"
             >
               <i className="pi pi-times" />
             </button>
@@ -335,7 +335,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
               onClick={onClose}
               disabled={isSaving}
               label="Cancel"
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-40"
             />
             <Button
               type="submit"
@@ -366,10 +366,10 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium text-slate-500" htmlFor={htmlFor}>
+      <label className="mb-1.5 block text-xs font-medium text-slate-600" htmlFor={htmlFor}>
         {label}
         {required && <span className="text-coral ml-0.5">*</span>}
-        {hint && <span className="ml-1.5 font-normal text-slate-400">· {hint}</span>}
+        {hint && <span className="ml-1.5 font-normal text-slate-500">· {hint}</span>}
       </label>
       {children}
     </div>

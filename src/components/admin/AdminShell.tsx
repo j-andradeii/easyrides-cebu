@@ -79,7 +79,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   if (isBootstrapping) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-slate-600">
           <i className="pi pi-spin pi-spinner text-xl" />
           <span>Loading portal…</span>
         </div>
@@ -88,7 +88,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 lg:flex">
+    // `admin-root` is the hook globals.css uses to darken form placeholders
+    // portal-wide — see the "Admin form legibility" block there.
+    <div className="admin-root min-h-screen bg-slate-50 text-slate-900 lg:flex">
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-white border-b border-slate-200 px-4 py-3">
         <Link href="/admin" className="font-bold text-slate-900">
@@ -113,7 +115,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Link href="/admin" className="text-lg font-bold text-slate-900">
             EasyRide<span className="text-coral">CRM</span>
           </Link>
-          <p className="text-xs text-slate-500 mt-0.5">Funnel &amp; lead management</p>
+          <p className="text-xs text-slate-600 mt-0.5">Funnel &amp; lead management</p>
         </div>
 
         <nav className="p-3 space-y-1">
@@ -129,7 +131,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-coral/10 text-coral'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 <i className={`pi ${item.icon} text-base`} />
@@ -142,9 +144,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="p-3 mt-auto border-t border-slate-100">
           <div className="px-3 py-2">
             <p className="text-sm font-medium text-slate-900 truncate">{user?.name ?? 'Admin'}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+            <p className="text-xs text-slate-600 truncate">{user?.email}</p>
             {user?.role && (
-              <span className="inline-block mt-1.5 text-[11px] uppercase tracking-wide bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+              <span className="inline-block mt-1.5 text-[11px] uppercase tracking-wide bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
                 {user.role}
               </span>
             )}
@@ -152,7 +154,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
           >
             <i className="pi pi-sign-out text-base" />
             Sign out

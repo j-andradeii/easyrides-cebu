@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
+import { LeadReference } from '@/components/admin/LeadReference';
 import { formatDateTime, formatPeso } from '@/lib/format';
 import * as paymentService from '@/services/payment.service';
 import type { PaymentRecord, PaymentStatus } from '@/models/payment.schema';
@@ -67,7 +68,7 @@ export default function AdminPaymentsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-slate-500">
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
         <i className="pi pi-spin pi-spinner mr-2 text-xl" /> Loading payments…
       </div>
     );
@@ -77,7 +78,7 @@ export default function AdminPaymentsPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold text-slate-900">Payments</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           {items.length} payment{items.length === 1 ? '' : 's'} · {formatPeso(claimedTotal)} claimed
           {pendingCount > 0 && (
             <>
@@ -106,7 +107,7 @@ export default function AdminPaymentsPage() {
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
               filter === option.key
                 ? 'bg-coral text-white'
-                : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
             }`}
           >
             {option.label}
@@ -116,8 +117,8 @@ export default function AdminPaymentsPage() {
 
       {items.length === 0 ? (
         <div className="rounded-xl border border-slate-200 bg-white px-6 py-16 text-center">
-          <i className="pi pi-wallet mb-3 text-3xl text-slate-300" />
-          <p className="text-sm text-slate-500">
+          <i className="pi pi-wallet mb-3 text-3xl text-slate-400" />
+          <p className="text-sm text-slate-600">
             {filter === 'all'
               ? 'No payments yet. One lands here every time a customer confirms a quote.'
               : `No ${STATUS_LABELS[filter as PaymentStatus].toLowerCase()} payments.`}
@@ -137,7 +138,7 @@ export default function AdminPaymentsPage() {
                       <span className="text-lg font-bold text-slate-900">
                         {formatPeso(payment.amount)}
                       </span>
-                      <span className="text-sm text-slate-500">via {payment.methodLabel}</span>
+                      <span className="text-sm text-slate-600">via {payment.methodLabel}</span>
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-medium ${
                           STATUS_TONES[payment.status]
@@ -155,7 +156,7 @@ export default function AdminPaymentsPage() {
                           <i className="pi pi-image text-[10px]" /> Screenshot
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                           No screenshot
                         </span>
                       )}
@@ -163,26 +164,31 @@ export default function AdminPaymentsPage() {
 
                     <p className="mt-1.5 truncate text-sm font-medium text-slate-800">
                       {payment.customerName ?? 'Unnamed customer'}
-                      <span className="font-normal text-slate-500">
+                      <span className="font-normal text-slate-600">
                         {' · '}
                         {payment.opportunityTitle}
                       </span>
                     </p>
 
-                    <p className="mt-1 text-xs text-slate-500">
-                      <span className="font-mono">{payment.quoteReference}</span>
+                    {/* Three different references meet on a payment row — the
+                        lead, the quote being settled, and the customer's own
+                        receipt number. Unlabelled they are just three mono
+                        strings, so each says what it identifies. */}
+                    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-slate-600">
+                      <LeadReference reference={payment.leadReference} />
+                      <span>
+                        quote <span className="font-mono">{payment.quoteReference}</span>
+                      </span>
                       {payment.reference && (
-                        <>
-                          {' · ref '}
-                          <span className="font-mono">{payment.reference}</span>
-                        </>
+                        <span>
+                          · receipt <span className="font-mono">{payment.reference}</span>
+                        </span>
                       )}
-                      {' · '}
-                      {formatDateTime(payment.createdAt)}
+                      <span>· {formatDateTime(payment.createdAt)}</span>
                     </p>
                   </div>
 
-                  <span className="shrink-0 self-center text-slate-300">
+                  <span className="shrink-0 self-center text-slate-400">
                     <i className="pi pi-chevron-right" />
                   </span>
                 </div>

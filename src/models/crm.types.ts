@@ -30,6 +30,8 @@ export interface StageSummary {
 
 export interface InquiryListItem {
   opportunityId: string;
+  /** The lead's own reference, e.g. "L-001042". Not the quote's "Q-…". */
+  reference: string;
   createdAt: string;
   contactId: string;
   contactName: string | null;
@@ -80,6 +82,8 @@ export interface ContactDetail {
 
 export interface OpportunityDetail {
   id: string;
+  /** The lead's own reference, e.g. "L-001042". Not the quote's "Q-…". */
+  reference: string;
   title: string;
   status: string;
   stageId: string;

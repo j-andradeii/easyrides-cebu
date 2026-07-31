@@ -53,7 +53,11 @@ export async function GET(request: NextRequest) {
         ilike(contacts.fullName, pattern),
         ilike(contacts.phone, pattern),
         ilike(contacts.email, pattern),
-        ilike(opportunities.title, pattern)
+        ilike(opportunities.title, pattern),
+        // A customer quoting "L-001042" back over the phone is the whole point
+        // of having a reference, so it has to be findable. ilike also means
+        // the bare number ("1042") matches without typing the prefix.
+        ilike(opportunities.reference, pattern)
       );
       if (searchFilter) filters.push(searchFilter);
     }
@@ -102,6 +106,7 @@ export async function GET(request: NextRequest) {
     const rows = await db
       .select({
         opportunityId: opportunities.id,
+        reference: opportunities.reference,
         createdAt: opportunities.createdAt,
         contactId: contacts.id,
         contactName: contacts.fullName,
@@ -175,6 +180,7 @@ export async function GET(request: NextRequest) {
 
     const items: InquiryListItem[] = rows.map((row) => ({
       opportunityId: row.opportunityId,
+      reference: row.reference,
       createdAt: row.createdAt.toISOString(),
       contactId: row.contactId,
       contactName: row.contactName,

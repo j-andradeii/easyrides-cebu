@@ -15,6 +15,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 
+import { LeadReference } from '@/components/admin/LeadReference';
 import { NewLeadDialog } from '@/components/admin/NewLeadDialog';
 import { StageBadge, StatusBadge } from '@/components/admin/StageBadge';
 import { formatDate, formatDateTime, formatPeso } from '@/lib/format';
@@ -153,7 +154,7 @@ export default function AdminInquiriesPage() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Inquiries</h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-600 mt-1 text-sm">
             {data ? `${data.total} lead${data.total === 1 ? '' : 's'} captured` : 'Loading…'}
           </p>
         </div>
@@ -161,7 +162,7 @@ export default function AdminInquiriesPage() {
           <Button
             type="button"
             onClick={load}
-            className="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
+            className="border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
             icon="pi pi-refresh"
             label="Refresh"
           />
@@ -179,7 +180,7 @@ export default function AdminInquiriesPage() {
       <div className="bg-white rounded-xl border border-slate-200 p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <label className="block text-xs font-medium text-slate-500 mb-1.5" htmlFor="lead-search">
+            <label className="block text-xs font-medium text-slate-600 mb-1.5" htmlFor="lead-search">
               Search
             </label>
             <span className="p-input-icon-left w-full block">
@@ -187,7 +188,7 @@ export default function AdminInquiriesPage() {
                 id="lead-search"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Name, phone or email"
+                placeholder="Name, phone, email or L-000000"
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               />
             </span>
@@ -242,91 +243,125 @@ export default function AdminInquiriesPage() {
                 ? 'No leads match these filters.'
                 : 'No inquiries yet — website submissions land here, or use “Add lead”.'
             }
-            className="text-sm"
-            stripedRows
+            className="admin-table text-sm"
           >
             <Column
-              header="Date"
+              header="Lead"
               body={(row: InquiryListItem) => (
-                <span className="whitespace-nowrap text-slate-600">
-                  {formatDateTime(row.createdAt)}
-                </span>
-              )}
-            />
-            <Column
-              header="Name"
-              body={(row: InquiryListItem) => (
-                <div className="min-w-[10rem]">
-                  <div className="font-medium text-slate-900">
-                    {row.contactName ?? 'Unnamed lead'}
+                <div className="flex min-w-[13rem] items-center gap-3">
+                  <Monogram name={row.contactName} />
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold text-slate-900">
+                      {row.contactName ?? 'Unnamed lead'}
+                    </div>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <LeadReference reference={row.reference} />
+                      <span className="truncate text-xs text-slate-600 tabular-nums">
+                        {row.phone ?? row.email ?? ''}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-500">{row.phone ?? row.email ?? '—'}</div>
                 </div>
               )}
             />
             <Column
               header="Service"
-              body={(row: InquiryListItem) => (
-                <div className="min-w-[9rem]">
-                  <div className="text-slate-800">{serviceLabel(row.serviceType)}</div>
-                  <div className="text-xs text-slate-500">
-                    {row.tourTitle ?? vehicleLabel(row.vehicleType) ?? '—'}
+              body={(row: InquiryListItem) => {
+                const detail = row.tourTitle ?? vehicleLabel(row.vehicleType);
+                return (
+                  <div className="min-w-[9rem]">
+                    <div className="text-slate-800">{serviceLabel(row.serviceType)}</div>
+                    {/* Only render a second line when there is one — an em dash
+                        under every other row is just visual debris. */}
+                    {detail && <div className="truncate text-xs text-slate-600">{detail}</div>}
                   </div>
-                </div>
-              )}
+                );
+              }}
             />
             <Column
               header="Trip date"
-              body={(row: InquiryListItem) => (
-                <span className="whitespace-nowrap text-slate-600">
-                  {formatDate(row.preferredDate)}
-                </span>
-              )}
+              body={(row: InquiryListItem) =>
+                row.preferredDate ? (
+                  <span className="whitespace-nowrap text-slate-800">
+                    {formatDate(row.preferredDate)}
+                  </span>
+                ) : (
+                  <Empty />
+                )
+              }
             />
             <Column
               header="Stage"
               body={(row: InquiryListItem) => (
-                <StageBadge stageKey={row.stageKey} stageName={row.stageName} />
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <StageBadge stageKey={row.stageKey} stageName={row.stageName} />
+                  {redundantStatus(row) ? null : <StatusBadge status={row.status} />}
+                </div>
               )}
-            />
-            <Column
-              header="Status"
-              body={(row: InquiryListItem) => <StatusBadge status={row.status} />}
             />
             <Column
               header="Source"
               body={(row: InquiryListItem) => (
-                <span className="text-slate-600 whitespace-nowrap">{sourceLabel(row.source)}</span>
+                <span className="whitespace-nowrap text-slate-700">{sourceLabel(row.source)}</span>
               )}
             />
             <Column
               header="Owner"
-              body={(row: InquiryListItem) => (
-                <span className={row.ownerName ? 'text-slate-700' : 'text-slate-400 italic'}>
-                  {row.ownerName ?? 'Unassigned'}
-                </span>
-              )}
+              body={(row: InquiryListItem) =>
+                row.ownerName ? (
+                  <span className="whitespace-nowrap text-slate-800">{row.ownerName}</span>
+                ) : (
+                  <span className="whitespace-nowrap text-slate-500">Unassigned</span>
+                )
+              }
             />
             <Column
               header="Value"
-              body={(row: InquiryListItem) => (
-                <span className="whitespace-nowrap text-slate-700">
-                  {formatPeso(row.monetaryValue)}
-                </span>
-              )}
+              alignHeader="right"
+              body={(row: InquiryListItem) => {
+                const amount = Number(row.monetaryValue ?? 0);
+                return (
+                  <div
+                    className={`whitespace-nowrap text-right tabular-nums ${
+                      amount > 0 ? 'font-semibold text-slate-900' : 'text-slate-400'
+                    }`}
+                  >
+                    {amount > 0 ? formatPeso(row.monetaryValue) : '—'}
+                  </div>
+                );
+              }}
+            />
+            <Column
+              header="Added"
+              body={(row: InquiryListItem) => {
+                const [date, time] = splitTimestamp(row.createdAt);
+                return (
+                  <div className="whitespace-nowrap text-right">
+                    <div className="text-xs text-slate-700">{date}</div>
+                    <div className="text-xs text-slate-500 tabular-nums">{time}</div>
+                  </div>
+                );
+              }}
+              alignHeader="right"
             />
             <Column
               header="Tasks"
-              body={(row: InquiryListItem) =>
-                row.openTaskCount > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-medium">
-                    <i className="pi pi-clock text-[10px]" />
-                    {row.openTaskCount}
-                  </span>
-                ) : (
-                  <span className="text-slate-300">—</span>
-                )
-              }
+              alignHeader="center"
+              body={(row: InquiryListItem) => (
+                <div className="text-center">
+                  {row.openTaskCount > 0 ? (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200"
+                      title={`${row.openTaskCount} open task${row.openTaskCount === 1 ? '' : 's'}`}
+                    >
+                      <i className="pi pi-clock text-[10px]" />
+                      {row.openTaskCount}
+                    </span>
+                  ) : (
+                    <Empty />
+                  )}
+                </div>
+              )}
             />
           </DataTable>
         </div>
@@ -339,6 +374,88 @@ export default function AdminInquiriesPage() {
       />
     </div>
   );
+}
+
+/**
+ * Whether the status badge would just repeat the stage badge.
+ *
+ * The two are separate columns in the database and can legitimately disagree —
+ * `PATCH /api/admin/opportunities/[id]` flips status without touching the stage
+ * ("A manual status flip without a stage change"). So this cannot be a fixed
+ * list of statuses: a deal marked lost while still sitting in Quote Sent has to
+ * show the badge, or the row lies about where it stands.
+ *
+ * Rule: hide it only when the stage name already contains the word — "Booked
+ * (Won)" covers won, "Lost" covers lost — and always hide plain "open", which
+ * is the default every live deal is in and therefore carries no information.
+ */
+function redundantStatus(row: InquiryListItem): boolean {
+  if (row.status === 'open') return true;
+  return (row.stageName ?? '').toLowerCase().includes(row.status.toLowerCase());
+}
+
+/** A muted placeholder, so an empty cell reads as "nothing here" not "broken". */
+function Empty() {
+  return <span className="text-slate-400">—</span>;
+}
+
+/**
+ * Initials in a tinted circle. Gives every row a fixed left anchor, which is
+ * what stops a wide table from reading as an undifferentiated grid — the eye
+ * gets something to scan down. The tint is derived from the name so the same
+ * customer keeps the same colour between visits.
+ */
+const MONOGRAM_TONES = [
+  'bg-rose-100 text-rose-700',
+  'bg-amber-100 text-amber-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-sky-100 text-sky-700',
+  'bg-violet-100 text-violet-700',
+  'bg-teal-100 text-teal-700',
+];
+
+function Monogram({ name }: { name: string | null }) {
+  const trimmed = name?.trim();
+
+  if (!trimmed) {
+    return (
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+        <i className="pi pi-user text-xs" />
+      </span>
+    );
+  }
+
+  const initials = trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+
+  // Sum of char codes — stable for a given name, and cheap enough to run per row.
+  const tone =
+    MONOGRAM_TONES[
+      [...trimmed].reduce((total, char) => total + char.charCodeAt(0), 0) % MONOGRAM_TONES.length
+    ];
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${tone}`}
+    >
+      {initials}
+    </span>
+  );
+}
+
+/**
+ * "Aug 1, 5:43 AM" → ["Aug 1", "5:43 AM"] so the timestamp can stack instead of
+ * forcing the column wide enough for one long line.
+ */
+function splitTimestamp(iso: string): [string, string] {
+  const formatted = formatDateTime(iso);
+  const separator = formatted.lastIndexOf(', ');
+  if (separator === -1) return [formatted, ''];
+  return [formatted.slice(0, separator), formatted.slice(separator + 2)];
 }
 
 function FilterSelect({
@@ -354,7 +471,7 @@ function FilterSelect({
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-500 mb-1.5">{label}</label>
+      <label className="block text-xs font-medium text-slate-600 mb-1.5">{label}</label>
       <Dropdown
         value={value}
         options={options}

@@ -59,7 +59,7 @@ function LoginForm() {
           <h1 className="text-3xl font-bold text-slate-900">
             EasyRide<span className="text-coral">CRM</span>
           </h1>
-          <p className="text-slate-600 mt-2">Sign in to manage your leads</p>
+          <p className="text-slate-700 mt-2">Sign in to manage your leads</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8">
@@ -104,7 +104,7 @@ function LoginForm() {
           </FormProvider>
         </div>
 
-        <p className="text-center text-xs text-slate-500 mt-6">
+        <p className="text-center text-xs text-slate-600 mt-6">
           Accounts are created by an owner with{' '}
           <code className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
             npm run create-admin

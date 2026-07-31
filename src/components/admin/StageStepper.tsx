@@ -47,14 +47,14 @@ export function StageStepper({ stages, currentStageKey, onSelect, disabled }: St
                       ? 'border-coral bg-coral text-white'
                       : isComplete
                         ? 'border-coral bg-coral/15 text-coral'
-                        : 'border-slate-300 bg-white text-slate-400 group-hover:border-coral/60 group-hover:text-coral'
+                        : 'border-slate-300 bg-white text-slate-500 group-hover:border-coral/60 group-hover:text-coral'
                   }`}
                 >
                   {isComplete ? <i className="pi pi-check text-[10px]" /> : stage.sortOrder}
                 </span>
                 <span
                   className={`text-[11px] leading-tight sm:text-xs ${
-                    isCurrent ? 'font-semibold text-slate-900' : 'text-slate-500 group-hover:text-slate-700'
+                    isCurrent ? 'font-semibold text-slate-900' : 'text-slate-600 group-hover:text-slate-800'
                   }`}
                 >
                   {stage.name}

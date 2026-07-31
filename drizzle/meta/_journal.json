@@ -29,6 +29,13 @@
       "when": 1785302500563,
       "tag": "0003_closed_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785537855095,
+      "tag": "0004_eminent_santa_claus",
+      "breakpoints": true
     }
   ]
 }

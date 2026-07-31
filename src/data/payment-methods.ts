@@ -34,6 +34,16 @@ export interface PaymentMethod {
    * and "have the amount ready for your driver".
    */
   paidOnPickup: boolean;
+  /**
+   * Whether checkout still offers this method.
+   *
+   * Retiring a method is not the same as deleting it: quotes and payments
+   * already carry the old key, and `paymentMethodLabel()` has to keep
+   * resolving it or historical records in the admin portal and in past
+   * booking emails start showing a raw slug. So a retired method stays in
+   * this list, and only `/quote/[token]` filters on this flag.
+   */
+  selectable: boolean;
 }
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
@@ -51,6 +61,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
       'Open GCash → Scan QR (or Send Money to the number above) → enter the amount → confirm. Keep the reference number from your receipt.',
     requiresReference: true,
     paidOnPickup: false,
+    selectable: true,
   },
   {
     key: 'bpi',
@@ -66,6 +77,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
       'Open your BPI app → Scan QR (or transfer to the account above) → enter the amount → confirm. Keep the reference number from your receipt.',
     requiresReference: true,
     paidOnPickup: false,
+    selectable: true,
   },
   {
     key: 'cash',
@@ -80,8 +92,19 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
       'Hand the payment to your driver at pickup. Please have the exact amount ready where possible.',
     requiresReference: false,
     paidOnPickup: true,
+    // Retired from checkout — kept so historical 'cash' rows still resolve a label.
+    selectable: false,
   },
 ];
+
+/**
+ * What checkout offers today. Everything else in the app reads
+ * `PAYMENT_METHODS` so retired keys still resolve; only the customer-facing
+ * picker uses this.
+ */
+export const SELECTABLE_PAYMENT_METHODS: PaymentMethod[] = PAYMENT_METHODS.filter(
+  (method) => method.selectable
+);
 
 export function getPaymentMethod(key: string | null | undefined): PaymentMethod | undefined {
   if (!key) return undefined;

@@ -15,6 +15,7 @@ import { useParams } from 'next/navigation';
 
 import { ActivityTimeline } from '@/components/admin/ActivityTimeline';
 import { AutomationsPanel } from '@/components/admin/AutomationsPanel';
+import { LeadReference } from '@/components/admin/LeadReference';
 import { QuoteBuilder } from '@/components/admin/QuoteBuilder';
 import { StageStepper } from '@/components/admin/StageStepper';
 import { StatusBadge } from '@/components/admin/StageBadge';
@@ -97,7 +98,7 @@ export default function InquiryDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-slate-500">
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
         <i className="pi pi-spin pi-spinner mr-2 text-xl" /> Loading lead…
       </div>
     );
@@ -142,15 +143,20 @@ export default function InquiryDetailPage() {
       <header className="space-y-3">
         <Link
           href="/admin/inquiries"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-coral"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 transition-colors hover:text-coral"
         >
           <i className="pi pi-arrow-left text-xs" /> Back to inquiries
         </Link>
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">{opportunity.title}</h1>
-            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl font-bold text-slate-900">{opportunity.title}</h1>
+              {/* Sits beside the title, not in the meta line below: this is the
+                  number an agent reads back to a customer on the phone. */}
+              <LeadReference reference={opportunity.reference} size="md" />
+            </div>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-slate-600">
               <StatusBadge status={opportunity.status} />
               <span>Captured {formatDateTime(opportunity.createdAt)}</span>
               <span>· via {sourceLabel(opportunity.source)}</span>
@@ -196,10 +202,10 @@ export default function InquiryDetailPage() {
       {/* Stage stepper */}
       <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
         <div className="mb-4 flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
             Funnel stage
           </h2>
-          <span className="text-xs text-slate-400">Click a stage to move this lead</span>
+          <span className="text-xs text-slate-500">Click a stage to move this lead</span>
         </div>
         <StageStepper
           stages={detail.stages}
@@ -208,7 +214,7 @@ export default function InquiryDetailPage() {
           disabled={isBusy}
         />
         {opportunity.lostReason && (
-          <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
             <span className="font-medium">Lost reason:</span> {opportunity.lostReason}
           </p>
         )}
@@ -222,7 +228,7 @@ export default function InquiryDetailPage() {
               <Field label="Name" value={contact.fullName ?? '—'} />
 
               <div>
-                <dt className="text-xs text-slate-500">Phone / WhatsApp</dt>
+                <dt className="text-xs text-slate-600">Phone / WhatsApp</dt>
                 <dd className="mt-0.5 flex flex-wrap items-center gap-2">
                   <span className="text-slate-900">{contact.phone ?? '—'}</span>
                   {whatsAppNumber && (
@@ -237,7 +243,7 @@ export default function InquiryDetailPage() {
                       </a>
                       <a
                         href={`tel:${contact.phone}`}
-                        className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 hover:bg-slate-200"
+                        className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800 hover:bg-slate-200"
                       >
                         <i className="pi pi-phone text-[11px]" /> Call
                       </a>
@@ -247,13 +253,13 @@ export default function InquiryDetailPage() {
               </div>
 
               <div>
-                <dt className="text-xs text-slate-500">Email</dt>
+                <dt className="text-xs text-slate-600">Email</dt>
                 <dd className="mt-0.5 flex flex-wrap items-center gap-2">
                   <span className="break-all text-slate-900">{contact.email ?? '—'}</span>
                   {contact.email && (
                     <a
                       href={`mailto:${contact.email}`}
-                      className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 hover:bg-slate-200"
+                      className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800 hover:bg-slate-200"
                     >
                       <i className="pi pi-envelope text-[11px]" /> Email
                     </a>
@@ -269,12 +275,12 @@ export default function InquiryDetailPage() {
 
               {contact.tags.length > 0 && (
                 <div>
-                  <dt className="text-xs text-slate-500">Tags</dt>
+                  <dt className="text-xs text-slate-600">Tags</dt>
                   <dd className="mt-1 flex flex-wrap gap-1.5">
                     {contact.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
+                        className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
                       >
                         {tag}
                       </span>
@@ -295,15 +301,15 @@ export default function InquiryDetailPage() {
 
               {latestInquiry?.message && (
                 <div>
-                  <dt className="text-xs text-slate-500">Message</dt>
-                  <dd className="mt-0.5 whitespace-pre-wrap text-slate-700">
+                  <dt className="text-xs text-slate-600">Message</dt>
+                  <dd className="mt-0.5 whitespace-pre-wrap text-slate-800">
                     {latestInquiry.message}
                   </dd>
                 </div>
               )}
 
               <div>
-                <dt className="text-xs text-slate-500">Deal value</dt>
+                <dt className="text-xs text-slate-600">Deal value</dt>
                 <dd className="mt-1 flex gap-2">
                   <input
                     type="number"
@@ -333,7 +339,7 @@ export default function InquiryDetailPage() {
               </div>
 
               <div>
-                <dt className="text-xs text-slate-500">Owner</dt>
+                <dt className="text-xs text-slate-600">Owner</dt>
                 <dd className="mt-1">
                   <select
                     value={opportunity.ownerId ?? ''}
@@ -403,7 +409,7 @@ export default function InquiryDetailPage() {
                         </span>
                       )}
                     </div>
-                    {review.comment && <p className="mt-1 text-slate-600">{review.comment}</p>}
+                    {review.comment && <p className="mt-1 text-slate-700">{review.comment}</p>}
                   </li>
                 ))}
               </ul>
@@ -484,7 +490,7 @@ export default function InquiryDetailPage() {
                 type="datetime-local"
                 value={taskDue}
                 onChange={(event) => setTaskDue(event.target.value)}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600"
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700"
               />
               <button
                 type="submit"
@@ -496,7 +502,7 @@ export default function InquiryDetailPage() {
             </form>
 
             {openTasks.length === 0 && doneTasks.length === 0 && (
-              <p className="text-sm text-slate-500">No tasks on this lead.</p>
+              <p className="text-sm text-slate-600">No tasks on this lead.</p>
             )}
 
             <ul className="space-y-2">
@@ -527,12 +533,12 @@ export default function InquiryDetailPage() {
                     <div className="min-w-0 flex-1">
                       <p
                         className={`text-sm ${
-                          task.status === 'open' ? 'text-slate-900' : 'text-slate-400 line-through'
+                          task.status === 'open' ? 'text-slate-900' : 'text-slate-500 line-through'
                         }`}
                       >
                         {task.title}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-500">
+                      <p className="mt-0.5 text-xs text-slate-600">
                         {task.assigneeName ?? 'Unassigned'}
                         {task.dueAt && (
                           <span className={isOverdue ? 'font-medium text-red-600' : ''}>
@@ -594,7 +600,7 @@ export default function InquiryDetailPage() {
                       'Call logged'
                     ).then(() => setNote(''))
                   }
-                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-40"
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50 disabled:opacity-40"
                 >
                   Log a call
                 </button>
@@ -614,7 +620,7 @@ export default function InquiryDetailPage() {
                       'Reply logged — follow-up drip will stand down'
                     ).then(() => setNote(''))
                   }
-                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-40"
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50 disabled:opacity-40"
                 >
                   Log a reply
                 </button>
@@ -632,7 +638,7 @@ export default function InquiryDetailPage() {
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</h2>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600">{title}</h2>
       {children}
     </section>
   );
@@ -641,7 +647,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <dt className="text-xs text-slate-500">{label}</dt>
+      <dt className="text-xs text-slate-600">{label}</dt>
       <dd className={`mt-0.5 text-slate-900 ${mono ? 'font-mono text-sm' : ''}`}>{value}</dd>
     </div>
   );
@@ -662,7 +668,7 @@ function ActionButton({
 }) {
   const tones = {
     success: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-    danger: 'border border-slate-200 text-slate-700 hover:bg-slate-50',
+    danger: 'border border-slate-200 text-slate-800 hover:bg-slate-50',
   };
 
   return (

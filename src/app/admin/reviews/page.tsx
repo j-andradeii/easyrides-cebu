@@ -73,7 +73,7 @@ export default function AdminReviewsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-slate-500">
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
         <i className="pi pi-spin pi-spinner mr-2 text-xl" /> Loading reviews…
       </div>
     );
@@ -84,7 +84,7 @@ export default function AdminReviewsPage() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Reviews</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-600">
             {stats.total} submitted · {stats.published} published
             {stats.average !== null && ` · ${stats.average.toFixed(1)}★ average`}
           </p>
@@ -97,7 +97,7 @@ export default function AdminReviewsPage() {
               type="button"
               onClick={() => setFilter(option)}
               className={`rounded px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
-                filter === option ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
+                filter === option ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-700'
               }`}
             >
               {option}
@@ -122,7 +122,7 @@ export default function AdminReviewsPage() {
       )}
 
       {visible.length === 0 ? (
-        <p className="rounded-xl border border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-600">
           No reviews here yet. W4 asks every completed trip for feedback.
         </p>
       ) : (
@@ -154,7 +154,7 @@ export default function AdminReviewsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-xs text-slate-400">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     {formatDateTime(review.submittedAt)}
                   </p>
                 </div>
@@ -163,7 +163,7 @@ export default function AdminReviewsPage() {
                   {review.opportunityId && (
                     <Link
                       href={`/admin/inquiries/${review.opportunityId}`}
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
                     >
                       Open lead
                     </Link>
@@ -174,7 +174,7 @@ export default function AdminReviewsPage() {
                     onClick={() => toggle(review)}
                     className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 ${
                       review.isPublished
-                        ? 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'border border-slate-200 text-slate-700 hover:bg-slate-50'
                         : 'bg-coral text-white hover:bg-coral-dark'
                     }`}
                   >
@@ -184,7 +184,7 @@ export default function AdminReviewsPage() {
               </div>
 
               {review.comment && (
-                <p className="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                <p className="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-800">
                   {review.comment}
                 </p>
               )}

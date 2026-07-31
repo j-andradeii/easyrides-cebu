@@ -14,7 +14,7 @@
 
 import 'server-only';
 
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 
 import { db, type DbExecutor } from '@/db/client';
 import {
@@ -176,6 +176,7 @@ function toRecord(row: {
     reviewedByName: row.reviewerName,
     reviewNote: payment.reviewNote,
     opportunityId: payment.opportunityId,
+    leadReference: opportunity.reference,
     opportunityTitle:
       opportunity.title ||
       buildOpportunityTitle(opportunity.serviceType, contact.fullName, contact.phone),
@@ -307,7 +308,14 @@ export async function reviewPayment(params: ReviewPaymentParams): Promise<Paymen
       reviewNote: params.note?.trim() || null,
       updatedAt: new Date(),
     })
-    .where(eq(payments.id, params.paymentId))
+    // Verified is terminal, and the guard lives in the WHERE rather than in a
+    // read-then-write so two agents clicking at once cannot both win: the
+    // second UPDATE matches no row and returns nothing.
+    //
+    // This is not only about a stale tab. The route emails the customer
+    // "your payment is confirmed" on every successful verify, so without this
+    // a re-verify sends them a duplicate receipt for money they sent once.
+    .where(and(eq(payments.id, params.paymentId), ne(payments.status, 'verified')))
     .returning();
 
   return payment;

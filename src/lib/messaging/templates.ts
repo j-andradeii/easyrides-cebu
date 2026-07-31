@@ -482,6 +482,25 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     const total = pay ? money(pay.currency, pay.total) : money('PHP', ctx.monetaryValue);
     const dueAtPickup = pay?.balanceDue ? money(pay.currency, pay.balanceDue) : total;
 
+    /**
+     * Whether the trip is actually confirmed, or only *claimed* to be paid.
+     *
+     * This email goes out the instant the customer submits the checkout form,
+     * which is before any human has opened GCash to look. Nothing in this
+     * system talks to a bank, so a transfer is a customer's word until an admin
+     * verifies it on /admin/payments — and that verification sends its own
+     * `payment_verified` email. Telling them "you're booked" here and then
+     * "payment received" later reverses the order those facts actually happen
+     * in, and promises a seat we might still have to take back if the money
+     * never lands.
+     *
+     * Two cases are genuinely confirmed and keep the celebratory copy:
+     *   - Pay on pickup — there is nothing to verify; they pay the driver.
+     *   - No payment context at all — W4 sends this when an agent moves a deal
+     *     to Booked by hand, which is a human vouching for it.
+     */
+    const awaitingVerification = Boolean(pay && !pay.paidOnPickup);
+
     // A booking paid in instalments needs the receipt to be clear about which
     // part this payment settled: `owed` means money is still to come, `split`
     // means this payment was never the whole booking either way.
@@ -494,19 +513,29 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ? null
       : pay.paidOnPickup
         ? `You're paying at pickup — please have ${dueAtPickup} ready for your driver.`
-        : `We're confirming your ${pay.methodLabel} payment now and will only message you if something doesn't match.`;
+        : // The old copy promised we'd "only message you if something doesn't
+          // match", which is now wrong in the good case: verifying sends a
+          // `payment_verified` email. Saying we'll be in touch either way is
+          // both true and the thing that stops them wondering.
+          `We're checking your ${pay.methodLabel} payment against our account — this is usually quick, and we'll email you as soon as it's confirmed.`;
 
     // Never claim a booking is settled off the back of a partial payment: the
     // rest may simply not have been billed yet, and "nothing else is due" is
     // the one sentence a customer will quote back at the pickup point.
+    // Same rule as the heading: until someone has actually looked at the
+    // account, these say what the payment *will* do, not what it has done.
     const outstandingLine = owed
       ? `That leaves ${outstanding} on this booking.${
           owed.outstandingUrl ? ` You can settle it here: ${owed.outstandingUrl}` : ''
         }`
       : pay?.isPartial
-        ? `That covers this instalment — we'll send your next payment request when it's due.`
+        ? awaitingVerification
+          ? `Once confirmed that covers this instalment — we'll send your next payment request when it's due.`
+          : `That covers this instalment — we'll send your next payment request when it's due.`
         : split
-          ? `That settles your booking in full — ${money(split.currency, split.settledTotal)} across all payments. Thank you!`
+          ? awaitingVerification
+            ? `Once confirmed that settles your booking in full — ${money(split.currency, split.settledTotal)} across all payments. Thank you!`
+            : `That settles your booking in full — ${money(split.currency, split.settledTotal)} across all payments. Thank you!`
           : null;
 
     const summary: [string, string | null][] = [
@@ -524,15 +553,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ['Booking total', owed ? money(owed.currency, owed.bookingTotal) : null],
       ['Payment method', pay?.methodLabel ?? null],
       ['Your payment reference', pay?.paymentReference ?? null],
-      ['Confirmed', pay?.acceptedAt ?? null],
+      // "Confirmed" would be the third place this email overstates things —
+      // the timestamp is when they submitted, not when we checked.
+      [awaitingVerification ? 'Submitted' : 'Confirmed', pay?.acceptedAt ?? null],
     ];
 
     return {
-      subject: `Booking confirmed${pay ? ` (${pay.reference})` : ''} — ${tripLine(ctx)}`,
+      subject: awaitingVerification
+        ? `We're confirming your payment${pay ? ` (${pay.reference})` : ''} — ${tripLine(ctx)}`
+        : `Booking confirmed${pay ? ` (${pay.reference})` : ''} — ${tripLine(ctx)}`,
       body: [
         `Hi ${ctx.name},`,
         ``,
-        `You're booked! Here are your details:`,
+        awaitingVerification
+          ? `Thanks — we've got your booking request and your payment details. We're checking the payment now and will email you the moment it clears. Here's what you sent:`
+          : `You're booked! Here are your details:`,
         ``,
         pay ? `  Reference:      ${pay.reference}` : null,
         `  Service:        ${ctx.serviceLabel}`,
@@ -551,7 +586,9 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         ...(paymentLine ? [``, paymentLine] : []),
         ...(outstandingLine ? [``, outstandingLine] : []),
         ``,
-        `We'll send your driver's name, vehicle and plate number the day before your trip. Any changes, message us any time — the earlier the better.`,
+        awaitingVerification
+          ? `Once it's confirmed we'll send your driver's name, vehicle and plate number the day before your trip. Any changes, message us any time — the earlier the better.`
+          : `We'll send your driver's name, vehicle and plate number the day before your trip. Any changes, message us any time — the earlier the better.`,
         ...(pay?.quoteUrl ? [``, `Your booking details: ${pay.quoteUrl}`] : []),
         ``,
         signOff(ctx),
@@ -561,13 +598,24 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
 
       html: emailShell({
         ctx,
-        heading: `You're booked, ${esc(ctx.name)}! 🎉`,
-        preheader: owed
-          ? `Confirmed: ${esc(tripLine(ctx))} · ${esc(outstanding ?? '')} still to pay`
-          : `Confirmed: ${esc(tripLine(ctx))} · ${esc(total)}`,
+        heading: awaitingVerification
+          ? `Thanks, ${esc(ctx.name)} — we're confirming your payment`
+          : `You're booked, ${esc(ctx.name)}! 🎉`,
+        preheader: awaitingVerification
+          ? `Payment received and being checked · ${esc(tripLine(ctx))} · ${esc(total)}`
+          : owed
+            ? `Confirmed: ${esc(tripLine(ctx))} · ${esc(outstanding ?? '')} still to pay`
+            : `Confirmed: ${esc(tripLine(ctx))} · ${esc(total)}`,
         content: `
           <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
-            Thanks for booking with ${BRAND} — your trip is confirmed. Keep this email
+            ${
+              awaitingVerification
+                ? `We've got your booking request and your payment details. Your trip isn't
+                   confirmed just yet — we're checking the payment against our account first,
+                   and we'll email you the moment it clears.`
+                : `Thanks for booking with ${BRAND} — your trip is confirmed.`
+            }
+            Keep this email
             handy${pay ? `; <strong>${esc(pay.reference)}</strong> is your reference` : ''}.
           </p>
           ${detailRows(summary)}
@@ -586,13 +634,20 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
               : ''
           }
           <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
-            We'll send your driver's name, vehicle and plate number the day before your trip.
+            ${
+              awaitingVerification
+                ? `Once it's confirmed we'll send your driver's name, vehicle and plate number
+                   the day before your trip.`
+                : `We'll send your driver's name, vehicle and plate number the day before your trip.`
+            }
             Need to change something? Message us — the earlier the better.
           </p>`,
         ctaLabel: owed?.outstandingUrl
           ? `Pay the remaining ${outstanding}`
           : pay?.quoteUrl
-            ? 'View your booking'
+            ? awaitingVerification
+              ? 'View your booking request'
+              : 'View your booking'
             : 'Message us on WhatsApp',
         ctaUrl:
           owed?.outstandingUrl ?? pay?.quoteUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
