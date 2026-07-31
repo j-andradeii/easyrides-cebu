@@ -115,6 +115,19 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:migrate
 
+      # Brings the funnel definition (pipeline, stages, workflows W1-W5) in line
+      # with the code that is about to deploy. Runs after migrate because it
+      # writes to tables the migrations create.
+      #
+      # Idempotent by construction: every write is an upsert, and a retired stage
+      # is only dropped once nothing points at it — so a re-run of this workflow
+      # never duplicates rows or touches live opportunities. is_active on a
+      # workflow is left alone, so a workflow switched off in the portal stays off.
+      - name: Seed funnel definition
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:seed
+
   # No DATABASE_URL here on purpose: `vercel pull` downloads the project's own
   # production env vars, and the running app reads DATABASE_URL from Vercel at
   # request time. That one should be the TRANSACTION pooler (port 6543) — Vercel
