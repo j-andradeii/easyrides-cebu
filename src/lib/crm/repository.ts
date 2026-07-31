@@ -29,6 +29,7 @@ import { quoteTypeLabel } from '@/models/quote.schema';
 import type {
   LiveQuoteSummary,
   PaymentSummary,
+  QuoteLine,
   TemplateContext,
 } from '@/lib/messaging/templates';
 import { buildOpportunityTitle, firstName, serviceLabel, vehicleLabel } from './normalize';
@@ -262,7 +263,41 @@ export async function loadLiveQuoteSummary(
     total: quote.total,
     url: quoteUrl(quote.token),
     validUntil: VALID_UNTIL_FORMATTER.format(quote.validUntil),
+    lineItems: quoteLines(quote.lineItems),
+    subtotal: quote.subtotal,
+    discount: quote.discount,
+    notes: quote.notes,
   };
+}
+
+/**
+ * `quotes.line_items` is jsonb, so it arrives as `unknown`. Normalising here
+ * rather than casting keeps a malformed or legacy row from throwing inside a
+ * template — an email that renders without a breakdown beats one that fails
+ * to send at all.
+ */
+function quoteLines(value: unknown): QuoteLine[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const item = entry as Record<string, unknown>;
+    if (typeof item.label !== 'string') return [];
+
+    const quantity = Number(item.quantity);
+    const unitPrice = Number(item.unitPrice);
+    const amount = Number(item.amount);
+
+    return [
+      {
+        label: item.label,
+        description: typeof item.description === 'string' ? item.description : undefined,
+        quantity: Number.isFinite(quantity) ? quantity : 1,
+        unitPrice: Number.isFinite(unitPrice) ? unitPrice : 0,
+        amount: Number.isFinite(amount) ? amount : 0,
+      },
+    ];
+  });
 }
 
 /**
@@ -313,6 +348,10 @@ export async function paymentSummaryForQuote(
     quoteUrl: quoteUrl(quote.token),
     proofAttached: Boolean(payment?.proofData),
     adminPaymentUrl: payment ? `${siteUrl()}/admin/payments/${payment.id}` : null,
+    lineItems: quoteLines(quote.lineItems),
+    subtotal: quote.subtotal,
+    discount: quote.discount,
+    notes: quote.notes,
   };
 }
 

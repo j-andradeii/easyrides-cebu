@@ -37,6 +37,21 @@ export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
  * Its `total` is this quote's own amount, which on a partial payment is
  * deliberately *not* the deal value: the deal is the sum of its instalments.
  */
+/**
+ * One priced line of a quote, as the customer should see it.
+ *
+ * Mirrors `QuoteLineItem` from the quote schema rather than importing it —
+ * this module is deliberately free of app-model imports so templates can be
+ * rendered in isolation.
+ */
+export interface QuoteLine {
+  label: string;
+  description?: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
 export interface LiveQuoteSummary {
   reference: string;
   /** 'full_payment' | 'partial_payment' */
@@ -49,6 +64,12 @@ export interface LiveQuoteSummary {
   url: string;
   /** How long the price is held, formatted for Manila. */
   validUntil: string;
+  /** What the price is actually made of — one row per charge. */
+  lineItems: QuoteLine[];
+  subtotal: string;
+  discount: string;
+  /** Inclusions, pickup point, terms — whatever the agent typed. */
+  notes: string | null;
 }
 
 /**
@@ -92,6 +113,12 @@ export interface PaymentSummary {
   proofAttached: boolean;
   /** Absolute /admin/payments/[id] link, for the team's alert. */
   adminPaymentUrl: string | null;
+  /** The settled quote's breakdown, so the receipt itemises what was paid for. */
+  lineItems: QuoteLine[];
+  subtotal: string;
+  discount: string;
+  /** Inclusions, pickup point, terms — carried onto the receipt. */
+  notes: string | null;
 }
 
 export interface TemplateContext {
@@ -214,6 +241,126 @@ function detailRows(rows: [string, string | null][]): string {
     .join('');
 
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;background:#FAF8F3;border-radius:10px;padding:12px 16px;width:100%;">${cells}</table>`;
+}
+
+/**
+ * The itemised breakdown — what the total is actually made of.
+ *
+ * A bare "Total: PHP 3,000" gives a customer nothing to check against what
+ * they were told on the phone, and nothing to query if it looks wrong. Every
+ * line the agent priced gets its own row, with quantity shown only when it is
+ * more than one (× 1 is noise on every row).
+ *
+ * Returns '' for an empty list so callers can interpolate it unconditionally.
+ */
+function breakdownTable(
+  currency: string,
+  lines: QuoteLine[],
+  subtotal: string,
+  discount: string,
+  total: string
+): string {
+  if (!lines || lines.length === 0) return '';
+
+  const rows = lines
+    .map(
+      (line) => `
+      <tr>
+        <td style="padding:8px 12px 8px 0;font-size:14px;color:#1A1A1A;">
+          ${esc(line.label)}
+          ${
+            line.description
+              ? `<div style="margin-top:2px;font-size:12px;color:#666;">${esc(line.description)}</div>`
+              : ''
+          }
+          ${
+            line.quantity > 1
+              ? `<div style="margin-top:2px;font-size:12px;color:#666;">${line.quantity} × ${esc(
+                  money(currency, line.unitPrice)
+                )}</div>`
+              : ''
+          }
+        </td>
+        <td style="padding:8px 0;font-size:14px;color:#1A1A1A;text-align:right;white-space:nowrap;">
+          ${esc(money(currency, line.amount))}
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  // Only worth showing a subtotal line when a discount actually moved it.
+  const hasDiscount = Number.parseFloat(discount || '0') > 0;
+  const summary = `
+    ${
+      hasDiscount
+        ? `<tr>
+             <td style="padding:8px 12px 4px 0;font-size:14px;color:#666;border-top:1px solid #E8E0CC;">Subtotal</td>
+             <td style="padding:8px 0 4px;font-size:14px;color:#666;text-align:right;border-top:1px solid #E8E0CC;">${esc(
+               money(currency, subtotal)
+             )}</td>
+           </tr>
+           <tr>
+             <td style="padding:4px 12px 4px 0;font-size:14px;color:#2D6A4F;">Discount</td>
+             <td style="padding:4px 0;font-size:14px;color:#2D6A4F;text-align:right;">− ${esc(
+               money(currency, discount)
+             )}</td>
+           </tr>`
+        : ''
+    }
+    <tr>
+      <td style="padding:8px 12px 0 0;font-size:15px;color:#1A1A1A;font-weight:700;${
+        hasDiscount ? '' : 'border-top:1px solid #E8E0CC;'
+      }">Total</td>
+      <td style="padding:8px 0 0;font-size:15px;color:#1A1A1A;font-weight:700;text-align:right;${
+        hasDiscount ? '' : 'border-top:1px solid #E8E0CC;'
+      }">${esc(money(currency, total))}</td>
+    </tr>`;
+
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;background:#FAF8F3;border-radius:10px;padding:12px 16px;width:100%;">${rows}${summary}</table>`;
+}
+
+/** The agent's notes — inclusions, pickup point, terms. */
+function notesBlock(notes: string | null): string {
+  if (!notes || !notes.trim()) return '';
+  return `
+    <div style="margin:16px 0;padding:12px 16px;background:#fff;border:1px solid #E8E0CC;border-radius:10px;">
+      <p style="margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#666;">
+        What's included
+      </p>
+      <p style="margin:0;font-size:14px;line-height:1.6;color:#1A1A1A;white-space:pre-line;">${esc(
+        notes.trim()
+      )}</p>
+    </div>`;
+}
+
+/** The same breakdown for the plain-text part. Returns [] when there is nothing. */
+function breakdownLines(
+  currency: string,
+  lines: QuoteLine[],
+  subtotal: string,
+  discount: string,
+  total: string
+): string[] {
+  if (!lines || lines.length === 0) return [];
+
+  const out: string[] = ['', "What you're paying for:"];
+  for (const line of lines) {
+    out.push(`  • ${line.label} — ${money(currency, line.amount)}`);
+    if (line.description) out.push(`      ${line.description}`);
+    if (line.quantity > 1) out.push(`      ${line.quantity} × ${money(currency, line.unitPrice)}`);
+  }
+  if (Number.parseFloat(discount || '0') > 0) {
+    out.push(`  Subtotal: ${money(currency, subtotal)}`);
+    out.push(`  Discount: − ${money(currency, discount)}`);
+  }
+  out.push(`  Total:    ${money(currency, total)}`);
+  return out;
+}
+
+/** The agent's notes for the plain-text part. */
+function notesLines(notes: string | null): string[] {
+  if (!notes || !notes.trim()) return [];
+  return ['', "What's included:", ...notes.trim().split('\n').map((line) => `  ${line}`)];
 }
 
 function signOff(ctx: TemplateContext): string {
@@ -404,6 +551,16 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         `  ${quote?.isPartial ? 'This payment:' : 'Total:       '} ${total}`,
         quote ? `  Payment type: ${quote.typeLabel}` : null,
         quote ? `  Held until:   ${quote.validUntil}` : null,
+        ...(quote
+          ? breakdownLines(
+              quote.currency,
+              quote.lineItems,
+              quote.subtotal,
+              quote.discount,
+              quote.total
+            )
+          : []),
+        ...notesLines(quote?.notes ?? null),
         ``,
         quote?.isPartial
           ? `This covers part of your booking — we'll send the rest separately.`
@@ -437,6 +594,18 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
             }
           </p>
           ${detailRows(summary)}
+          ${
+            quote
+              ? breakdownTable(
+                  quote.currency,
+                  quote.lineItems,
+                  quote.subtotal,
+                  quote.discount,
+                  quote.total
+                )
+              : ''
+          }
+          ${notesBlock(quote?.notes ?? null)}
           <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
             Pay by GCash or bank transfer, then upload a screenshot of your receipt on that
             page — it is the fastest way for us to confirm your booking.
@@ -583,6 +752,10 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         owed ? `  Booking total:  ${money(owed.currency, owed.bookingTotal)}` : null,
         pay ? `  Payment method: ${pay.methodLabel}` : null,
         pay?.paymentReference ? `  Your reference: ${pay.paymentReference}` : null,
+        ...(pay
+          ? breakdownLines(pay.currency, pay.lineItems, pay.subtotal, pay.discount, pay.total)
+          : []),
+        ...notesLines(pay?.notes ?? null),
         ...(paymentLine ? [``, paymentLine] : []),
         ...(outstandingLine ? [``, outstandingLine] : []),
         ``,
@@ -619,6 +792,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
             handy${pay ? `; <strong>${esc(pay.reference)}</strong> is your reference` : ''}.
           </p>
           ${detailRows(summary)}
+          ${
+            pay
+              ? breakdownTable(pay.currency, pay.lineItems, pay.subtotal, pay.discount, pay.total)
+              : ''
+          }
+          ${notesBlock(pay?.notes ?? null)}
           ${
             paymentLine
               ? `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">${esc(paymentLine)}</p>`
@@ -772,6 +951,10 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         owed ? `  Still to pay: ${outstanding}` : null,
         !owed && paidBefore && pay ? `  Paid so far:  ${money(pay.currency, pay.settledTotal)}` : null,
         owed ? `  Booking total: ${money(owed.currency, owed.bookingTotal)}` : null,
+        ...(pay
+          ? breakdownLines(pay.currency, pay.lineItems, pay.subtotal, pay.discount, pay.total)
+          : []),
+        ...notesLines(pay?.notes ?? null),
         ``,
         standing,
         ...(owed?.outstandingUrl ? [``, `Settle the rest here: ${owed.outstandingUrl}`] : []),
@@ -795,6 +978,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
             through. Thank you!
           </p>
           ${detailRows(summary)}
+          ${
+            pay
+              ? breakdownTable(pay.currency, pay.lineItems, pay.subtotal, pay.discount, pay.total)
+              : ''
+          }
+          ${notesBlock(pay?.notes ?? null)}
           <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">${esc(standing)}</p>
           <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
             We'll send your driver's name, vehicle and plate number the day before your trip.
