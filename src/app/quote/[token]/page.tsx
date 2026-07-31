@@ -203,8 +203,76 @@ export default function QuoteCheckoutPage() {
           </p>
         </div>
 
-        <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm">
+        {/* The same breakdown the customer saw at checkout. This screen is the
+            receipt they come back to — a bare total gives them nothing to check
+            against what they were quoted, and nothing to query if it looks off. */}
+        {quote.lineItems.length > 0 && (
+          <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-600">
+              What&apos;s included
+            </p>
+            <ul className="space-y-2.5">
+              {quote.lineItems.map((line, index) => (
+                <li key={index} className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-900">{line.label}</p>
+                    {line.description && (
+                      <p className="mt-0.5 text-xs text-slate-600">{line.description}</p>
+                    )}
+                    {line.quantity > 1 && (
+                      <p className="mt-0.5 text-xs text-slate-600">
+                        {line.quantity} × {formatPeso(line.unitPrice)}
+                      </p>
+                    )}
+                  </div>
+                  <span className="shrink-0 font-medium text-slate-900 tabular-nums">
+                    {formatPeso(line.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {Number(quote.discount) > 0 && (
+              <div className="mt-3 space-y-1 border-t border-slate-200 pt-3">
+                <div className="flex justify-between text-slate-600">
+                  <span>Subtotal</span>
+                  <span className="tabular-nums">{formatPeso(quote.subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-emerald-700">
+                  <span>Discount</span>
+                  <span className="tabular-nums">− {formatPeso(quote.discount)}</span>
+                </div>
+              </div>
+            )}
+
+            <div
+              className={`flex justify-between font-bold text-slate-900 ${
+                Number(quote.discount) > 0
+                  ? 'mt-1 pt-1'
+                  : 'mt-3 border-t border-slate-200 pt-3'
+              }`}
+            >
+              <span>Total</span>
+              <span className="tabular-nums">{formatPeso(quote.total)}</span>
+            </div>
+          </div>
+        )}
+
+        {quote.notes && (
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Notes
+            </p>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-800">
+              {quote.notes}
+            </p>
+          </div>
+        )}
+
+        <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm">
           <Row label="Reference" value={quote.reference} />
+          {/* Kept even though the breakdown repeats it — this is the block a
+              customer screenshots, and it has to stand alone. */}
           <Row label="Total" value={formatPeso(quote.total)} />
           {quote.paymentMethod && (
             <Row
