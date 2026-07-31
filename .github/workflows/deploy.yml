@@ -103,6 +103,43 @@ jobs:
           esac
           echo "DATABASE_URL is a session-mode Supabase pooler URL."
 
+      # The check above only inspects the URL's shape. This one actually opens a
+      # connection, because the failure that matters most — a password rotated in
+      # Supabase without updating this secret — produces a perfectly well-formed
+      # URL. drizzle-kit reports that case as a spinner followed by `exit 1` with
+      # no message, so without this step the log says nothing at all.
+      - name: Verify database credentials
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cat > dbcheck.cjs <<'NODE'
+          const postgres = require('postgres');
+          const sql = postgres(process.env.DATABASE_URL, { max: 1, connect_timeout: 10 });
+
+          const HINTS = {
+            '28P01': 'The password in the DATABASE_URL secret is wrong. It was most likely rotated in Supabase (Settings > Database > Reset database password) without updating this secret.',
+            '28000': 'Auth rejected. On the pooler the user must be postgres.<project-ref>, not plain postgres.',
+            ENOTFOUND: 'Host did not resolve. Free-tier direct connections (db.<ref>.supabase.co) publish only an AAAA record and GitHub runners have no IPv6 — use the pooler host.',
+            ETIMEDOUT: 'Connection timed out. A free-tier project pauses after 7 days idle; open the Supabase dashboard to wake it, then re-run.',
+            CONNECT_TIMEOUT: 'Connection timed out. A free-tier project pauses after 7 days idle; open the Supabase dashboard to wake it, then re-run.',
+          };
+
+          sql`select current_user as u`
+            .then(async ([row]) => {
+              console.log(`Connected to Postgres as "${row.u}".`);
+              await sql.end();
+            })
+            .catch(async (error) => {
+              const code = error.code || error.name;
+              const hint = HINTS[code] ? ` ${HINTS[code]}` : '';
+              // Never print the URL itself — it carries the password.
+              console.log(`::error::Cannot connect to the database (${code}): ${error.message}.${hint}`);
+              await sql.end().catch(() => {});
+              process.exit(1);
+            });
+          NODE
+          node dbcheck.cjs
+
       # drizzle.config.ts reads process.env.DATABASE_URL. It also calls
       # dotenv on .env.local, which is absent in CI — dotenv never overrides
       # an already-set env var, so the secret below is what gets used.
