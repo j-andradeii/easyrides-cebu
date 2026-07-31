@@ -15,11 +15,13 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 
+import { NewLeadDialog } from '@/components/admin/NewLeadDialog';
 import { StageBadge, StatusBadge } from '@/components/admin/StageBadge';
 import { formatDate, formatDateTime, formatPeso } from '@/lib/format';
 import { serviceLabel, sourceLabel, vehicleLabel } from '@/lib/crm/normalize';
 import * as inquiryService from '@/services/inquiry.service';
 import type { InquiryListItem, InquiryListResponse } from '@/models/crm.types';
+import type { AdminLeadData } from '@/models/inquiry.schema';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const SEARCH_DEBOUNCE_MS = 350;
@@ -41,6 +43,7 @@ export default function AdminInquiriesPage() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
 
   // Debounce the search box so typing doesn't hammer the API.
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,6 +138,16 @@ export default function AdminInquiriesPage() {
     router.push(`/admin/inquiries/${opportunityId}`);
   };
 
+  /**
+   * Straight to the new lead's detail screen — the agent is almost always still
+   * talking to the customer and needs somewhere to log the call or send a quote.
+   */
+  const createLead = async (input: AdminLeadData) => {
+    const result = await inquiryService.createLead(input);
+    setIsNewLeadOpen(false);
+    router.push(`/admin/inquiries/${result.opportunityId}`);
+  };
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -144,13 +157,22 @@ export default function AdminInquiriesPage() {
             {data ? `${data.total} lead${data.total === 1 ? '' : 's'} captured` : 'Loading…'}
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={load}
-          className="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
-          icon="pi pi-refresh"
-          label="Refresh"
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={load}
+            className="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
+            icon="pi pi-refresh"
+            label="Refresh"
+          />
+          <Button
+            type="button"
+            onClick={() => setIsNewLeadOpen(true)}
+            className="bg-coral hover:bg-coral-dark text-white px-4 py-2 rounded-lg text-sm font-medium"
+            icon="pi pi-plus"
+            label="Add lead"
+          />
+        </div>
       </header>
 
       {/* Filters */}
@@ -218,7 +240,7 @@ export default function AdminInquiriesPage() {
             emptyMessage={
               hasFilters
                 ? 'No leads match these filters.'
-                : 'No inquiries yet — submissions from the website will appear here.'
+                : 'No inquiries yet — website submissions land here, or use “Add lead”.'
             }
             className="text-sm"
             stripedRows
@@ -309,6 +331,12 @@ export default function AdminInquiriesPage() {
           </DataTable>
         </div>
       </div>
+
+      <NewLeadDialog
+        open={isNewLeadOpen}
+        onClose={() => setIsNewLeadOpen(false)}
+        onCreate={createLead}
+      />
     </div>
   );
 }

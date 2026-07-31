@@ -29,6 +29,20 @@ export interface IntakeInput {
   rawPayload: unknown;
   ipAddress: string | null;
   userAgent: string | null;
+  /**
+   * Skips W1 enrolment — set when an agent enters the lead by hand.
+   *
+   * W1 emails the customer "we've got your inquiry" and alerts the team, which
+   * is wrong for someone standing at the counter or already on the phone. It
+   * also chains into W2, whose WhatsApp drip ends by auto-moving the deal to
+   * Lost after 72h of "no response" — a lead an agent is actively working must
+   * never be closed by a timer it was never meant to be on.
+   *
+   * Only the automations are skipped. The contact, opportunity and inquiry are
+   * still written exactly as they are for a web lead, and referral attribution
+   * below still runs.
+   */
+  skipAutomations?: boolean;
 }
 
 export interface IntakeResult {
@@ -174,11 +188,13 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
     }).catch((error) => console.error('[intake] referral linking failed:', error));
   }
 
-  await handleInquiryCreated({
-    opportunityId: result.opportunityId,
-    contactId: result.contactId,
-    inquiryId: result.inquiryId,
-  }).catch((error) => console.error('[intake] W1 enrollment failed:', error));
+  if (!input.skipAutomations) {
+    await handleInquiryCreated({
+      opportunityId: result.opportunityId,
+      contactId: result.contactId,
+      inquiryId: result.inquiryId,
+    }).catch((error) => console.error('[intake] W1 enrollment failed:', error));
+  }
 
   return result;
 }

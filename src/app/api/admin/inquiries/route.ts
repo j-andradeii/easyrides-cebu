@@ -1,8 +1,10 @@
 /**
- * GET /api/admin/inquiries — the searchable, filterable lead list (plan §10.2).
+ * GET  /api/admin/inquiries — the searchable, filterable lead list (plan §10.2).
+ * POST /api/admin/inquiries — an agent creating a lead by hand (walk-in, phone).
  *
- * Returns one row per *opportunity* (the deal), not per raw form submission: a
- * returning customer shows up once per deal, which is what an agent works from.
+ * GET returns one row per *opportunity* (the deal), not per raw form
+ * submission: a returning customer shows up once per deal, which is what an
+ * agent works from.
  */
 
 import type { NextRequest } from 'next/server';
@@ -10,9 +12,11 @@ import { and, count, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } fro
 
 import { db } from '@/db/client';
 import { adminUsers, contacts, inquiries, opportunities, pipelineStages, tasks } from '@/db/schema';
-import { handleAdminRoute } from '@/lib/auth/require-admin';
-import { getStages } from '@/lib/crm/repository';
+import { AdminRouteError, handleAdminRoute } from '@/lib/auth/require-admin';
+import { createInquiry } from '@/lib/crm/intake';
+import { getStages, logActivity } from '@/lib/crm/repository';
 import type { InquiryListItem, InquiryListResponse } from '@/models/crm.types';
+import { adminLeadSchema, type AdminLeadCreateResponse } from '@/models/inquiry.schema';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -209,6 +213,91 @@ export async function GET(request: NextRequest) {
         .map((row) => row.source)
         .filter((value): value is string => Boolean(value))
         .sort(),
+    };
+  });
+}
+
+/**
+ * Creates a lead the same way the public forms do — same transaction, same
+ * dedup, same W1 enrolment — so a walk-in is indistinguishable from a web lead
+ * once it is in the pipeline. The only differences are deliberate:
+ *
+ *   - No IP rate limit. `isRateLimited` exists to stop bots hammering the
+ *     public endpoint; an authenticated agent entering back-to-back walk-ins
+ *     must never be throttled.
+ *   - No honeypot. There is an auth cookie in front of this.
+ *   - ipAddress/userAgent are null. Those columns describe the *customer's*
+ *     browser; filling them with the agent's would corrupt the audit trail.
+ *   - No automated messaging. The agent is already talking to this person, so
+ *     W1's "we've got your inquiry" email would be noise, and W2's drip would
+ *     eventually close the deal as "no response". See `skipAutomations`.
+ *
+ * Any admin role may create a lead — taking a booking is the job.
+ */
+export async function POST(request: NextRequest) {
+  return handleAdminRoute(async (admin): Promise<AdminLeadCreateResponse> => {
+    let body: unknown;
+
+    try {
+      body = await request.json();
+    } catch {
+      throw new AdminRouteError('Invalid JSON body', 400);
+    }
+
+    const parsed = adminLeadSchema.safeParse(body);
+
+    if (!parsed.success) {
+      // Surface the specific field so the dialog can show something useful
+      // instead of a generic "invalid".
+      const issue = parsed.error.issues[0];
+      const field = issue?.path.join('.');
+      throw new AdminRouteError(
+        field ? `${field}: ${issue.message}` : (issue?.message ?? 'Invalid lead data'),
+        400
+      );
+    }
+
+    const result = await createInquiry({
+      data: parsed.data,
+      // Stamping the agent onto the immutable payload is the only record of who
+      // took the booking once the contact is later merged or renamed.
+      rawPayload: {
+        ...(body as Record<string, unknown>),
+        enteredBy: { id: admin.id, email: admin.email, name: admin.name },
+        enteredVia: 'admin-portal',
+      },
+      ipAddress: null,
+      userAgent: null,
+      skipAutomations: true,
+    });
+
+    // A second timeline entry, attributed to the agent. `createInquiry` already
+    // logged the system "Opportunity created" line; this one answers "who?".
+    await logActivity({
+      opportunityId: result.opportunityId,
+      contactId: result.contactId,
+      adminUserId: admin.id,
+      type: 'note',
+      subject: 'Lead added manually',
+      body:
+        `${admin.name} entered this lead in the portal (${parsed.data.source}). ` +
+        'No automated email was sent — follow up directly.',
+      metadata: {
+        source: parsed.data.source,
+        enteredVia: 'admin-portal',
+        automationsSkipped: true,
+      },
+    }).catch((error) => {
+      // The lead is already committed — a failed note must not fail the request.
+      console.error('[admin-inquiries] could not log manual-entry note:', error);
+    });
+
+    return {
+      success: true,
+      opportunityId: result.opportunityId,
+      contactId: result.contactId,
+      inquiryId: result.inquiryId,
+      isReturningCustomer: result.isReturningCustomer,
     };
   });
 }

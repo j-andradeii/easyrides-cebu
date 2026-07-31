@@ -65,10 +65,19 @@ const VEHICLE_LABELS: Record<string, string> = {
 };
 
 const SOURCE_LABELS: Record<string, string> = {
+  // Written by the public forms.
   'hero-quick-form': 'Hero quick form',
   'contact-form': 'Contact form',
   'tour-inquiry': 'Tour page',
   referral: 'Referral link',
+  // Written by an agent on /admin/inquiries — see ADMIN_LEAD_SOURCES.
+  'walk-in': 'Walk-in',
+  'phone-call': 'Phone call',
+  whatsapp: 'WhatsApp',
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  'repeat-customer': 'Repeat customer',
+  other: 'Other',
 };
 
 export function serviceLabel(value: string | null | undefined): string {
