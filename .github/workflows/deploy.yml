@@ -128,6 +128,34 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:seed
 
+      # Bootstraps the owner account so a fresh database is never left without a
+      # way in — there is no public signup (plan §9.1).
+      #
+      # --if-missing is load-bearing: without it this step would re-hash the
+      # ADMIN_PASSWORD secret into the row on EVERY deploy, silently reverting a
+      # password changed in the portal. With it, an existing account is untouched,
+      # so rotating the password is a portal action and this step stays a no-op.
+      #
+      # The password comes from a secret rather than the script's generator on
+      # purpose: a generated one is printed to stdout, and step output lands in
+      # the Actions log where anyone with repo read access can retrieve it.
+      # Requires ADMIN_PASSWORD on the "production" environment.
+      - name: Ensure admin account
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          if [ -z "$ADMIN_PASSWORD" ]; then
+            echo "::error::ADMIN_PASSWORD secret is not set on the 'production' environment."
+            exit 1
+          fi
+          npm run create-admin -- \
+            --email joseph_andrade@outlook.ph \
+            --name "Joseph Andrade" \
+            --role owner \
+            --if-missing \
+            --password "$ADMIN_PASSWORD"
+
   # No DATABASE_URL here on purpose: `vercel pull` downloads the project's own
   # production env vars, and the running app reads DATABASE_URL from Vercel at
   # request time. That one should be the TRANSACTION pooler (port 6543) — Vercel

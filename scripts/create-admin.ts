@@ -4,6 +4,11 @@
  *   npm run create-admin -- --email you@example.com --name "Joseph" --role owner --password "…"
  *
  * Omit --password and one is generated and printed once.
+ *
+ * Pass --if-missing to bootstrap only: an account that already exists is left
+ * exactly as it is. That is what the deploy workflow uses — without it, every
+ * production deploy would reset the admin's password back to the CI secret and
+ * undo any change made in the portal.
  */
 
 import { config as loadEnv } from 'dotenv';
@@ -43,6 +48,7 @@ async function main() {
   const name = args.name?.trim();
   const role = (args.role ?? 'owner') as Role;
   const password = args.password ?? randomBytes(9).toString('base64url');
+  const ifMissing = args['if-missing'] === 'true';
 
   if (!email || !name) {
     console.error(
@@ -70,13 +76,19 @@ async function main() {
   const db = drizzle(client, { schema });
 
   try {
-    const passwordHash = await bcrypt.hash(password, 12);
-
     const [existing] = await db
       .select({ id: schema.adminUsers.id })
       .from(schema.adminUsers)
       .where(eq(schema.adminUsers.email, email))
       .limit(1);
+
+    // Checked before hashing so a no-op run costs a SELECT, not a bcrypt round.
+    if (existing && ifMissing) {
+      console.log(`✔ Admin ${email} already exists — left untouched (--if-missing).`);
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
 
     if (existing) {
       await db
