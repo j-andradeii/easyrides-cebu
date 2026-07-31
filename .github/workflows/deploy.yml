@@ -1,0 +1,152 @@
+name: Vercel Production Deployment
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  # Lets you re-run migrations + deploy by hand from the Actions tab.
+  workflow_dispatch:
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+# Never let two production deploys (or two migration runs) overlap.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint & Typecheck
+    # A PR that is closed WITHOUT being merged must not deploy.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+  # Applies drizzle/*.sql to Supabase BEFORE the new code goes live, so the
+  # deployed app never queries a schema that doesn't exist yet.
+  #
+  # Requires one secret: DATABASE_URL, on the "production" environment
+  # (repo Settings > Environments > production > Environment secrets). It must be
+  # the SESSION-mode Supavisor pooler URL:
+  #
+  #   postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require
+  #
+  # Three details that are easy to get wrong, all enforced by the check below:
+  #   - Not db.<project-ref>.supabase.co. That host has an AAAA record and no A
+  #     record; GitHub runners are IPv4-only, so it dies with ENOTFOUND.
+  #   - Port 5432 (session), not 6543 (transaction). 6543 is the runtime URL for
+  #     Vercel; migrations want a real session for DDL.
+  #   - The user is `postgres.<project-ref>`, not plain `postgres`.
+  migrate:
+    name: Migrate Supabase Postgres
+    needs: test
+    runs-on: ubuntu-latest
+    # Optional: attach repo Settings > Environments > production for approval gates.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Fails in two seconds with a readable message instead of burning a
+      # connect_timeout on a host that can never resolve. Never echoes the URL.
+      - name: Validate DATABASE_URL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set on the 'production' environment."
+            exit 1
+          fi
+          case "$DATABASE_URL" in
+            *@db.*.supabase.co:*)
+              echo "::error::DATABASE_URL uses the direct host db.<ref>.supabase.co, which is IPv6-only. GitHub runners are IPv4-only. Use the session-mode pooler: aws-0-<region>.pooler.supabase.com:5432 with user postgres.<ref>."
+              exit 1 ;;
+          esac
+          case "$DATABASE_URL" in
+            *:6543/*)
+              echo "::error::Port 6543 is the transaction pooler — that URL belongs in Vercel's runtime env, not here. Migrations need session mode on port 5432."
+              exit 1 ;;
+          esac
+          case "$DATABASE_URL" in
+            *sslmode=require*) ;;
+            *)
+              echo "::error::DATABASE_URL is missing ?sslmode=require. Supabase rejects unencrypted connections and the Postgres driver leaves SSL off unless the URL asks for it."
+              exit 1 ;;
+          esac
+          echo "DATABASE_URL is a session-mode Supabase pooler URL."
+
+      # drizzle.config.ts reads process.env.DATABASE_URL. It also calls
+      # dotenv on .env.local, which is absent in CI — dotenv never overrides
+      # an already-set env var, so the secret below is what gets used.
+      #
+      # drizzle-kit migrate is idempotent: it reads the __drizzle_migrations
+      # table and applies only entries from drizzle/meta/_journal.json that
+      # aren't recorded yet, so re-running a deploy is safe.
+      - name: Apply Drizzle migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:migrate
+
+  # No DATABASE_URL here on purpose: `vercel pull` downloads the project's own
+  # production env vars, and the running app reads DATABASE_URL from Vercel at
+  # request time. That one should be the TRANSACTION pooler (port 6543) — Vercel
+  # functions scale out and would exhaust session slots on 5432. src/db/client.ts
+  # already sets `prepare: false`, which is what transaction mode requires.
+  #
+  # `needs: migrate` is what keeps the ordering safe: a failed migration blocks
+  # the deploy, so old code keeps serving rather than new code hitting an old schema.
+  deploy:
+    name: Deploy to Vercel
+    needs: migrate
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
