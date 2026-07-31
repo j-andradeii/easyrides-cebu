@@ -70,3 +70,52 @@ export interface InquirySubmissionResponse {
   message: string;
   inquiryId?: string;
 }
+
+/**
+ * Where a hand-entered lead came from — the walk-ins and phone calls that never
+ * touch a website form (plan §10.2).
+ *
+ * Deliberately disjoint from INQUIRY_SOURCES: those four values are written
+ * only by the public forms, and keeping the two sets separate is what lets the
+ * funnel report tell "the website produced this" apart from "an agent typed
+ * this in". The source filter on /admin/inquiries reads whatever is in the
+ * column, so both sets show up there without extra work.
+ */
+export const ADMIN_LEAD_SOURCES = [
+  'walk-in',
+  'phone-call',
+  'whatsapp',
+  'facebook',
+  'instagram',
+  'repeat-customer',
+  'other',
+] as const;
+
+export type AdminLeadSource = (typeof ADMIN_LEAD_SOURCES)[number];
+
+/**
+ * Contract for POST /api/admin/inquiries — an agent creating a lead by hand.
+ *
+ * Reuses the public shape so both paths land in `createInquiry` and produce
+ * identical records. Two fields are dropped rather than made optional:
+ * `website` is the bot honeypot (meaningless behind an auth cookie), and `utm`
+ * is set by the browser on a real form, so accepting it here would let hand
+ * entry fake campaign attribution.
+ */
+export const adminLeadSchema = inquirySubmissionSchema
+  .omit({ website: true, utm: true })
+  .extend({
+    source: z.enum(ADMIN_LEAD_SOURCES),
+  });
+
+export type AdminLeadData = z.infer<typeof adminLeadSchema>;
+
+/** What the portal gets back after creating a lead by hand. */
+export interface AdminLeadCreateResponse {
+  success: true;
+  opportunityId: string;
+  contactId: string;
+  inquiryId: string;
+  /** True when the phone/email matched a contact we already had. */
+  isReturningCustomer: boolean;
+}

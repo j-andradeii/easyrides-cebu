@@ -33,7 +33,7 @@ const STATUS_TONES: Record<string, string> = {
   accepted: 'bg-emerald-100 text-emerald-800',
   declined: 'bg-red-100 text-red-700',
   expired: 'bg-amber-100 text-amber-800',
-  cancelled: 'bg-slate-200 text-slate-600',
+  cancelled: 'bg-slate-200 text-slate-700',
 };
 
 interface QuoteBuilderProps {
@@ -143,11 +143,11 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs text-slate-500">{quote.reference}</span>
+                    <span className="font-mono text-xs text-slate-700">{quote.reference}</span>
                     <span className="font-semibold text-slate-900">{formatPeso(quote.total)}</span>
                     <span
                       className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${
-                        STATUS_TONES[quote.status] ?? 'bg-slate-100 text-slate-600'
+                        STATUS_TONES[quote.status] ?? 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       {quote.status}
@@ -158,7 +158,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-700">
                     Valid until {formatDate(quote.validUntil)}
                     {quote.viewedAt && ' · opened by customer'}
                     {quote.paymentMethod && ` · paying via ${quote.paymentMethod}`}
@@ -173,7 +173,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                   <button
                     type="button"
                     onClick={() => copyLink(quote)}
-                    className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                    className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
                   >
                     <i className={`pi ${copiedToken === quote.token ? 'pi-check' : 'pi-copy'} mr-1 text-[10px]`} />
                     {copiedToken === quote.token ? 'Copied' : 'Copy link'}
@@ -182,7 +182,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                     href={quote.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                    className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
                   >
                     <i className="pi pi-external-link mr-1 text-[10px]" />
                     Preview
@@ -220,7 +220,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                     type="button"
                     aria-label="Remove line"
                     onClick={() => setLines((current) => current.filter((_, i) => i !== index))}
-                    className="rounded-lg px-2 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                    className="rounded-lg px-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800"
                   >
                     <i className="pi pi-times text-xs" />
                   </button>
@@ -235,7 +235,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
               />
 
               <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1.5 text-xs text-slate-500">
+                <label className="flex items-center gap-1.5 text-xs text-slate-700">
                   Qty
                   <input
                     type="number"
@@ -246,7 +246,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                     className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
                   />
                 </label>
-                <label className="flex flex-1 items-center gap-1.5 text-xs text-slate-500">
+                <label className="flex flex-1 items-center gap-1.5 text-xs text-slate-700">
                   ₱ each
                   <input
                     type="number"
@@ -258,7 +258,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                     className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
                   />
                 </label>
-                <span className="w-24 text-right text-sm font-medium text-slate-700">
+                <span className="w-24 text-right text-sm font-medium text-slate-800">
                   {formatPeso(
                     (Number.parseFloat(line.quantity) || 0) * (Number.parseFloat(line.unitPrice) || 0)
                   )}
@@ -276,7 +276,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
           </button>
 
           <div className="grid grid-cols-2 gap-2 border-t border-slate-200 pt-3">
-            <label className="text-xs text-slate-500">
+            <label className="text-xs text-slate-700">
               Discount ₱
               <input
                 type="number"
@@ -288,7 +288,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                 className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
               />
             </label>
-            <label className="text-xs text-slate-500">
+            <label className="text-xs text-slate-700">
               Quote type
               <select
                 value={quoteType}
@@ -304,7 +304,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
             </label>
           </div>
 
-          <p className="-mt-1 text-[11px] text-slate-400">
+          <p className="-mt-1 text-[11px] text-slate-500">
             {quoteType === 'partial_payment'
               ? 'One instalment of this booking — the customer will be billed the rest separately.'
               : 'Settles the whole booking in one payment.'}
@@ -312,7 +312,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
 
           {openQuotes.length > 0 && (
             <fieldset className="rounded-lg border border-slate-200 p-2.5">
-              <legend className="px-1 text-xs font-medium text-slate-600">
+              <legend className="px-1 text-xs font-medium text-slate-700">
                 There {openQuotes.length === 1 ? 'is' : 'are'} {openQuotes.length} quote
                 {openQuotes.length === 1 ? '' : 's'} still awaiting payment
               </legend>
@@ -325,7 +325,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                   onChange={() => setSupersedeOpen(true)}
                   className="mt-0.5"
                 />
-                <span className="text-xs text-slate-600">
+                <span className="text-xs text-slate-700">
                   <strong className="text-slate-800">Replace it</strong> — a corrected price. The
                   old link stops working.
                 </span>
@@ -339,7 +339,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                   onChange={() => setSupersedeOpen(false)}
                   className="mt-0.5"
                 />
-                <span className="text-xs text-slate-600">
+                <span className="text-xs text-slate-700">
                   <strong className="text-slate-800">Add a payment</strong> — another instalment
                   alongside it. Both links stay live and the deal value is the sum.
                 </span>
@@ -347,7 +347,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
             </fieldset>
           )}
 
-          <label className="block text-xs text-slate-500">
+          <label className="block text-xs text-slate-700">
             Valid for (days)
             <input
               type="number"
@@ -368,6 +368,9 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
           />
 
           <div className="rounded-lg bg-slate-900 px-3 py-2.5 text-sm text-white">
+            {/* Light-on-dark: this one gets LIGHTER to stand out, not darker.
+                The rest of the admin UI is dark-on-white, where the opposite
+                is true — don't sweep this into a "darken the greys" pass. */}
             <div className="flex justify-between text-slate-300">
               <span>Subtotal</span>
               <span>{formatPeso(totals.subtotal)}</span>
@@ -404,13 +407,13 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
               type="button"
               onClick={() => setIsOpen(false)}
               disabled={busy}
-              className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Cancel
             </button>
           </div>
 
-          <p className="text-center text-[11px] text-slate-400">
+          <p className="text-center text-[11px] text-slate-500">
             Sending moves this lead to <strong>Quote Sent</strong> and starts the follow-up
             automation.
           </p>

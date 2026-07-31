@@ -16,8 +16,8 @@ import type { EnrollmentRecord } from '@/models/crm.types';
 const STATUS_STYLES: Record<string, { tone: string; icon: string; label: string }> = {
   active: { tone: 'text-emerald-700 bg-emerald-50', icon: 'pi-play-circle', label: 'Running' },
   paused: { tone: 'text-amber-700 bg-amber-50', icon: 'pi-pause-circle', label: 'Paused' },
-  completed: { tone: 'text-slate-600 bg-slate-100', icon: 'pi-check-circle', label: 'Completed' },
-  exited: { tone: 'text-slate-600 bg-slate-100', icon: 'pi-sign-out', label: 'Exited' },
+  completed: { tone: 'text-slate-700 bg-slate-100', icon: 'pi-check-circle', label: 'Completed' },
+  exited: { tone: 'text-slate-700 bg-slate-100', icon: 'pi-sign-out', label: 'Exited' },
   failed: { tone: 'text-red-700 bg-red-50', icon: 'pi-exclamation-circle', label: 'Failed' },
 };
 
@@ -52,7 +52,7 @@ export function AutomationsPanel({ enrollments, onAction, onEnroll, busy }: Auto
   return (
     <div className="space-y-3">
       {enrollments.length === 0 && (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-600">
           No automations have run on this lead yet.
         </p>
       )}
@@ -114,7 +114,7 @@ export function AutomationsPanel({ enrollments, onAction, onEnroll, busy }: Auto
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <p className="mt-1.5 text-xs text-slate-500">
+              <p className="mt-1.5 text-xs text-slate-600">
                 Step {Math.min(enrollment.currentStep + 1, enrollment.totalSteps)} of{' '}
                 {enrollment.totalSteps}
                 {enrollment.nextStepLabel && ` · next: ${enrollment.nextStepLabel}`}
@@ -131,7 +131,7 @@ export function AutomationsPanel({ enrollments, onAction, onEnroll, busy }: Auto
         <div className="pt-1">
           <label
             htmlFor="enroll-workflow"
-            className="mb-1.5 block text-xs font-medium text-slate-500"
+            className="mb-1.5 block text-xs font-medium text-slate-600"
           >
             Start an automation manually
           </label>
@@ -150,7 +150,7 @@ export function AutomationsPanel({ enrollments, onAction, onEnroll, busy }: Auto
                 setIsEnrolling(false);
               }
             }}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 disabled:bg-slate-50"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 disabled:bg-slate-50"
           >
             <option value="">Choose a workflow…</option>
             {available.map((definition) => (
@@ -183,7 +183,7 @@ function IconButton({
       aria-label={title}
       onClick={onClick}
       disabled={disabled}
-      className="rounded p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40"
+      className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40"
     >
       <i className={`pi ${icon} text-xs`} />
     </button>

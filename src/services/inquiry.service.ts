@@ -13,6 +13,7 @@ import type {
   ReviewRecord,
 } from '@/models/crm.types';
 import type { QuoteType } from '@/models/quote.schema';
+import type { AdminLeadCreateResponse, AdminLeadData } from '@/models/inquiry.schema';
 
 export interface InquiryListFilters {
   query?: string;
@@ -46,6 +47,16 @@ export const listInquiries = async (
 export const getInquiryDetail = async (id: string): Promise<InquiryDetailResponse> => {
   const response = await apiClient.get(`/api/admin/inquiries/${id}`);
   return (await response.json()) as InquiryDetailResponse;
+};
+
+/**
+ * Creates a lead by hand — the walk-ins and phone calls that never fill in a
+ * form. Goes through the same intake as the public site, so the new lead lands
+ * at New Lead with W1 already enrolled.
+ */
+export const createLead = async (input: AdminLeadData): Promise<AdminLeadCreateResponse> => {
+  const response = await apiClient.post('/api/admin/inquiries', input);
+  return (await response.json()) as AdminLeadCreateResponse;
 };
 
 export interface OpportunityPatch {

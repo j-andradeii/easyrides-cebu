@@ -150,6 +150,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     const payload: InquiryDetailResponse = {
       opportunity: {
         id: opportunity.id,
+        reference: opportunity.reference,
         title: opportunity.title,
         status: opportunity.status,
         stageId: opportunity.stageId,

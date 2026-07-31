@@ -16,7 +16,7 @@ import * as inquiryService from '@/services/inquiry.service';
 import type { ReferralRecord } from '@/models/crm.types';
 
 const STATUS_TONES: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-600',
+  pending: 'bg-slate-100 text-slate-700',
   clicked: 'bg-sky-100 text-sky-700',
   signed_up: 'bg-violet-100 text-violet-700',
   booked: 'bg-amber-100 text-amber-800',
@@ -75,7 +75,7 @@ export default function AdminReferralsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-slate-500">
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
         <i className="pi pi-spin pi-spinner mr-2 text-xl" /> Loading referrals…
       </div>
     );
@@ -85,7 +85,7 @@ export default function AdminReferralsPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold text-slate-900">Referrals</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           {items.length} referral{items.length === 1 ? '' : 's'}
           {awaitingPayout > 0 && ` · ${awaitingPayout} awaiting payout approval`}
         </p>
@@ -99,12 +99,12 @@ export default function AdminReferralsPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="rounded-xl border border-slate-200 bg-white p-5 lg:col-span-2">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600">
             All referrals
           </h2>
 
           {items.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-500">
+            <p className="py-8 text-center text-sm text-slate-600">
               No referrals yet. W4 invites happy customers to share after every trip.
             </p>
           ) : (
@@ -117,20 +117,20 @@ export default function AdminReferralsPage() {
                         <span className="font-medium text-slate-900">
                           {referral.referrerName ?? 'Unknown'}
                         </span>
-                        <i className="pi pi-arrow-right text-[10px] text-slate-300" />
-                        <span className="text-slate-700">
+                        <i className="pi pi-arrow-right text-[10px] text-slate-400" />
+                        <span className="text-slate-800">
                           {referral.refereeName ?? 'not claimed yet'}
                         </span>
                         <span
                           className={`rounded px-2 py-0.5 text-xs font-medium capitalize ${
-                            STATUS_TONES[referral.status] ?? 'bg-slate-100 text-slate-600'
+                            STATUS_TONES[referral.status] ?? 'bg-slate-100 text-slate-700'
                           }`}
                         >
                           {referral.status.replace('_', ' ')}
                         </span>
                       </div>
 
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-600">
                         <span className="font-mono">{referral.code}</span>
                         {referral.channel && ` · via ${referral.channel}`}
                         {` · ${formatDate(referral.createdAt)}`}
@@ -139,7 +139,7 @@ export default function AdminReferralsPage() {
                       </p>
 
                       {(referral.referrerReward || referral.refereeReward) && (
-                        <p className="mt-1 text-xs text-slate-600">
+                        <p className="mt-1 text-xs text-slate-700">
                           Referrer: {rewardLabel(referral.referrerReward)} · Friend:{' '}
                           {rewardLabel(referral.refereeReward)}
                         </p>
@@ -156,7 +156,7 @@ export default function AdminReferralsPage() {
                       {referral.refereeOpportunityId && (
                         <Link
                           href={`/admin/inquiries/${referral.refereeOpportunityId}`}
-                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
                         >
                           Open booking
                         </Link>
@@ -178,7 +178,7 @@ export default function AdminReferralsPage() {
                           type="button"
                           disabled={isBusy}
                           onClick={() => act(referral.id, 'void')}
-                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
                         >
                           Void
                         </button>
@@ -192,15 +192,15 @@ export default function AdminReferralsPage() {
         </section>
 
         <section className="rounded-xl border border-slate-200 bg-white p-5">
-          <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-600">
             Top referrers
           </h2>
-          <p className="mb-4 text-xs text-slate-500">
+          <p className="mb-4 text-xs text-slate-600">
             Someone sending guests every month is a partner worth formalising.
           </p>
 
           {leaderboard.length === 0 ? (
-            <p className="text-sm text-slate-500">No referrers yet.</p>
+            <p className="text-sm text-slate-600">No referrers yet.</p>
           ) : (
             <ol className="space-y-2">
               {leaderboard.map((leader, index) => (
@@ -208,11 +208,11 @@ export default function AdminReferralsPage() {
                   key={leader.contactId}
                   className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2"
                 >
-                  <span className="w-5 text-sm font-semibold text-slate-400">{index + 1}</span>
+                  <span className="w-5 text-sm font-semibold text-slate-500">{index + 1}</span>
                   <span className="min-w-0 flex-1 truncate text-sm text-slate-900">
                     {leader.name ?? 'Unnamed'}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-600">
                     {leader.booked}/{leader.referrals}
                   </span>
                 </li>

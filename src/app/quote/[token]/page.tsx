@@ -16,7 +16,11 @@ import { useParams } from 'next/navigation';
 
 import { ProofOfPaymentField } from '@/components/quote/ProofOfPaymentField';
 import { DownloadQRButton } from '@/components/ui/DownloadQRButton';
-import { PAYMENT_METHODS, type PaymentMethod } from '@/data/payment-methods';
+import {
+  PAYMENT_METHODS,
+  SELECTABLE_PAYMENT_METHODS,
+  type PaymentMethod,
+} from '@/data/payment-methods';
 import { formatDate, formatPeso } from '@/lib/format';
 import { QUOTE_TYPE_LABELS, type PublicQuote } from '@/models/quote.schema';
 
@@ -157,17 +161,45 @@ export default function QuoteCheckoutPage() {
   // --- Terminal states -------------------------------------------------------
 
   if (accepted) {
+    // Same rule as the booking_confirmation email: a transfer is the
+    // customer's word until an admin opens the bank app and verifies it, so
+    // this screen must not promise a seat yet. Cash on pickup has nothing to
+    // verify — they hand the money to the driver — so it stays confirmed.
+    const awaitingVerification = !PAYMENT_METHODS.find((m) => m.key === quote.paymentMethod)
+      ?.paidOnPickup;
+
     return (
       <Shell>
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-            <i className="pi pi-check text-2xl text-green-600" />
+          <div
+            className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${
+              awaitingVerification ? 'bg-amber-100' : 'bg-green-100'
+            }`}
+          >
+            <i
+              className={`text-2xl ${
+                awaitingVerification ? 'pi pi-clock text-amber-600' : 'pi pi-check text-green-600'
+              }`}
+            />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">You&apos;re booked! 🎉</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {awaitingVerification ? 'Payment received — confirming now' : "You're booked! 🎉"}
+          </h1>
           <p className="mt-2 text-slate-600">
-            Thanks, {quote.customerName}. We&apos;ve got your confirmation for{' '}
-            <strong>{quote.serviceLabel}</strong>
-            {quote.tripDate ? ` on ${formatDate(quote.tripDate)}` : ''}.
+            {awaitingVerification ? (
+              <>
+                Thanks, {quote.customerName}. We&apos;re checking your payment for{' '}
+                <strong>{quote.serviceLabel}</strong>
+                {quote.tripDate ? ` on ${formatDate(quote.tripDate)}` : ''} and will email you as
+                soon as it&apos;s confirmed.
+              </>
+            ) : (
+              <>
+                Thanks, {quote.customerName}. We&apos;ve got your confirmation for{' '}
+                <strong>{quote.serviceLabel}</strong>
+                {quote.tripDate ? ` on ${formatDate(quote.tripDate)}` : ''}.
+              </>
+            )}
           </p>
         </div>
 
@@ -183,7 +215,9 @@ export default function QuoteCheckoutPage() {
         </div>
 
         <p className="mt-6 text-center text-sm text-slate-500">
-          We&apos;ll message you your driver&apos;s details the day before your trip.
+          {awaitingVerification
+            ? "Once it's confirmed we'll message you your driver's details the day before your trip."
+            : "We'll message you your driver's details the day before your trip."}
         </p>
         <WhatsAppButton number={whatsapp} label="Message us on WhatsApp" />
       </Shell>
@@ -339,8 +373,13 @@ export default function QuoteCheckoutPage() {
           </h2>
           <p className="mb-4 text-sm text-slate-500">Pick one to see the payment details.</p>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            {PAYMENT_METHODS.map((item) => {
+          {/* Column count follows the list so a retired method doesn't leave a gap. */}
+          <div
+            className={`grid gap-3 ${
+              SELECTABLE_PAYMENT_METHODS.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'
+            }`}
+          >
+            {SELECTABLE_PAYMENT_METHODS.map((item) => {
               const isSelected = selectedMethod === item.key;
               return (
                 <button

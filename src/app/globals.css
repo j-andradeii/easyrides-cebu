@@ -476,3 +476,142 @@ h1, h2, h3, h4, h5, h6 {
 .submit-button.p-button .p-button-icon {
   margin-left: 0.5rem;
 }
+
+/* ==========================================================================
+   Admin data table (.admin-table)
+   --------------------------------------------------------------------------
+   The lara theme draws a spreadsheet: a boxed grid, tight rows and striping
+   that fights the content. These overrides trade that for a list — generous
+   row height, hairline separators instead of fills, and hover as the only
+   row-level colour, so the eye tracks one lead at a time.
+   Scoped to .admin-table so public-site tables keep the stock theme.
+   ========================================================================== */
+
+.admin-table .p-datatable-thead > tr > th {
+  background: #f8fafc; /* slate-50 */
+  border: none;
+  border-bottom: 1px solid #e2e8f0; /* slate-200 */
+  padding: 0.75rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #475569; /* slate-600 */
+  white-space: nowrap;
+}
+
+.admin-table .p-datatable-tbody > tr {
+  background: #ffffff;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.admin-table .p-datatable-tbody > tr > td {
+  border: none;
+  border-bottom: 1px solid #f1f5f9; /* slate-100 — hairline, not a grid line */
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+/* The last row's separator would double up with the card border. */
+.admin-table .p-datatable-tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+/*
+ * Hover is the whole point: a wide row needs a cue tying the far-right Tasks
+ * cell back to the name on the left. The inset shadow marks the active row
+ * with the brand colour without shifting layout the way a real border would.
+ */
+.admin-table .p-datatable-tbody > tr:not(.p-highlight):hover {
+  background: #f8fafc;
+  box-shadow: inset 3px 0 0 0 var(--coral);
+}
+
+.admin-table .p-datatable-tbody > tr.p-highlight {
+  background: #fff5f5;
+  color: inherit;
+  box-shadow: inset 3px 0 0 0 var(--coral);
+}
+
+/* Keyboard users get the same affordance as the mouse. */
+.admin-table .p-datatable-tbody > tr:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: -2px;
+}
+
+.admin-table .p-datatable-tbody > tr > td .p-column-title {
+  font-weight: 600;
+  color: #475569;
+}
+
+.admin-table .p-datatable-emptymessage > td {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #64748b; /* slate-500 */
+}
+
+/* Paginator reads as a footer of the card, not a second component. */
+.admin-table .p-paginator {
+  background: #f8fafc;
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  padding: 0.625rem 1rem;
+}
+
+.admin-table .p-paginator .p-paginator-pages .p-paginator-page,
+.admin-table .p-paginator .p-paginator-first,
+.admin-table .p-paginator .p-paginator-prev,
+.admin-table .p-paginator .p-paginator-next,
+.admin-table .p-paginator .p-paginator-last {
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  color: #334155; /* slate-700 */
+}
+
+.admin-table .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background: var(--coral);
+  color: #ffffff;
+}
+
+.admin-table .p-paginator .p-dropdown {
+  height: 2rem;
+  border-radius: 0.5rem;
+}
+
+/* ==========================================================================
+   Admin form legibility (.admin-root)
+   --------------------------------------------------------------------------
+   Not one admin input declared a placeholder colour, so every one of them
+   fell back to the browser default — the faintest text in the portal, and the
+   text that matters most on an empty form, because it is the only thing
+   telling an agent what the field is for.
+
+   slate-500 (4.76:1 on white) rather than the slate-600 used for body copy:
+   a placeholder still has to read as a prompt and not as a typed value.
+
+   `opacity: 1` is load-bearing. Firefox applies its own opacity to
+   ::placeholder, which would knock the colour back down to roughly what it
+   was before.
+   ========================================================================== */
+
+.admin-root input::placeholder,
+.admin-root textarea::placeholder {
+  color: #64748b; /* slate-500 */
+  opacity: 1;
+}
+
+/* Native selects showing their placeholder option, and disabled controls,
+   otherwise sit at the UA grey — which is lighter still. */
+.admin-root select {
+  color: #0f172a; /* slate-900, matching a typed value */
+}
+
+.admin-root input:disabled,
+.admin-root textarea:disabled,
+.admin-root select:disabled {
+  color: #475569; /* slate-600 — dimmed, but still readable */
+  -webkit-text-fill-color: #475569; /* Safari ignores `color` on disabled inputs */
+}

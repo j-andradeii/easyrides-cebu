@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
+import { LeadReference } from '@/components/admin/LeadReference';
 import { serviceLabel } from '@/lib/crm/normalize';
 import { formatDate, formatPeso } from '@/lib/format';
 import * as inquiryService from '@/services/inquiry.service';
@@ -78,7 +79,7 @@ export default function AdminPipelinePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-slate-500">
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
         <i className="pi pi-spin pi-spinner mr-2 text-xl" /> Loading pipeline…
       </div>
     );
@@ -91,14 +92,14 @@ export default function AdminPipelinePage() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Pipeline</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-600">
             Drag a lead to a new stage — the same automations fire as on the detail screen.
           </p>
         </div>
         <button
           type="button"
           onClick={load}
-          className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
         >
           <i className="pi pi-refresh mr-1.5 text-xs" /> Refresh
         </button>
@@ -135,16 +136,16 @@ export default function AdminPipelinePage() {
                 }`}
               >
                 <div className="mb-3 flex items-baseline justify-between px-1">
-                  <h2 className="text-sm font-semibold text-slate-700">{stage.name}</h2>
-                  <span className="text-xs text-slate-500">{items.length}</span>
+                  <h2 className="text-sm font-semibold text-slate-800">{stage.name}</h2>
+                  <span className="text-xs text-slate-600">{items.length}</span>
                 </div>
                 {total > 0 && (
-                  <p className="mb-3 px-1 text-xs text-slate-500">{formatPeso(total)} in play</p>
+                  <p className="mb-3 px-1 text-xs text-slate-600">{formatPeso(total)} in play</p>
                 )}
 
                 <div className="space-y-2">
                   {items.length === 0 && (
-                    <p className="px-1 py-6 text-center text-xs text-slate-400">No leads here</p>
+                    <p className="px-1 py-6 text-center text-xs text-slate-500">No leads here</p>
                   )}
 
                   {items.map((item) => (
@@ -158,16 +159,19 @@ export default function AdminPipelinePage() {
                         draggingId === item.opportunityId ? 'opacity-50' : ''
                       }`}
                     >
-                      <p className="truncate text-sm font-medium text-slate-900">
-                        {item.contactName ?? 'Unnamed lead'}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-slate-500">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="truncate text-sm font-medium text-slate-900">
+                          {item.contactName ?? 'Unnamed lead'}
+                        </p>
+                        <LeadReference reference={item.reference} className="shrink-0" />
+                      </div>
+                      <p className="mt-0.5 truncate text-xs text-slate-600">
                         {serviceLabel(item.serviceType)}
                         {item.tourTitle ? ` · ${item.tourTitle}` : ''}
                       </p>
                       <div className="mt-2 flex items-center justify-between text-xs">
-                        <span className="text-slate-500">{formatDate(item.preferredDate)}</span>
-                        <span className="font-medium text-slate-700">
+                        <span className="text-slate-600">{formatDate(item.preferredDate)}</span>
+                        <span className="font-medium text-slate-800">
                           {formatPeso(item.monetaryValue)}
                         </span>
                       </div>

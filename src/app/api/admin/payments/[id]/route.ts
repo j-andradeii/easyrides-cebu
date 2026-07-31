@@ -10,7 +10,7 @@
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { quotes } from '@/db/schema';
+import { payments, quotes } from '@/db/schema';
 import { AdminRouteError, handleAdminRoute } from '@/lib/auth/require-admin';
 import { truncate } from '@/lib/crm/normalize';
 import { getPaymentDetail, reviewPayment } from '@/lib/crm/payments';
@@ -55,7 +55,22 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       adminUserId: admin.id,
     });
 
-    if (!payment) throw new AdminRouteError('Payment not found', 404);
+    if (!payment) {
+      // reviewPayment refuses to touch an already-verified row, so "no row
+      // returned" now has two very different causes. Telling them apart
+      // matters: "not found" sends an agent hunting for a deleted record when
+      // the real answer is that this money was already confirmed.
+      const [existing] = await db
+        .select({ status: payments.status })
+        .from(payments)
+        .where(eq(payments.id, id))
+        .limit(1);
+
+      if (existing?.status === 'verified') {
+        throw new AdminRouteError('This payment is already verified and cannot be changed.', 409);
+      }
+      throw new AdminRouteError('Payment not found', 404);
+    }
 
     const [quote] = await db.select().from(quotes).where(eq(quotes.id, payment.quoteId)).limit(1);
     const verified = parsed.data.action === 'verify';
