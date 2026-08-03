@@ -52,11 +52,10 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     label: 'GCash',
     icon: 'pi-wallet',
     tagline: 'Scan the QR or send to our number',
-    accountName: 'EasyRideCebu',
+    accountName: 'Trishia Andrade',
     accountNumber: '0917 804 6988',
-    // TODO: paste your GCash QR image URL here
-    qrImageUrl: '',
-    qrFilename: 'easyridecebu-gcash-qr.png',
+    qrImageUrl: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/payments/gcash.jpg',
+    qrFilename: 'easyridecebu-gcash-qr.jpg',
     instructions:
       'Open GCash → Scan QR (or Send Money to the number above) → enter the amount → confirm. Keep the reference number from your receipt.',
     requiresReference: true,
@@ -68,11 +67,10 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     label: 'BPI Bank Transfer',
     icon: 'pi-credit-card',
     tagline: 'Scan with your banking app, or transfer manually',
-    accountName: 'EasyRideCebu',
-    accountNumber: '0000 0000 0000',
-    // TODO: paste your BPI QR image URL here
-    qrImageUrl: '',
-    qrFilename: 'easyridecebu-bpi-qr.png',
+    accountName: 'Trishia Cansancio',
+    accountNumber: '1199778214',
+    qrImageUrl: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/payments/bpi.jpg',
+    qrFilename: 'easyridecebu-bpi-qr.jpg',
     instructions:
       'Open your BPI app → Scan QR (or transfer to the account above) → enter the amount → confirm. Keep the reference number from your receipt.',
     requiresReference: true,
