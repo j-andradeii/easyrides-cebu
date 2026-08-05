@@ -24,6 +24,13 @@ export const dynamic = 'force-dynamic';
 /** What browsers and next/image can actually display. */
 const ALLOWED_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/avif', 'image/gif']);
 
+/**
+ * Where the blob lands. Whitelisted rather than taken as given — the folder ends
+ * up in a public URL, so a caller must not be able to steer it anywhere.
+ */
+const ALLOWED_FOLDERS = new Set(['tours', 'vehicles']);
+const DEFAULT_FOLDER = 'tours';
+
 export interface TourImageUploadResult {
   url: string;
   contentType: string;
@@ -56,12 +63,16 @@ export async function POST(request: NextRequest) {
       throw new AdminRouteError('Upload a PNG, JPG, WebP or AVIF image', 415);
     }
 
+    const requested = form?.get('folder');
+    const folder =
+      typeof requested === 'string' && ALLOWED_FOLDERS.has(requested) ? requested : DEFAULT_FOLDER;
+
     // Keep a readable name in the URL — "tours/oslob-whale-shark-a1b2.webp"
     // beats an opaque hash when someone is looking at the blob store later.
-    const label = slugify(file.name.replace(/\.[^.]+$/, '')) || 'tour-image';
+    const label = slugify(file.name.replace(/\.[^.]+$/, '')) || `${folder}-image`;
     // Buffer, not the bare Uint8Array: @vercel/blob's PutBody accepts the Node
     // type here, and this route is pinned to the Node runtime.
-    const blob = await put(`tours/${ensureExtension(label, mime)}`, Buffer.from(bytes), {
+    const blob = await put(`${folder}/${ensureExtension(label, mime)}`, Buffer.from(bytes), {
       access: 'public',
       contentType: mime,
       // Two uploads named "banner.jpg" must not overwrite one another.

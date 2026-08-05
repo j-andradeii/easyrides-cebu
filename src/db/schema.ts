@@ -595,6 +595,49 @@ export const tours = pgTable(
   ]
 );
 
+// --- Fleet (the landing page's vehicle line-up, editable from the portal) ---
+
+/**
+ * One row per vehicle class the fleet section advertises — a Sedan, an SUV, a
+ * Van — not one row per physical car. That is the level the public page has
+ * always sold at ("Sedan · Vios / Mirage G4 (AT) · ₱1,500 / 24 hours"), and it
+ * is what an editor maintains.
+ *
+ * `features` is a text[] rather than jsonb: it is a flat list of short lines,
+ * exactly like the tours' inclusions, and Postgres arrays keep it that way.
+ */
+export const vehicles = pgTable(
+  'vehicles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    /** The class name shown as the card heading — "Sedan", "SUV", "Van". */
+    type: text('type').notNull(),
+    /** The actual cars in that class — "Vios / Mirage G4 (AT)". */
+    models: text('models').notNull(),
+    /** Free text so "5-seater" and "15-seater" read the way they always have. */
+    capacity: text('capacity').notNull(),
+    /** Whole pesos for 24 hours — the card's headline price. */
+    rate: integer('rate').notNull(),
+    features: text('features')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    /** Card image URL (Vercel Blob). */
+    image: text('image').notNull(),
+    /** Draws the "MOST POPULAR" ribbon and the coral treatment on the card. */
+    popular: boolean('popular').notNull().default(false),
+    /** Unpublished vehicles stay editable but disappear from the public site. */
+    isPublished: boolean('is_published').notNull().default(true),
+    /** Ascending; ties fall back to the type name. */
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdBy: uuid('created_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    updatedBy: uuid('updated_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('vehicles_published_idx').on(table.isPublished, table.sortOrder)]
+);
+
 // --- Inferred types ---------------------------------------------------------
 
 export type AdminUser = typeof adminUsers.$inferSelect;
@@ -613,3 +656,5 @@ export type Referral = typeof referrals.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type TourRow = typeof tours.$inferSelect;
 export type NewTourRow = typeof tours.$inferInsert;
+export type VehicleRow = typeof vehicles.$inferSelect;
+export type NewVehicleRow = typeof vehicles.$inferInsert;

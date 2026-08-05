@@ -15,7 +15,8 @@
     "db:reset-leads": "tsx scripts/reset-leads.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "import-sheet": "tsx scripts/import-sheet.ts",
-    "import-tours": "tsx scripts/import-tours.ts"
+    "import-tours": "tsx scripts/import-tours.ts",
+    "import-vehicles": "tsx scripts/import-vehicles.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

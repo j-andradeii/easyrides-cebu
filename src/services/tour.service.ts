@@ -57,15 +57,26 @@ export const suggestSlug = async (input: {
   return (await response.json()) as SlugSuggestion;
 };
 
+/** Which catalogue an image belongs to — becomes its folder in blob storage. */
+export type CatalogueImageFolder = 'tours' | 'vehicles';
+
 /**
  * Uploads one image and returns its public URL.
+ *
+ * Shared by both catalogues: tour banners and galleries, and fleet photos. The
+ * folder only decides where the blob lands, so a vehicle picture is findable as
+ * "vehicles/suv-a1b2.webp" months later.
  *
  * Plain `fetch`, not `apiClient`: the shared client forces a JSON Content-Type,
  * which would strip the multipart boundary the upload needs.
  */
-export const uploadTourImage = async (file: File): Promise<string> => {
+export const uploadTourImage = async (
+  file: File,
+  folder: CatalogueImageFolder = 'tours'
+): Promise<string> => {
   const form = new FormData();
   form.append('file', file, file.name);
+  form.append('folder', folder);
 
   const response = await fetch('/api/admin/tours/images', { method: 'POST', body: form });
   const data = (await response.json().catch(() => ({}))) as { url?: string; message?: string };
