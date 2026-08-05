@@ -6,10 +6,10 @@
  * builds a vehicle query, so the "published only, in display order" rule lives
  * in one place — the same arrangement as `lib/tours/repository`.
  *
- * Build resilience: the public reader swallows database errors and returns
- * nothing, exactly as `getPublishedTours` does. A build box legitimately has no
- * database credentials, and a Postgres blip must not fail a deploy — the fleet
- * section simply renders empty rather than taking the whole page down.
+ * Two flavours of public reader, matching `lib/tours/repository`:
+ * `listPublishedVehicles` throws so `/api/vehicles` can tell "no fleet" apart
+ * from "Postgres is down", and `getPublishedVehicles` swallows the error so a
+ * blip empties the fleet section rather than taking the whole landing page down.
  */
 
 import 'server-only';
@@ -70,19 +70,24 @@ const DISPLAY_ORDER = [asc(vehicles.sortOrder), asc(vehicles.type)];
 // --- Public site ------------------------------------------------------------
 
 /**
- * The landing page's fleet grid. Never throws — see the note at the top.
- *
- * `cache` dedupes it for one render, matching the tour readers.
+ * The published fleet, and it THROWS if the database is unreachable —
+ * `/api/vehicles` reads through this one. `cache` dedupes it for one render,
+ * matching the tour readers.
  */
+export const listPublishedVehicles = cache(async (): Promise<Vehicle[]> => {
+  const rows = await db
+    .select()
+    .from(vehicles)
+    .where(eq(vehicles.isPublished, true))
+    .orderBy(...DISPLAY_ORDER);
+
+  return rows.map(toVehicle);
+});
+
+/** The landing page's fleet grid. Never throws — see the note at the top. */
 export const getPublishedVehicles = cache(async (): Promise<Vehicle[]> => {
   try {
-    const rows = await db
-      .select()
-      .from(vehicles)
-      .where(eq(vehicles.isPublished, true))
-      .orderBy(...DISPLAY_ORDER);
-
-    return rows.map(toVehicle);
+    return await listPublishedVehicles();
   } catch (error) {
     console.error('[vehicles] could not load the fleet:', error);
     return [];

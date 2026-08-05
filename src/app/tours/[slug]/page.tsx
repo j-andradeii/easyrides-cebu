@@ -11,30 +11,22 @@ import Link from 'next/link';
 import { Navigation, Footer } from '@/components/landing';
 import { TourInquiryForm, TourGallery } from '@/components/tours';
 import { richTextToPlainText } from '@/lib/rich-text';
-import { getPublishedTourBySlug, getPublishedTourSlugs } from '@/lib/tours/repository';
+import { getPublishedTourBySlug } from '@/lib/tours/repository';
 import type { Tour } from '@/types/tour';
 
 const baseUrl = 'https://www.easyridecebutours.com';
 
 /**
- * Rebuilt hourly so an edit made in /admin/tours reaches the page without a
- * redeploy. Saving also revalidates this exact path, so a price change is live
- * immediately rather than within the hour.
+ * Rendered per request, straight from Postgres — see the note in `app/page.tsx`.
+ *
+ * This also replaces `generateStaticParams`, which could only ever prerender
+ * the tours a build box could see; with no database credentials there it
+ * prerendered none, and every tour page fell through to a runtime render anyway.
  */
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-/**
- * Prerenders the tours that exist at build time. `dynamicParams` stays at its
- * default of true, so a tour published in the portal after a deploy is rendered
- * on first request instead of 404ing until the next build.
- */
-export async function generateStaticParams() {
-  const slugs = await getPublishedTourSlugs();
-  return slugs.map((slug) => ({ slug }));
 }
 
 // Generate metadata for each tour (SEO optimized)

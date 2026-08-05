@@ -25,12 +25,17 @@ import { getPublishedVehicles } from '@/lib/vehicles/repository';
  * pointing at #contact repeated at each "ready to act" moment.
  */
 /**
- * Rebuilt hourly so reviews approved in /admin/reviews and fleet edits made in
- * /admin/vehicles reach the landing page without a redeploy, while the page
- * stays static for visitors. Both admin screens also revalidate this path on
- * save, so an edit is live immediately rather than within the hour.
+ * Rendered per request, straight from Postgres.
+ *
+ * It used to be a static page on a 1-hour timer, and that is what emptied the
+ * fleet and the featured strip on production: `next build` runs on a box whose
+ * DATABASE_URL is a placeholder (`vercel pull` cannot read env vars marked
+ * Sensitive), the readers below swallow that failure and return `[]`, and the
+ * empty render is what got baked and served until the timer fired an hour later
+ * — every single deploy. Reading at request time removes the build box from the
+ * data path entirely: whatever /admin publishes is what the next visitor gets.
  */
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   // Everything below the fold is portal-owned: reviews approved in

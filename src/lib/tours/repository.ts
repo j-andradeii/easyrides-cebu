@@ -5,12 +5,15 @@
  * reads through it, and /admin/tours writes through it. Nothing else builds a
  * tour query, so the "published only, in display order" rule lives in one place.
  *
- * Build resilience: the readers the *prerender* touches (the tours list, the
- * featured strip, the slug list) swallow database errors and return nothing,
- * exactly as `getPublishedTestimonials` does — a build box legitimately has no
- * database credentials, and a Postgres blip must not fail a deploy. The
- * by-slug reader deliberately does not: it only ever runs for a real request,
- * where a 500 is far more honest than a 404 on a tour that exists.
+ * Two flavours of public reader, on purpose:
+ *
+ *   list*  throws when Postgres is unreachable. `/api/tours` uses these, because
+ *          an endpoint that answers `[]` during an outage looks exactly like an
+ *          empty catalogue — and the by-slug reader uses it too, where a 500 is
+ *          far more honest than a 404 on a tour that exists.
+ *   get*   swallows the error and returns nothing. The landing page and the
+ *          catalogue use these, so a database blip empties one section instead
+ *          of taking the whole marketing site down with a 500.
  */
 
 import 'server-only';
@@ -89,15 +92,38 @@ const DISPLAY_ORDER = [asc(tours.sortOrder), asc(tours.title)];
 // twice. The cache is per-request, so it never serves one visitor another's data
 // and never outlives the render — page freshness is still `revalidate`'s job.
 
+/**
+ * The catalogue, and it THROWS if the database is unreachable.
+ *
+ * `/api/tours` reads through this one: an endpoint that answers `[]` when
+ * Postgres is down is indistinguishable from an empty catalogue, and telling
+ * those two apart is the whole reason the endpoint exists.
+ */
+export const listPublishedTours = cache(async (): Promise<Tour[]> => {
+  const rows = await db
+    .select()
+    .from(tours)
+    .where(eq(tours.isPublished, true))
+    .orderBy(...DISPLAY_ORDER);
+
+  return rows.map(toTour);
+});
+
+/** Featured tours only — the landing page strip. Throws, as `listPublishedTours` does. */
+export const listFeaturedTours = cache(async (limit = 3): Promise<Tour[]> => {
+  const rows = await db
+    .select()
+    .from(tours)
+    .where(and(eq(tours.isPublished, true), eq(tours.featured, true)))
+    .orderBy(...DISPLAY_ORDER)
+    .limit(limit);
+
+  return rows.map(toTour);
+});
+
 export const getPublishedTours = cache(async (): Promise<Tour[]> => {
   try {
-    const rows = await db
-      .select()
-      .from(tours)
-      .where(eq(tours.isPublished, true))
-      .orderBy(...DISPLAY_ORDER);
-
-    return rows.map(toTour);
+    return await listPublishedTours();
   } catch (error) {
     console.error('[tours] could not load the catalogue:', error);
     return [];
@@ -107,40 +133,16 @@ export const getPublishedTours = cache(async (): Promise<Tour[]> => {
 /** The landing page strip. Featured tours only, newest ordering rules applied. */
 export const getFeaturedTours = cache(async (limit = 3): Promise<Tour[]> => {
   try {
-    const rows = await db
-      .select()
-      .from(tours)
-      .where(and(eq(tours.isPublished, true), eq(tours.featured, true)))
-      .orderBy(...DISPLAY_ORDER)
-      .limit(limit);
-
-    return rows.map(toTour);
+    return await listFeaturedTours(limit);
   } catch (error) {
     console.error('[tours] could not load featured tours:', error);
     return [];
   }
 });
 
-/** Slugs for `generateStaticParams` and the sitemap. Never throws. */
-export const getPublishedTourSlugs = cache(async (): Promise<string[]> => {
-  try {
-    const rows = await db
-      .select({ slug: tours.slug })
-      .from(tours)
-      .where(eq(tours.isPublished, true))
-      .orderBy(...DISPLAY_ORDER);
-
-    return rows.map((row) => row.slug);
-  } catch (error) {
-    console.error('[tours] could not load tour slugs:', error);
-    return [];
-  }
-});
-
 /**
  * Deliberately does NOT swallow errors — see the note at the top of the file.
- * It only ever runs for a real request, where a 500 is more honest than a 404
- * on a tour that exists.
+ * A 500 is more honest than a 404 on a tour that exists.
  */
 export const getPublishedTourBySlug = cache(async (slug: string): Promise<Tour | null> => {
   const [row] = await db
