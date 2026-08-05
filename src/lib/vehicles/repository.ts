@@ -14,6 +14,7 @@
 
 import 'server-only';
 
+import { cache } from 'react';
 import { asc, eq, sql } from 'drizzle-orm';
 
 import { db } from '@/db/client';
@@ -68,8 +69,12 @@ const DISPLAY_ORDER = [asc(vehicles.sortOrder), asc(vehicles.type)];
 
 // --- Public site ------------------------------------------------------------
 
-/** The landing page's fleet grid. Never throws — see the note at the top. */
-export async function getPublishedVehicles(): Promise<Vehicle[]> {
+/**
+ * The landing page's fleet grid. Never throws — see the note at the top.
+ *
+ * `cache` dedupes it for one render, matching the tour readers.
+ */
+export const getPublishedVehicles = cache(async (): Promise<Vehicle[]> => {
   try {
     const rows = await db
       .select()
@@ -82,7 +87,7 @@ export async function getPublishedVehicles(): Promise<Vehicle[]> {
     console.error('[vehicles] could not load the fleet:', error);
     return [];
   }
-}
+});
 
 // --- Admin portal -----------------------------------------------------------
 

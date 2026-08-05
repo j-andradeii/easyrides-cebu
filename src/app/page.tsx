@@ -14,6 +14,7 @@ import {
   Footer,
 } from '@/components/landing';
 import { getPublishedTestimonials } from '@/lib/crm/testimonials';
+import { getFeaturedTours } from '@/lib/tours/repository';
 import { getPublishedVehicles } from '@/lib/vehicles/repository';
 
 /**
@@ -32,11 +33,14 @@ import { getPublishedVehicles } from '@/lib/vehicles/repository';
 export const revalidate = 3600;
 
 export default async function Home() {
-  // Reviews approved in /admin/reviews replace the curated quotes (plan §7A.2).
-  // The fleet is whatever /admin/vehicles has published.
-  const [publishedReviews, vehicles] = await Promise.all([
+  // Everything below the fold is portal-owned: reviews approved in
+  // /admin/reviews replace the curated quotes (plan §7A.2), the fleet is
+  // whatever /admin/vehicles has published, and the strip shows the first three
+  // tours flagged Featured in /admin/tours.
+  const [publishedReviews, vehicles, featuredTours] = await Promise.all([
     getPublishedTestimonials(),
     getPublishedVehicles(),
+    getFeaturedTours(3),
   ]);
 
   return (
@@ -66,7 +70,7 @@ export default async function Home() {
 
         {/* 5. DESIRE - core products and pricing */}
         <FleetSection vehicles={vehicles} />
-        <ToursSection />
+        <ToursSection tours={featuredTours} />
         <TransferRatesSection />
 
         {/* 6. UPSELL - professional driver add-on; its CTA pre-fills + scrolls to #contact */}

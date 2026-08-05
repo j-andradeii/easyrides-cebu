@@ -1,8 +1,7 @@
 import { MetadataRoute } from 'next';
-import toursData from '@/data/tours.json';
-import { Tour } from '@/types/tour';
+import { getPublishedTours } from '@/lib/tours/repository';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://www.easyridecebutours.com';
 
     // Static routes with SEO priorities
@@ -21,8 +20,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
     ];
 
-    // Dynamic tour routes - high priority for product/service pages
-    const tours = toursData.tours as Tour[];
+    // Dynamic tour routes - high priority for product/service pages.
+    // Published tours only: an unpublished tour has no page to point Google at.
+    const tours = await getPublishedTours();
 
     // Featured tours get higher priority
     const tourRoutes: MetadataRoute.Sitemap = tours.map((tour) => ({

@@ -10,26 +10,37 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Navigation, Footer } from '@/components/landing';
 import { TourInquiryForm, TourGallery } from '@/components/tours';
-import toursData from '@/data/tours.json';
+import { richTextToPlainText } from '@/lib/rich-text';
+import { getPublishedTourBySlug, getPublishedTourSlugs } from '@/lib/tours/repository';
 import type { Tour } from '@/types/tour';
 
 const baseUrl = 'https://www.easyridecebutours.com';
+
+/**
+ * Rebuilt hourly so an edit made in /admin/tours reaches the page without a
+ * redeploy. Saving also revalidates this exact path, so a price change is live
+ * immediately rather than within the hour.
+ */
+export const revalidate = 3600;
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-// Generate static paths for all tours
+/**
+ * Prerenders the tours that exist at build time. `dynamicParams` stays at its
+ * default of true, so a tour published in the portal after a deploy is rendered
+ * on first request instead of 404ing until the next build.
+ */
 export async function generateStaticParams() {
-  const tours = toursData.tours as Tour[];
-  return tours.map((tour) => ({ slug: tour.slug }));
+  const slugs = await getPublishedTourSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 // Generate metadata for each tour (SEO optimized)
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const tours = toursData.tours as Tour[];
-  const tour = tours.find((t) => t.slug === slug);
+  const tour = await getPublishedTourBySlug(slug);
 
   if (!tour) {
     return { title: 'Tour Not Found' };
@@ -101,7 +112,8 @@ function generateTourSchema(tour: Tour) {
     '@context': 'https://schema.org',
     '@type': 'TouristTrip',
     name: tour.title,
-    description: tour.description,
+    // The stored description is HTML; structured data wants the words only.
+    description: richTextToPlainText(tour.description),
     url: `${baseUrl}/tours/${tour.slug}`,
     image: [tour.image, ...(tour.gallery || [])],
     touristType: 'Adventure travelers',
@@ -198,8 +210,7 @@ function generateFaqSchema(tour: Tour) {
 
 export default async function TourDetailPage({ params }: Props) {
   const { slug } = await params;
-  const tours = toursData.tours as Tour[];
-  const tour = tours.find((t) => t.slug === slug);
+  const tour = await getPublishedTourBySlug(slug);
 
   if (!tour) {
     notFound();
@@ -282,7 +293,17 @@ export default async function TourDetailPage({ params }: Props) {
               {/* Description */}
               <div className="overflow-hidden">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">About This Tour</h2>
-                <p className="text-slate-600 leading-relaxed break-words">{tour.description}</p>
+                {/*
+                  The description is HTML written in the portal's rich-text
+                  editor and sanitised on the way into the database
+                  (`sanitizeRichText`), so what is stored is already safe to
+                  render — rendering it as text would print the tags. `.rich-text`
+                  is the shared stylesheet the editor and this page both wear.
+                */}
+                <div
+                  className="rich-text text-slate-600 break-words"
+                  dangerouslySetInnerHTML={{ __html: tour.description }}
+                />
               </div>
 
               {/* Gallery Section */}

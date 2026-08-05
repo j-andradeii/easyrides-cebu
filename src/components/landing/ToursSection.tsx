@@ -6,13 +6,18 @@
 
 import Link from 'next/link';
 import { TourCard } from '@/components/tours';
-import toursData from '@/data/tours.json';
 import type { Tour } from '@/types/tour';
 
-export function ToursSection() {
-  const tours = toursData.tours as Tour[];
-  const featuredTours = tours.filter((tour) => tour.featured).slice(0, 3);
+interface ToursSectionProps {
+  /**
+   * The featured tours, already filtered and limited. Fetched by the page (see
+   * `app/page.tsx`) rather than here so this stays a plain presentational
+   * component — the same split `FleetSection` and `Testimonials` use.
+   */
+  tours: Tour[];
+}
 
+export function ToursSection({ tours: featuredTours }: ToursSectionProps) {
   return (
     <section id="tours" className="py-12 bg-white relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}

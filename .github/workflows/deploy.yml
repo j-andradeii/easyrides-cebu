@@ -165,27 +165,26 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:seed
 
-      # Fills the public catalogues on a fresh database, so a first deploy comes
+      # Fills the public catalogues on a FRESH database, so a first deploy comes
       # up with tours and a fleet instead of two empty sections.
       #
-      # Both scripts are idempotent and — this is the important part — neither is
-      # passed --force. Without it they insert only what is MISSING (matched on
-      # tour slug and vehicle class) and leave existing rows exactly as they are,
-      # because by then /admin/tours and /admin/vehicles hold the copy an editor
-      # has been working on. So these stay no-ops on every deploy after the
-      # first, and a price edited in the portal is never reverted to the repo's.
+      # --only-if-empty is what makes this safe to leave in the pipeline forever:
+      # each script does nothing at all once its table has rows. Without it the
+      # scripts match on slug / vehicle class, and a tour RENAMED in the portal
+      # makes the repo's original slug look missing — so every subsequent deploy
+      # would re-insert it and leave two copies of one tour on the site.
       #
-      # Adding --force here would do precisely that: overwrite the live catalogue
-      # with the seed data on every single deploy.
-      - name: Seed tour catalogue
+      # Never add --force here. That would overwrite the live catalogue with the
+      # repo's seed data on every deploy, reverting whatever an editor changed.
+      - name: Seed tour catalogue (fresh database only)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run import-tours
+        run: npm run import-tours -- --only-if-empty
 
-      - name: Seed vehicle fleet
+      - name: Seed vehicle fleet (fresh database only)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run import-vehicles
+        run: npm run import-vehicles -- --only-if-empty
 
       # Bootstraps the owner account so a fresh database is never left without a
       # way in — there is no public signup (plan §9.1).
