@@ -8,10 +8,18 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Navigation, Footer } from '@/components/landing';
 import { TourCard } from '@/components/tours';
-import toursData from '@/data/tours.json';
+import { getPublishedTours } from '@/lib/tours/repository';
 import type { Tour } from '@/types/tour';
 
 const baseUrl = 'https://www.easyridecebutours.com';
+
+/**
+ * Rebuilt hourly so a tour published in /admin/tours reaches the catalogue
+ * without a redeploy, while the page stays static for visitors. Saving a tour
+ * also revalidates this path (`revalidateTourPages`), so an edit is live
+ * immediately rather than within the hour.
+ */
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Cebu Tour Packages - City Tours, Adventure & Day Trips',
@@ -115,8 +123,8 @@ const breadcrumbSchema = {
   ],
 };
 
-export default function ToursPage() {
-  const tours = toursData.tours as Tour[];
+export default async function ToursPage() {
+  const tours = await getPublishedTours();
 
   return (
     <main className="min-h-screen bg-slate-50 relative overflow-x-hidden">

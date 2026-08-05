@@ -15,6 +15,7 @@
 
 import 'server-only';
 
+import { cache } from 'react';
 import { and, asc, eq, ne, sql, type SQL } from 'drizzle-orm';
 
 import { db } from '@/db/client';
@@ -81,8 +82,14 @@ function toListItem(row: TourRow): TourListItem {
 const DISPLAY_ORDER = [asc(tours.sortOrder), asc(tours.title)];
 
 // --- Public site ------------------------------------------------------------
+//
+// Each reader is wrapped in React's `cache`, which dedupes it for the lifetime
+// of a single render. The root layout's JSON-LD and the page below it both want
+// the catalogue, and without this every tour page would run the same query
+// twice. The cache is per-request, so it never serves one visitor another's data
+// and never outlives the render — page freshness is still `revalidate`'s job.
 
-export async function getPublishedTours(): Promise<Tour[]> {
+export const getPublishedTours = cache(async (): Promise<Tour[]> => {
   try {
     const rows = await db
       .select()
@@ -95,10 +102,10 @@ export async function getPublishedTours(): Promise<Tour[]> {
     console.error('[tours] could not load the catalogue:', error);
     return [];
   }
-}
+});
 
 /** The landing page strip. Featured tours only, newest ordering rules applied. */
-export async function getFeaturedTours(limit = 3): Promise<Tour[]> {
+export const getFeaturedTours = cache(async (limit = 3): Promise<Tour[]> => {
   try {
     const rows = await db
       .select()
@@ -112,10 +119,10 @@ export async function getFeaturedTours(limit = 3): Promise<Tour[]> {
     console.error('[tours] could not load featured tours:', error);
     return [];
   }
-}
+});
 
 /** Slugs for `generateStaticParams` and the sitemap. Never throws. */
-export async function getPublishedTourSlugs(): Promise<string[]> {
+export const getPublishedTourSlugs = cache(async (): Promise<string[]> => {
   try {
     const rows = await db
       .select({ slug: tours.slug })
@@ -128,9 +135,14 @@ export async function getPublishedTourSlugs(): Promise<string[]> {
     console.error('[tours] could not load tour slugs:', error);
     return [];
   }
-}
+});
 
-export async function getPublishedTourBySlug(slug: string): Promise<Tour | null> {
+/**
+ * Deliberately does NOT swallow errors — see the note at the top of the file.
+ * It only ever runs for a real request, where a 500 is more honest than a 404
+ * on a tour that exists.
+ */
+export const getPublishedTourBySlug = cache(async (slug: string): Promise<Tour | null> => {
   const [row] = await db
     .select()
     .from(tours)
@@ -138,7 +150,7 @@ export async function getPublishedTourBySlug(slug: string): Promise<Tour | null>
     .limit(1);
 
   return row ? toTour(row) : null;
-}
+});
 
 // --- Admin portal -----------------------------------------------------------
 

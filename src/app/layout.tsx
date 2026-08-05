@@ -4,7 +4,7 @@ import { PrimeReactProvider } from "primereact/api";
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primeicons/primeicons.css";
 import "./globals.css";
-import toursData from "@/data/tours.json";
+import { getPublishedTours } from "@/lib/tours/repository";
 import { servicesData } from "@/data/services";
 
 const poppins = Poppins({
@@ -119,11 +119,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+/**
+ * Async because the business's offer catalogue below is built from the live
+ * tour list rather than a checked-in copy — a tour published in /admin/tours
+ * shows up in the structured data too, not just on the pages.
+ *
+ * The read is safe to do here: `getPublishedTours` swallows database errors and
+ * returns nothing, so a Postgres blip costs the JSON-LD its tour entries rather
+ * than taking down every page in the app. It is also wrapped in React's `cache`,
+ * so sharing a render with /tours or the homepage costs one query, not two.
+ */
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const tours = await getPublishedTours();
+
   return (
     <html lang="en" className="overflow-x-hidden scroll-smooth">
       <body
@@ -220,7 +232,7 @@ export default function RootLayout({
                       url: `https://www.easyridecebutours.com${service.link}`,
                     },
                   })),
-                  ...toursData.tours.map((tour) => ({
+                  ...tours.map((tour) => ({
                     "@type": "Offer",
                     itemOffered: {
                       "@type": "TouristTrip",

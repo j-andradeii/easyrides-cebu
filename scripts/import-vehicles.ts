@@ -2,12 +2,19 @@
  * Seeds the fleet that used to be hard-coded at the top of `FleetSection.tsx`,
  * so /admin/vehicles has something to manage on day one.
  *
- *   npm run import-vehicles            # insert the vehicles that are missing
- *   npm run import-vehicles -- --force # also overwrite ones that already exist
+ *   npm run import-vehicles                   # insert the vehicles that are missing
+ *   npm run import-vehicles -- --force        # also overwrite ones that exist
+ *   npm run import-vehicles -- --only-if-empty # do nothing unless the table is bare
  *
  * Idempotent by vehicle class: a class already in the database is left exactly
  * as it is unless --force is passed, because by then the portal's copy — not
  * this file — is the one an editor has been working on.
+ *
+ * --only-if-empty exists because "idempotent by class" is not the same as safe
+ * to re-run forever. Rename "Sedan" to "Sedan (AT)" in the portal and the seed's
+ * "Sedan" looks MISSING, so the next run re-inserts it — leaving two cards on
+ * the landing page. The deploy workflow passes this flag for exactly that
+ * reason: it wants to fill a fresh database, not to top up a live fleet.
  *
  * The array below is a verbatim copy of the component's old constant. It is a
  * one-time import source, not the live fleet; after this runs, the table is.
@@ -70,6 +77,14 @@ async function main() {
   const db = drizzle(client, { schema });
 
   try {
+    if (process.argv.includes('--only-if-empty')) {
+      const [any] = await db.select({ id: schema.vehicles.id }).from(schema.vehicles).limit(1);
+      if (any) {
+        console.log('Vehicles already exist — leaving the fleet alone (--only-if-empty).');
+        return;
+      }
+    }
+
     let inserted = 0;
     let updated = 0;
     let skipped = 0;
