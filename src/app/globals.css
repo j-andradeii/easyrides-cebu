@@ -615,3 +615,115 @@ h1, h2, h3, h4, h5, h6 {
   color: #475569; /* slate-600 — dimmed, but still readable */
   -webkit-text-fill-color: #475569; /* Safari ignores `color` on disabled inputs */
 }
+
+/* ==========================================================================
+   Rich text (.rich-text)
+   --------------------------------------------------------------------------
+   Tour descriptions are authored as HTML in the portal's TipTap editor and
+   rendered as HTML on the public tour page. Both wear this class, so what an
+   editor sees while typing is what a guest sees — the single reason these
+   rules live in globals rather than beside either component.
+
+   Tailwind's preflight resets headings and lists to look like body text, which
+   is right everywhere except inside a block of authored copy. This puts the
+   semantics back for that block only.
+   ========================================================================== */
+
+.rich-text > :first-child {
+  margin-top: 0;
+}
+
+.rich-text > :last-child {
+  margin-bottom: 0;
+}
+
+.rich-text p {
+  margin: 0 0 0.85em;
+  line-height: 1.7;
+}
+
+.rich-text h2,
+.rich-text h3,
+.rich-text h4 {
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.4em 0 0.5em;
+  color: #0f172a; /* slate-900 */
+}
+
+.rich-text h2 {
+  font-size: 1.25rem;
+}
+
+.rich-text h3 {
+  font-size: 1.125rem;
+}
+
+.rich-text h4 {
+  font-size: 1rem;
+}
+
+.rich-text ul,
+.rich-text ol {
+  margin: 0 0 0.85em;
+  padding-left: 1.5rem;
+}
+
+.rich-text ul {
+  list-style: disc;
+}
+
+.rich-text ol {
+  list-style: decimal;
+}
+
+.rich-text li {
+  margin-bottom: 0.3em;
+  line-height: 1.7;
+}
+
+/* TipTap wraps each list item's text in a paragraph; without this every
+   bullet would carry a paragraph's bottom margin. */
+.rich-text li > p {
+  margin: 0;
+}
+
+.rich-text a {
+  color: var(--coral);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rich-text strong {
+  font-weight: 700;
+}
+
+.rich-text em {
+  font-style: italic;
+}
+
+.rich-text blockquote {
+  margin: 0 0 0.85em;
+  padding-left: 1rem;
+  border-left: 3px solid var(--coral);
+  color: #475569; /* slate-600 */
+  font-style: italic;
+}
+
+.rich-text hr {
+  margin: 1.5em 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0; /* slate-200 */
+}
+
+.rich-text code {
+  background: #f1f5f9; /* slate-100 */
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+/* The editor's own surface: a caret needs somewhere to sit in an empty doc. */
+.rich-text.ProseMirror {
+  outline: none;
+}

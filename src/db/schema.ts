@@ -27,6 +27,10 @@ import {
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
+// Relative, not '@/…': drizzle-kit and the tsx scripts load this file outside
+// Next's module resolution, where the path alias is not available.
+import type { ItineraryItem, TourPricingOptions } from '../types/tour';
+
 // --- Enums -----------------------------------------------------------------
 
 export const adminRoleEnum = pgEnum('admin_role', ['owner', 'admin', 'agent']);
@@ -533,6 +537,64 @@ export const reviews = pgTable(
   ]
 );
 
+// --- Tours (the public tour catalogue, editable from the portal) ------------
+
+/**
+ * One row per tour package — the same shape `src/data/tours.json` used to hold,
+ * moved here so the portal can edit it. The JSON file stays in the repo as the
+ * one-time import source (`npm run import-tours`), not as the live catalogue.
+ *
+ * `pricing` and `itinerary` are jsonb rather than side tables: they are always
+ * read and written as a whole tour, never queried across tours, and keeping
+ * them inline means saving a tour is a single row write.
+ */
+export const tours = pgTable(
+  'tours',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    /** URL segment — /tours/[slug]. Derived from the title, unique site-wide. */
+    slug: text('slug').notNull(),
+    title: text('title').notNull(),
+    /** Plain text — the card blurb and the meta description. */
+    shortDescription: text('short_description').notNull(),
+    /** Sanitised TipTap HTML, rendered on the tour detail page. */
+    description: text('description').notNull(),
+    /** Banner / hero image URL (Vercel Blob). */
+    image: text('image').notNull(),
+    gallery: text('gallery')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    duration: text('duration').notNull(),
+    /** Shows on the landing page's featured strip. */
+    featured: boolean('featured').notNull().default(false),
+    /** Unpublished tours stay editable but disappear from the public site. */
+    isPublished: boolean('is_published').notNull().default(true),
+    /** Ascending; ties fall back to title. */
+    sortOrder: integer('sort_order').notNull().default(0),
+    /** { sedan: { price, capacity }, suv: {...}, van: {...} } */
+    pricing: jsonb('pricing').$type<TourPricingOptions>().notNull(),
+    /** Ordered stops: [{ time?, activity }] */
+    itinerary: jsonb('itinerary').$type<ItineraryItem[]>().notNull(),
+    inclusions: text('inclusions')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    exclusions: text('exclusions')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    createdBy: uuid('created_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    updatedBy: uuid('updated_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('tours_slug_uidx').on(table.slug),
+    index('tours_published_idx').on(table.isPublished, table.sortOrder),
+  ]
+);
+
 // --- Inferred types ---------------------------------------------------------
 
 export type AdminUser = typeof adminUsers.$inferSelect;
@@ -549,3 +611,5 @@ export type Quote = typeof quotes.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type Referral = typeof referrals.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
+export type TourRow = typeof tours.$inferSelect;
+export type NewTourRow = typeof tours.$inferInsert;
