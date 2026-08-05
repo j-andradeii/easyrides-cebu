@@ -14,12 +14,11 @@ import type { Tour } from '@/types/tour';
 const baseUrl = 'https://www.easyridecebutours.com';
 
 /**
- * Rebuilt hourly so a tour published in /admin/tours reaches the catalogue
- * without a redeploy, while the page stays static for visitors. Saving a tour
- * also revalidates this path (`revalidateTourPages`), so an edit is live
- * immediately rather than within the hour.
+ * Rendered per request, straight from Postgres — see the note in `app/page.tsx`
+ * for why this is no longer a build-time prerender: a build box has no database
+ * credentials, so the baked HTML was an empty catalogue.
  */
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Cebu Tour Packages - City Tours, Adventure & Day Trips',

@@ -1,6 +1,17 @@
 import { MetadataRoute } from 'next';
 import { getPublishedTours } from '@/lib/tours/repository';
 
+/**
+ * Built on every request, not at deploy time.
+ *
+ * A sitemap has no revalidation timer of its own: generated during `next build`
+ * it is written once and frozen, so on a build box with no database credentials
+ * it shipped with zero tour URLs and stayed that way until the next deploy —
+ * which is exactly what production was serving. Crawler traffic is a handful of
+ * hits a day, so a query per request costs nothing.
+ */
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://www.easyridecebutours.com';
 
