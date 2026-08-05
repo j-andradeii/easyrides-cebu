@@ -17,6 +17,7 @@ import { useId, useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { TOUR_GALLERY_MAX, TOUR_IMAGE_ACCEPT } from '@/models/tour.schema';
+import type { CatalogueImageFolder } from '@/services/tour.service';
 
 import { FormError } from './FormError';
 import { prepareAndUploadImage } from './FormImageUpload';
@@ -26,6 +27,8 @@ interface FormGalleryProps {
   name: string;
   label?: string;
   hint?: string;
+  /** Which catalogue's blob folder the photos land in. */
+  folder?: CatalogueImageFolder;
   max?: number;
   disabled?: boolean;
   className?: string;
@@ -35,6 +38,7 @@ export const FormGallery: React.FC<FormGalleryProps> = ({
   name,
   label,
   hint,
+  folder = 'tours',
   max = TOUR_GALLERY_MAX,
   disabled = false,
   className = '',
@@ -85,7 +89,13 @@ export const FormGallery: React.FC<FormGalleryProps> = ({
 
             // Settled, not all: one bad file in a batch must not discard the
             // photos that uploaded fine alongside it.
-            const results = await Promise.allSettled(accepted.map(prepareAndUploadImage));
+            //
+            // Called through an arrow rather than passed to `map` directly —
+            // the uploader takes an optional folder second, which `map` would
+            // otherwise fill with the array index.
+            const results = await Promise.allSettled(
+              accepted.map((file) => prepareAndUploadImage(file, folder))
+            );
             setPending((count) => count - accepted.length);
 
             const uploaded = results

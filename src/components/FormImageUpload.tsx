@@ -19,6 +19,7 @@ import { ensureExtension, resolveImageMime } from '@/lib/image-mime';
 import { optimizeImageForUpload } from '@/lib/image-to-webp';
 import { TOUR_IMAGE_ACCEPT, TOUR_IMAGE_MAX_BYTES } from '@/models/tour.schema';
 import * as tourService from '@/services/tour.service';
+import type { CatalogueImageFolder } from '@/services/tour.service';
 
 import { FormError } from './FormError';
 import { getNestedError } from './form-field-error';
@@ -27,6 +28,13 @@ interface FormImageUploadProps {
   name: string;
   label?: string;
   hint?: string;
+  /** Which catalogue's blob folder the image lands in. */
+  folder?: CatalogueImageFolder;
+  /** Copy for the empty drop zone — a fleet photo is not a tour banner. */
+  placeholder?: string;
+  placeholderHint?: string;
+  /** Object-fit for the preview: a car on white reads better contained. */
+  fit?: 'cover' | 'contain';
   disabled?: boolean;
   showRequired?: boolean;
   className?: string;
@@ -36,7 +44,10 @@ interface FormImageUploadProps {
  * Reads the file, checks it really is an image, shrinks it and uploads it.
  * Shared with the gallery field below.
  */
-export async function prepareAndUploadImage(file: File): Promise<string> {
+export async function prepareAndUploadImage(
+  file: File,
+  folder: CatalogueImageFolder = 'tours'
+): Promise<string> {
   const buffer = await file.arrayBuffer();
   const mime = resolveImageMime(new Uint8Array(buffer), file.type || '', file.name);
 
@@ -55,13 +66,17 @@ export async function prepareAndUploadImage(file: File): Promise<string> {
     throw new Error(`“${file.name}” is too large — keep images under 4 MB.`);
   }
 
-  return tourService.uploadTourImage(optimized);
+  return tourService.uploadTourImage(optimized, folder);
 }
 
 export const FormImageUpload: React.FC<FormImageUploadProps> = ({
   name,
   label,
   hint,
+  folder = 'tours',
+  placeholder = 'Upload the banner image',
+  placeholderHint = 'Landscape works best — it fills the top of the tour page',
+  fit = 'cover',
   disabled = false,
   showRequired = false,
   className = '',
@@ -101,7 +116,7 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
             setUploadError(null);
             setIsUploading(true);
             try {
-              field.onChange(await prepareAndUploadImage(file));
+              field.onChange(await prepareAndUploadImage(file, folder));
             } catch (caught) {
               setUploadError(caught instanceof Error ? caught.message : 'Upload failed');
             } finally {
@@ -126,8 +141,10 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={field.value}
-                    alt="Tour banner"
-                    className="h-44 w-full bg-slate-100 object-cover"
+                    alt=""
+                    className={`h-44 w-full bg-slate-100 ${
+                      fit === 'contain' ? 'object-contain p-3' : 'object-cover'
+                    }`}
                   />
                   <div className="flex items-center justify-between gap-3 px-3 py-2">
                     <p className="truncate text-xs text-slate-500">{field.value}</p>
@@ -162,11 +179,9 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                     className={`pi ${isUploading ? 'pi-spin pi-spinner' : 'pi-image'} text-lg text-slate-400`}
                   />
                   <span className="text-sm font-medium text-slate-700">
-                    {isUploading ? 'Uploading…' : 'Upload the banner image'}
+                    {isUploading ? 'Uploading…' : placeholder}
                   </span>
-                  <span className="text-xs text-slate-500">
-                    Landscape works best — it fills the top of the tour page
-                  </span>
+                  <span className="text-xs text-slate-500">{placeholderHint}</span>
                 </button>
               )}
 

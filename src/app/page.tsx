@@ -14,6 +14,7 @@ import {
   Footer,
 } from '@/components/landing';
 import { getPublishedTestimonials } from '@/lib/crm/testimonials';
+import { getPublishedVehicles } from '@/lib/vehicles/repository';
 
 /**
  * Landing page — built as a single conversion funnel.
@@ -23,14 +24,20 @@ import { getPublishedTestimonials } from '@/lib/crm/testimonials';
  * pointing at #contact repeated at each "ready to act" moment.
  */
 /**
- * Rebuilt hourly so reviews approved in /admin/reviews reach the landing page
- * without a redeploy, while the page stays static for visitors.
+ * Rebuilt hourly so reviews approved in /admin/reviews and fleet edits made in
+ * /admin/vehicles reach the landing page without a redeploy, while the page
+ * stays static for visitors. Both admin screens also revalidate this path on
+ * save, so an edit is live immediately rather than within the hour.
  */
 export const revalidate = 3600;
 
 export default async function Home() {
   // Reviews approved in /admin/reviews replace the curated quotes (plan §7A.2).
-  const publishedReviews = await getPublishedTestimonials();
+  // The fleet is whatever /admin/vehicles has published.
+  const [publishedReviews, vehicles] = await Promise.all([
+    getPublishedTestimonials(),
+    getPublishedVehicles(),
+  ]);
 
   return (
     <>
@@ -58,7 +65,7 @@ export default async function Home() {
         <HowItWorks />
 
         {/* 5. DESIRE - core products and pricing */}
-        <FleetSection />
+        <FleetSection vehicles={vehicles} />
         <ToursSection />
         <TransferRatesSection />
 

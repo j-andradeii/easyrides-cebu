@@ -1,34 +1,19 @@
-const vehicles = [
-  {
-    type: 'Sedan',
-    models: 'Vios / Mirage G4 (AT)',
-    capacity: '5-seater',
-    rate: 1500,
-    features: ['Air Conditioned', 'Automatic Transmission', 'Fuel Efficient', 'City-friendly'],
-    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/vios.png',
-    popular: false,
-  },
-  {
-    type: 'SUV',
-    models: 'Xpander / Avanza / Innova (AT)',
-    capacity: '7-seater',
-    rate: 2500,
-    features: ['Air Conditioned', 'Automatic Transmission', 'Spacious Interior', 'Family-friendly'],
-    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/suv.png',
-    popular: true,
-  },
-  {
-    type: 'Van',
-    models: 'NV350 / Hiace Commuter',
-    capacity: '15-seater',
-    rate: 3500,
-    features: ['Air Conditioned', 'Group Travel', 'Luggage Space', 'Tour-ready'],
-    image: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/van.png',
-    popular: false,
-  },
-];
+import type { Vehicle } from '@/types/vehicle';
 
-export function FleetSection() {
+interface FleetSectionProps {
+  /**
+   * The published fleet, in display order. Fetched by the page (see
+   * `app/page.tsx`) rather than here so this stays a plain presentational
+   * component — the same split `Testimonials` uses.
+   */
+  vehicles: Vehicle[];
+}
+
+export function FleetSection({ vehicles }: FleetSectionProps) {
+  // Nothing to sell, nothing to show: an empty grid under a "Our Fleet" heading
+  // looks broken, and this is also what a database blip degrades to.
+  if (vehicles.length === 0) return null;
+
   return (
     <section id="fleet" className="py-12 bg-cream relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}
