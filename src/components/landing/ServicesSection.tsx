@@ -107,7 +107,7 @@ function getCtaLabel(link: string) {
 
 export function ServicesSection() {
   return (
-    <section id="services" className="relative overflow-hidden bg-cream py-14 sm:py-20 scroll-mt-15 border-t border-cream-dark/50">
+    <section id="services" className="relative overflow-hidden bg-cream py-12 scroll-mt-15 border-t border-cream-dark/50">
       <div className="absolute right-0 top-0 h-96 w-96 translate-x-1/3 rounded-full bg-papaya/10 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 h-80 w-80 -translate-x-1/3 rounded-full bg-palm-light/10 blur-3xl pointer-events-none" />
 
