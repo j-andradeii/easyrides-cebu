@@ -182,7 +182,7 @@ export default async function VehicleDetailPage({ params }: Props) {
   const gallery = (vehicle.gallery ?? []).filter(Boolean);
 
   return (
-    <main className="min-h-screen bg-slate-50 relative w-full max-w-full overflow-x-hidden">
+    <main className="min-h-screen bg-white relative w-full max-w-full overflow-x-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(generateVehicleSchema(vehicle)) }}
@@ -192,216 +192,293 @@ export default async function VehicleDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(generateBreadcrumbSchema(vehicle)) }}
       />
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-palm-light/5" />
-      </div>
-
       <Navigation />
 
-      {/* Hero — the photo is a cut-out on white, so it is shown whole rather
-          than cropped to a banner the way a tour's landscape shot is. */}
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      {/* The photo is a cut-out on white, so it is shown whole rather than
+          cropped to a banner the way a tour's landscape shot is. */}
       <section className="pt-16">
-        <div className="relative bg-gradient-to-br from-white via-cream-light to-cream">
-          <div className="mx-auto max-w-7xl px-4 pb-8 pt-8 sm:px-6 lg:px-8">
-            <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white via-cream-light to-cream">
+          {/* Warm decorative blob — coral tone only, no blue */}
+          <div
+            className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full opacity-25 blur-3xl"
+            style={{ background: 'radial-gradient(circle, var(--sunset-orange) 0%, var(--cebu-red) 60%, transparent 80%)' }}
+          />
+          <div
+            className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full opacity-15 blur-3xl"
+            style={{ background: 'radial-gradient(circle, var(--papaya) 0%, transparent 70%)' }}
+          />
+
+          <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 lg:px-8">
+            {/* Breadcrumb */}
+            <nav className="mb-8 flex flex-wrap items-center gap-2 text-sm text-slate-500">
               <Link href="/" className="transition-colors hover:text-coral">
                 Home
               </Link>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
               <Link href="/#fleet" className="transition-colors hover:text-coral">
                 Fleet
               </Link>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="text-slate-700">{vehicle.models}</span>
+              <span className="font-medium text-slate-600">{vehicle.models}</span>
             </nav>
 
-            <div className="grid items-center gap-8 lg:grid-cols-2">
-              <div className="relative h-64 sm:h-80 lg:h-96">
+            <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+              {/* Car image */}
+              <div className="relative flex items-center justify-center">
                 {vehicle.popular && (
                   <div className="absolute left-0 top-0 z-20">
-                    <div className="rounded-full bg-gradient-to-r from-coral to-mango px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-coral/20">
+                    <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-coral to-mango px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-coral/20">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
                       MOST POPULAR
                     </div>
                   </div>
                 )}
-                <Image
-                  src={vehicle.image}
-                  alt={`${vehicle.models} — ${vehicle.type} for rent in Cebu`}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-contain"
-                  priority
+                {/* Warm glow behind car */}
+                <div
+                  className="absolute inset-0 rounded-full opacity-20 blur-2xl"
+                  style={{ background: 'radial-gradient(circle at center, var(--sunset-orange) 0%, transparent 65%)' }}
                 />
+                <div className="relative h-64 w-full sm:h-80 lg:h-[420px]">
+                  <Image
+                    src={vehicle.image}
+                    alt={`${vehicle.models} — ${vehicle.type} for rent in Cebu`}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-contain drop-shadow-xl"
+                    priority
+                  />
+                </div>
               </div>
 
-              <div>
-                <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-terracotta shadow-sm">
+              {/* Info panel */}
+              <div className="flex flex-col gap-5">
+                {/* Type + capacity pill */}
+                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-coral/20 bg-coral/5 px-4 py-1.5 text-sm font-semibold text-terracotta">
+                  <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                  </svg>
                   {vehicle.type} · {vehicle.capacity}
                 </span>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-                  {vehicle.models}
-                </h1>
-                <p className="mt-4 text-lg leading-relaxed text-slate-600">
-                  Rent a {vehicle.type.toLowerCase()} in Cebu with the paperwork done in a chat.
-                  Airport, hotel or Airbnb delivery, fuel-efficient and freshly serviced — drive it
-                  yourself or add one of our professional drivers.
-                </p>
 
-                <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
-                  <span className="text-4xl font-bold text-slate-900">
-                    ₱{vehicle.rate.toLocaleString()}
-                  </span>
-                  <span className="mb-1.5 text-sm font-medium text-slate-400 line-through decoration-slate-300 decoration-2 opacity-60">
-                    ₱{(vehicle.rate * 1.2).toLocaleString()}
-                  </span>
-                  <span className="mb-1.5 text-sm text-slate-500">/ 24 hours</span>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                    {vehicle.models}
+                  </h1>
+                  <p className="mt-3 text-base leading-relaxed text-slate-600">
+                    Rent a {vehicle.type.toLowerCase()} in Cebu with the paperwork done in a chat.
+                    Airport, hotel or Airbnb delivery, fuel-efficient and freshly serviced — drive it
+                    yourself or add one of our professional drivers.
+                  </p>
                 </div>
 
-                {/* Shown at every width now: the form sits at the foot of the
-                    page rather than beside this, so there is always somewhere
-                    to jump to. */}
-                <a
-                  href="#book"
-                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-coral to-mango px-8 py-4 font-semibold text-white shadow-lg shadow-coral/25 transition-all hover:-translate-y-0.5 hover:from-coral-dark hover:to-mango-dark hover:shadow-xl"
-                >
-                  Check availability
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </a>
+                {/* Price block */}
+                <div className="rounded-2xl border border-slate-300 bg-white px-6 py-5 shadow-sm">
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Daily rate
+                  </p>
+                  <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+                    <span className="text-5xl font-bold text-slate-900">
+                      ₱{vehicle.rate.toLocaleString()}
+                    </span>
+                    <div className="mb-1 flex flex-col gap-0.5">
+                      <span className="text-sm font-medium text-slate-500 line-through decoration-slate-400 decoration-2">
+                        ₱{(vehicle.rate * 1.2).toLocaleString()}
+                      </span>
+                      <span className="text-sm font-medium text-slate-600">/ 24 hours</span>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs font-medium text-slate-500">
+                    No payment needed to reserve · Free delivery within Cebu City
+                  </p>
+                </div>
+
+                {/* CTAs */}
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href="#book"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-coral to-mango px-7 py-3.5 font-semibold text-white shadow-lg shadow-coral/25 transition-all hover:-translate-y-0.5 hover:from-coral-dark hover:to-mango-dark hover:shadow-xl active:translate-y-0"
+                  >
+                    Check availability
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </a>
+
+                  <a
+                    href={`https://wa.me/639178046988?text=Hi! I'm interested in renting the ${encodeURIComponent(vehicle.models)}.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-green-400 hover:bg-green-50 hover:text-green-700 hover:shadow-md active:translate-y-0"
+                  >
+                    <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                      <path fillRule="evenodd" d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.123 1.534 5.856L.057 23.57a.5.5 0 00.612.612l5.714-1.477A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22A10 10 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" clipRule="evenodd" />
+                    </svg>
+                    WhatsApp us
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Gallery — only the cars an editor has photographed beyond the card
-          shot get this, so a fleet imported before the column existed simply
-          skips it. */}
+
+      {/* ── TRUST BADGES ─────────────────────────────────────────────────── */}
+      <section className="border-y border-slate-300 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 divide-x divide-y divide-slate-200 sm:grid-cols-4 sm:divide-y-0">
+            {[
+              { icon: '🛡️', label: 'Full Insurance', sub: 'Comprehensive cover' },
+              { icon: '🚗', label: 'Free Delivery', sub: 'Cebu City area' },
+              { icon: '📞', label: '24/7 Support', sub: 'Always reachable' },
+              { icon: '💳', label: 'No Deposit', sub: 'Reserve for free' },
+            ].map((badge) => (
+              <div key={badge.label} className="flex items-center gap-3 px-6 py-4">
+                <span className="text-2xl">{badge.icon}</span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{badge.label}</p>
+                  <p className="text-xs text-slate-500">{badge.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GALLERY ──────────────────────────────────────────────────────── */}
+      {/* Only the cars an editor has photographed beyond the card shot get
+          this, so a fleet imported before the column existed simply skips it. */}
       {gallery.length > 0 && (
-        <section className="pt-8">
+        <section className="py-10" style={{ background: 'linear-gradient(180deg, var(--cream) 0%, var(--cream-light) 100%)' }}>
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="h-1 w-8 rounded-full bg-gradient-to-r from-coral to-mango" />
+              <h2 className="text-lg font-bold text-slate-900">Photos of this vehicle</h2>
+            </div>
             <PhotoGallery
               images={gallery}
               title={`${vehicle.models} — ${vehicle.type} rental in Cebu`}
-              heading="Photos of this vehicle"
+              heading=""
               maxVisible={VEHICLE_GALLERY_MAX}
             />
           </div>
         </section>
       )}
 
-      {/* Detail */}
-      <section className="relative overflow-hidden py-8">
+      {/* ── FEATURES + INCLUSIONS ────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-white py-10">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="space-y-8">
-            <div className="rounded-2xl border border-slate-300 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-xl font-bold text-slate-900">What you get</h2>
-              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-5">
+
+            {/* What you get */}
+            <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+              <div className="flex items-center gap-3 border-b border-slate-300 px-6 py-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-coral to-mango">
+                  <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                <h2 className="font-bold text-slate-900">What you get</h2>
+              </div>
+              <ul className="grid gap-3 p-6 sm:grid-cols-2 lg:grid-cols-3">
                 {vehicle.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-3 text-slate-700">
+                  <li key={index} className="flex items-center gap-3 text-slate-800">
                     <span
-                      className={`rounded-full p-1 ${vehicle.popular ? 'bg-coral/10 text-coral' : 'bg-palm-light/10 text-palm'}`}
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                        vehicle.popular ? 'bg-coral/10 text-coral' : 'bg-palm-light/10 text-palm'
+                      }`}
                     >
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
-                    {feature}
+                    <span className="text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-2xl bg-green-50 p-6">
-                <h3 className="mb-4 flex items-center gap-2 font-bold text-green-800">
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
+            {/* Included / Good to know */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Included */}
+              <div className="rounded-2xl border border-green-300 bg-green-50 p-6">
+                <h3 className="mb-4 flex items-center gap-2.5 font-bold text-green-800">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-600">
+                    <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </span>
                   Included
                 </h3>
-                <ul className="space-y-2 text-green-700">
-                  {['Comprehensive insurance', 'Free delivery within Cebu City', '24/7 roadside support', 'Flexible pickup and drop-off'].map((item) => (
-                    <li key={item} className="flex items-start gap-2">
-                      <svg className="mt-0.5 h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <ul className="space-y-2.5">
+                  {[
+                    'Comprehensive insurance',
+                    'Free delivery within Cebu City',
+                    '24/7 roadside support',
+                    'Flexible pickup and drop-off',
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-green-800">
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      {item}
+                      <span className="text-sm font-medium">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl bg-slate-100 p-6">
-                <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-800">
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
+
+              {/* Good to know */}
+              <div className="rounded-2xl border border-slate-300 bg-slate-100 p-6">
+                <h3 className="mb-4 flex items-center gap-2.5 font-bold text-slate-800">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-700">
+                    <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </span>
                   Good to know
                 </h3>
-                <ul className="space-y-2 text-slate-700">
-                  {["Driver's licence and one valid ID at pickup", 'Fuel is not included — return it as you got it', 'Driver service available as an add-on', 'Airport pickup can be arranged'].map((item) => (
-                    <li key={item} className="flex items-start gap-2">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
-                      {item}
+                <ul className="space-y-2.5">
+                  {[
+                    "Driver's licence and one valid ID at pickup",
+                    'Fuel is not included — return it as you got it',
+                    'Driver service available as an add-on',
+                    'Airport pickup can be arranged',
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-slate-700">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-700" />
+                      <span className="text-sm font-medium">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
-
-            {others.length > 0 && (
-              <div>
-                <h2 className="mb-4 text-xl font-bold text-slate-900">Also in the fleet</h2>
-                {/* Three across on a wide screen — the row used to be half the
-                    page, so two was all that fitted. */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {others.map((other) => (
-                    <Link
-                      key={other.slug}
-                      href={`/fleet/${other.slug}`}
-                      className="group flex items-center gap-4 rounded-2xl border border-slate-300 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-coral/40 hover:shadow-lg"
-                    >
-                      <div className="relative h-16 w-24 shrink-0">
-                        <Image
-                          src={other.image}
-                          alt={other.models}
-                          fill
-                          sizes="96px"
-                          className="object-contain"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-900 transition-colors group-hover:text-coral">
-                          {other.type}
-                        </p>
-                        <p className="truncate text-sm text-slate-500">{other.models}</p>
-                        <p className="text-sm font-medium text-slate-700">
-                          ₱{other.rate.toLocaleString()} / day
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </section>
 
-      {/* Booking — a section of its own across the full width, which is what
-          lets the form lay its six fields out in columns instead of a column. */}
+      {/* ── BOOKING ──────────────────────────────────────────────────────── */}
+      {/* A section of its own across the full width, which is what lets the
+          form lay its six fields out in columns instead of a column. */}
       <section
         id="book"
-        className="scroll-mt-24 border-t border-slate-200 bg-gradient-to-b from-cream-light via-white to-cream-light py-8"
+        className="scroll-mt-24 border-t border-slate-300 py-14"
+        style={{ background: 'linear-gradient(180deg, #FDF6EE 0%, var(--cream-light) 40%, #FDF6EE 100%)' }}
       >
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 text-center md:mb-8">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <div className="mb-8 text-center">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-coral/40 bg-coral/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-coral">
+              📅 Book Now
+            </span>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               Check availability for the {vehicle.models}
             </h2>
             <p className="mx-auto mt-2 max-w-2xl text-slate-600">
@@ -414,13 +491,78 @@ export default async function VehicleDetailPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="py-8">
+      {/* ── ALSO IN THE FLEET ────────────────────────────────────────────── */}
+      {/* Placed after the booking form so the visitor who chose a different
+          car can browse without losing the booking CTA above the fold. */}
+      {others.length > 0 && (
+        <section className="border-t border-slate-300 bg-cream-light py-12">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="h-1 w-8 rounded-full bg-gradient-to-r from-coral to-mango" />
+                <h2 className="text-xl font-bold text-slate-900">Also in the fleet</h2>
+              </div>
+              <Link
+                href="/#fleet"
+                className="hidden items-center gap-1.5 text-sm font-medium text-coral transition-colors hover:text-coral-dark sm:flex"
+              >
+                View all
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+
+            {/* Three across on a wide screen */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {others.map((other) => (
+                <Link
+                  key={other.slug}
+                  href={`/fleet/${other.slug}`}
+                  className="group flex items-center gap-4 rounded-2xl border border-slate-300 bg-white p-4 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-coral/50 hover:shadow-lg"
+                >
+                  <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-cream">
+                    <Image
+                      src={other.image}
+                      alt={other.models}
+                      fill
+                      sizes="96px"
+                      className="object-contain p-1 transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-slate-900 transition-colors group-hover:text-coral">
+                      {other.type}
+                    </p>
+                    <p className="truncate text-sm font-medium text-slate-600">{other.models}</p>
+                    <p className="mt-1 text-sm">
+                      <span className="font-bold text-coral">₱{other.rate.toLocaleString()}</span>
+                      <span className="font-medium text-slate-500"> / day</span>
+                    </p>
+                  </div>
+                  <svg
+                    className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-coral"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── BACK LINK ────────────────────────────────────────────────────── */}
+      <section className="border-t border-slate-300 bg-white py-8">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link
             href="/#fleet"
             className="inline-flex items-center gap-2 font-medium text-coral transition-colors hover:text-coral-dark"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to the fleet
