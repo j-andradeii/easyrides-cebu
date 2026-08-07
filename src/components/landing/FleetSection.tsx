@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Vehicle } from '@/types/vehicle';
 
 interface FleetSectionProps {
@@ -15,7 +16,7 @@ export function FleetSection({ vehicles }: FleetSectionProps) {
   if (vehicles.length === 0) return null;
 
   return (
-    <section id="fleet" className="py-12 bg-cream relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
+    <section id="fleet" className="py-12 bg-white relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
         <div className="absolute top-20 left-20 w-72 h-72 bg-palm-light/5 rounded-full blur-3xl" />
@@ -105,15 +106,17 @@ export function FleetSection({ vehicles }: FleetSectionProps) {
                     <span className="text-slate-500 mb-1.5 text-sm ml-auto">/ 24 hours</span>
                   </div>
 
-                  <a
-                    href="#contact"
+                  {/* The car's own page: photo, rates, and a form that asks how
+                      many days — a booking question #contact cannot ask. */}
+                  <Link
+                    href={`/fleet/${vehicle.slug}`}
                     className={`block w-full py-4 rounded-xl font-bold text-center transition-all duration-300 ${vehicle.popular
                       ? 'bg-gradient-to-r from-coral to-mango text-white shadow-lg shadow-coral/25 hover:shadow-xl hover:shadow-coral/30 hover:-translate-y-0.5'
                       : 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg hover:-translate-y-0.5'
                       }`}
                   >
                     Book Now
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

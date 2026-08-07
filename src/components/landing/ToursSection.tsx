@@ -19,7 +19,7 @@ interface ToursSectionProps {
 
 export function ToursSection({ tours: featuredTours }: ToursSectionProps) {
   return (
-    <section id="tours" className="py-12 bg-white relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
+    <section id="tours" className="py-12 bg-cream relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}
       <div className="absolute top-20 left-0 w-72 h-72 bg-palm-light/20 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-0 w-80 h-80 bg-mango/10 rounded-full blur-3xl" />

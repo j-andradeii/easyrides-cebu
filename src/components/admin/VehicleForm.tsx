@@ -18,14 +18,16 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 
-import { FormImageUpload, FormInput, FormStringList } from '@/components';
+import { FormGallery, FormImageUpload, FormInput, FormSlug, FormStringList } from '@/components';
+import * as vehicleService from '@/services/vehicle.service';
 import {
   VEHICLE_FEATURE_COUNT_MAX,
+  VEHICLE_GALLERY_MAX,
   vehicleInputSchema,
   type VehicleFormValues,
   type VehicleInput,
@@ -42,12 +44,14 @@ import type { VehicleRecord } from '@/types/vehicle';
  * back to a number, so the string only ever exists inside the form.
  */
 const EMPTY_VEHICLE: VehicleFormValues = {
+  slug: '',
   type: '',
   models: '',
   capacity: '',
   rate: '' as unknown as number,
   features: [],
   image: '',
+  gallery: [],
   popular: false,
   isPublished: true,
   sortOrder: 0,
@@ -55,12 +59,15 @@ const EMPTY_VEHICLE: VehicleFormValues = {
 
 function toFormValues(vehicle: VehicleRecord): VehicleFormValues {
   return {
+    slug: vehicle.slug,
     type: vehicle.type,
     models: vehicle.models,
     capacity: vehicle.capacity,
     rate: vehicle.rate,
     features: vehicle.features,
     image: vehicle.image,
+    // A vehicle saved before the column existed comes back without one.
+    gallery: vehicle.gallery ?? [],
     popular: vehicle.popular,
     isPublished: vehicle.isPublished,
     sortOrder: vehicle.sortOrder,
@@ -82,6 +89,7 @@ function pruneBlanks(values: VehicleFormValues): VehicleFormValues {
     ...values,
     rate: isBlank ? (undefined as unknown as number) : values.rate,
     features: (values.features ?? []).map((item) => item.trim()).filter(Boolean),
+    gallery: (values.gallery ?? []).filter(Boolean),
   };
 }
 
@@ -153,8 +161,24 @@ export function VehicleForm({
 
   const {
     handleSubmit,
+    watch,
     formState: { isSubmitting, isDirty, errors },
   } = methods;
+
+  // The slug preview is derived from the models *and* the class, so the lookup
+  // has to carry whatever the class box holds right now — FormSlug itself only
+  // knows about its one source field.
+  const type = watch('type');
+  const suggestSlug = useCallback(
+    (input: { title?: string; slug?: string; excludeId?: string }) =>
+      vehicleService.suggestSlug({
+        models: input.title,
+        type,
+        slug: input.slug,
+        excludeId: input.excludeId,
+      }),
+    [type]
+  );
 
   // An uploaded photo and a typed-out feature list are worth protecting from a
   // stray browser Back.
@@ -270,6 +294,16 @@ export function VehicleForm({
                 showRequired
               />
 
+              <FormSlug
+                name="slug"
+                sourceName="models"
+                prefix="/fleet/"
+                excludeId={vehicle?.id}
+                autoFollow={!isEdit}
+                resolve={suggestSlug}
+                noun="vehicle"
+              />
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormInput
                   name="capacity"
@@ -297,6 +331,19 @@ export function VehicleForm({
                 placeholder="Upload the vehicle photo"
                 placeholderHint="A cut-out on white works best — the card shows the whole car"
                 fit="contain"
+                className="mb-0"
+              />
+            </Card>
+
+            <Card
+              title="Gallery"
+              hint="Extra shots for the vehicle page — interior, boot, dashboard. The arrows set the order they appear in."
+            >
+              <FormGallery
+                name="gallery"
+                folder="vehicles"
+                max={VEHICLE_GALLERY_MAX}
+                hint="Optional. The photo above stays the headline shot; these show underneath it."
                 className="mb-0"
               />
             </Card>

@@ -247,11 +247,14 @@ export default function AdminVehiclesPage() {
             />
 
             <Column
-              header="Features"
+              header="Content"
               body={(vehicle: VehicleListItem) => (
                 <span className="whitespace-nowrap text-xs text-slate-600">
                   <i className="pi pi-check-circle mr-1 text-[10px]" />
                   {vehicle.featureCount}
+                  <span className="mx-1.5 text-slate-300">·</span>
+                  <i className="pi pi-images mr-1 text-[10px]" />
+                  {vehicle.galleryCount}
                 </span>
               )}
             />

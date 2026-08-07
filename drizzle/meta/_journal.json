@@ -50,6 +50,20 @@
       "when": 1785891148851,
       "tag": "0006_overjoyed_vance_astro",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786076474894,
+      "tag": "0007_mysterious_vin_gonzales",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786080165715,
+      "tag": "0008_bumpy_hammerhead",
+      "breakpoints": true
     }
   ]
 }

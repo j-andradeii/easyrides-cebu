@@ -15,6 +15,7 @@ export const INQUIRY_SOURCES = [
   'hero-quick-form',
   'contact-form',
   'tour-inquiry',
+  'vehicle-inquiry',
   'referral',
 ] as const;
 
@@ -47,6 +48,23 @@ export const inquirySubmissionSchema = z.object({
   message: z.string().max(FORM_CONST.MESSAGE_MAX_LENGTH).optional(),
   addDriver: z.boolean().optional(),
   tourTitle: z.string().max(200).optional(),
+  /**
+   * The exact vehicle a /fleet/[slug] visitor was looking at — "Vios / Mirage
+   * G4 (AT)". `vehicleType` above is only the sedan/suv/van bucket, and the
+   * fleet carries several cars per bucket.
+   */
+  vehicleName: z.string().max(200).optional(),
+  /**
+   * How many days they want the car for. Capped at a year: anything longer is
+   * a lease negotiated by hand, not a booking this form should take.
+   */
+  rentalDays: z.coerce.number().int().min(1).max(365).optional(),
+  /**
+   * Where the car or the driver should meet them — "Mactan Airport T2",
+   * "Radisson Blu", a plain address. Free text, because half of these are
+   * landmarks no dropdown would carry.
+   */
+  pickupLocation: z.string().max(200).optional(),
 
   // --- Attribution (§7A) ---
   /** Set when the visitor arrived through /r/[code]. */

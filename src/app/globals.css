@@ -197,8 +197,12 @@ h1, h2, h3, h4, h5, h6 {
   /* Allow the input to shrink inside the flex/grid track instead of
      forcing its size-based intrinsic min-width (prevents mobile overflow). */
   min-width: 0;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e2e8f0;
+  /* px-2 py-2, matching FormInput — the date box shares a grid row with text
+     fields, so a taller one would step out of line. */
+  padding: 0.5rem;
+  /* slate-300, matching the Tailwind border on FormInput/FormTextarea — the
+     date box must not read lighter than the fields either side of it. */
+  border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
   font-size: 1rem;
   color: #334155;
@@ -310,7 +314,8 @@ h1, h2, h3, h4, h5, h6 {
 /* Base Dropdown Styles */
 .p-dropdown {
   width: 100%;
-  border: 1px solid #e2e8f0;
+  /* slate-300 — same weight as the text inputs it sits alongside. */
+  border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
   background-color: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -327,7 +332,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .p-dropdown .p-dropdown-label {
-  padding: 0.75rem 1rem;
+  /* px-2 py-2 — see the note on .p-calendar .p-inputtext. */
+  padding: 0.5rem;
   color: #334155;
   font-size: 1rem;
 }
@@ -405,13 +411,17 @@ h1, h2, h3, h4, h5, h6 {
   min-width: 5rem !important;
   max-width: 5rem !important;
   height: auto;
-  border: 1px solid #e2e8f0;
+  /* Must match the phone field it is glued to, or the pair reads as two
+     different controls. */
+  border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
   background-color: #fff;
 }
 
 .phone-country-dropdown.p-dropdown .p-dropdown-label {
-  padding: 0.75rem 0.5rem;
+  /* This control is glued to the phone field, so their heights have to agree
+     exactly — px-2 py-2, same as every other field. */
+  padding: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: #334155;
@@ -423,7 +433,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .phone-country-dropdown.p-dropdown:hover {
-  border-color: #cbd5e1;
+  /* One step past the resting slate-300, which this used to sit at — matching
+     it exactly would leave the control with no hover feedback at all. */
+  border-color: #94a3b8;
 }
 
 .phone-country-dropdown.p-dropdown.p-focus {

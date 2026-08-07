@@ -131,6 +131,12 @@ export interface TemplateContext {
   vehicleLabel: string | null;
   preferredDate: string | null;
   tourTitle: string | null;
+  /** The exact car a /fleet/[slug] inquiry named, e.g. "Vios / Mirage G4 (AT)". */
+  vehicleName: string | null;
+  /** Days requested on a fleet inquiry — null everywhere else. */
+  rentalDays: number | null;
+  /** Where they asked to be picked up, when the form collected it. */
+  pickupLocation: string | null;
   opportunityTitle: string;
   monetaryValue: string;
   source: string | null;
@@ -399,9 +405,17 @@ function prettyDate(value: string | null): string | null {
   return Number.isNaN(date.getTime()) ? value : TRIP_DATE_FORMATTER.format(date);
 }
 
+/** "5 days" — null when the inquiry never asked for a length. */
+function rentalLength(days: number | null): string | null {
+  if (!days) return null;
+  return `${days} ${days === 1 ? 'day' : 'days'}`;
+}
+
 function tripLine(ctx: TemplateContext): string {
   const parts = [ctx.serviceLabel];
-  if (ctx.vehicleLabel) parts.push(ctx.vehicleLabel);
+  if (ctx.vehicleName ?? ctx.vehicleLabel) parts.push(ctx.vehicleName ?? ctx.vehicleLabel!);
+  const length = rentalLength(ctx.rentalDays);
+  if (length) parts.push(`for ${length}`);
   const date = prettyDate(ctx.preferredDate);
   if (date) parts.push(`on ${date}`);
   return parts.join(' · ');
@@ -418,8 +432,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     const summary: [string, string | null][] = [
       ['Service', ctx.serviceLabel],
       ['Tour', ctx.tourTitle],
-      ['Vehicle', ctx.vehicleLabel],
+      // The named car beats the sedan/suv/van bucket when we have it — quoting
+      // a "Sedan" back at someone who asked about a Vios reads like a form reply.
+      ['Vehicle', ctx.vehicleName ?? ctx.vehicleLabel],
+      ['Rental length', rentalLength(ctx.rentalDays)],
       ['Preferred date', prettyDate(ctx.preferredDate)],
+      ['Pickup', ctx.pickupLocation],
     ];
 
     return {
@@ -433,8 +451,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         `Here's what we have:`,
         `  Service:        ${ctx.serviceLabel}`,
         ctx.tourTitle ? `  Tour:           ${ctx.tourTitle}` : null,
-        ctx.vehicleLabel ? `  Vehicle:        ${ctx.vehicleLabel}` : null,
+        ctx.vehicleName ?? ctx.vehicleLabel
+          ? `  Vehicle:        ${ctx.vehicleName ?? ctx.vehicleLabel}`
+          : null,
+        ctx.rentalDays ? `  Rental length:  ${rentalLength(ctx.rentalDays)}` : null,
         ctx.preferredDate ? `  Preferred date: ${prettyDate(ctx.preferredDate)}` : null,
+        ctx.pickupLocation ? `  Pickup:         ${ctx.pickupLocation}` : null,
         ``,
         `We'll reach out with your price and availability within the hour during business hours (Mon–Sat 8AM–8PM, Sun 9AM–6PM). If you sent this overnight, you'll hear from us first thing.`,
         ``,
@@ -480,6 +502,11 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       `Email:   ${ctx.email ?? '(not given)'}`,
       `Request: ${tripLine(ctx)}`,
       ctx.tourTitle ? `Tour:    ${ctx.tourTitle}` : '',
+      ctx.vehicleName ? `Car:     ${ctx.vehicleName}` : '',
+      ctx.rentalDays ? `Length:  ${rentalLength(ctx.rentalDays)}` : '',
+      // Dispatch's first question — an airport handover is a different job from
+      // a hotel drop, and knowing before the callback saves a round trip.
+      ctx.pickupLocation ? `Pickup:  ${ctx.pickupLocation}` : '',
       ``,
       `Open the lead: ${ctx.adminUrl}`,
       `Call now: ${ctx.phone ?? ''}`,

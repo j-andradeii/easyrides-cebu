@@ -25,7 +25,7 @@ import { db } from '@/db/client';
 import { adminUsers, tours, type NewTourRow, type TourRow } from '@/db/schema';
 import type { TourInput, TourPatch } from '@/models/tour.schema';
 import type { Tour, TourListItem, TourRecord } from '@/types/tour';
-import { uniqueSlug } from './slug';
+import { uniqueSlug } from '@/lib/slug';
 
 // --- Row → API shapes -------------------------------------------------------
 
@@ -197,7 +197,7 @@ export async function resolveSlug(input: {
   excludeId?: string;
 }): Promise<string> {
   const base = input.slug?.trim() || input.title;
-  return uniqueSlug(base, (candidate) => isSlugTaken(candidate, input.excludeId));
+  return uniqueSlug(base, (candidate) => isSlugTaken(candidate, input.excludeId), 'tour');
 }
 
 /** Postgres unique-violation — two admins saving the same new slug at once. */

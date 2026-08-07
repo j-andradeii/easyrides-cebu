@@ -388,10 +388,16 @@ export async function buildTemplateContext(
     .orderBy(desc(reviews.createdAt))
     .limit(1);
 
-  // Tour enquiries name a specific tour; without this the acknowledgement email
-  // would say "Tour Package" and leave the customer wondering if we read it.
+  // Tour enquiries name a specific tour, fleet enquiries a specific car and how
+  // long for; without these the acknowledgement email would say "Car Rental"
+  // and leave the customer wondering if we read it.
   const [latestInquiry] = await executor
-    .select({ tourTitle: inquiries.tourTitle })
+    .select({
+      tourTitle: inquiries.tourTitle,
+      vehicleName: inquiries.vehicleName,
+      rentalDays: inquiries.rentalDays,
+      pickupLocation: inquiries.pickupLocation,
+    })
     .from(inquiries)
     .where(eq(inquiries.opportunityId, opportunity.id))
     .orderBy(desc(inquiries.createdAt))
@@ -406,6 +412,9 @@ export async function buildTemplateContext(
     vehicleLabel: vehicleLabel(opportunity.vehicleType),
     preferredDate: opportunity.preferredDate,
     tourTitle: latestInquiry?.tourTitle ?? null,
+    vehicleName: latestInquiry?.vehicleName ?? null,
+    rentalDays: latestInquiry?.rentalDays ?? null,
+    pickupLocation: latestInquiry?.pickupLocation ?? null,
     opportunityTitle:
       opportunity.title || buildOpportunityTitle(opportunity.serviceType, contact.fullName, contact.phone),
     monetaryValue: opportunity.monetaryValue ?? '0',

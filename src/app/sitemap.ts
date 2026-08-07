@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getPublishedTours } from '@/lib/tours/repository';
+import { getPublishedVehicles } from '@/lib/vehicles/repository';
 
 /**
  * Built on every request, not at deploy time.
@@ -43,5 +44,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: tour.featured ? 0.9 : 0.8,
     }));
 
-    return [...staticRoutes, ...tourRoutes];
+    // One page per vehicle — "rent a sedan in Cebu" is its own search, and the
+    // fleet changes far less often than the tours do.
+    const vehicles = await getPublishedVehicles();
+
+    const vehicleRoutes: MetadataRoute.Sitemap = vehicles.map((vehicle) => ({
+        url: `${baseUrl}/fleet/${vehicle.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: vehicle.popular ? 0.9 : 0.8,
+    }));
+
+    return [...staticRoutes, ...tourRoutes, ...vehicleRoutes];
 }
