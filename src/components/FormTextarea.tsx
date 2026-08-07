@@ -64,7 +64,7 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
   return (
     <div className={`mb-4 ${className}`}>
       {showLabel && label && (
-        <label htmlFor={uniqueId} className="block text-sm font-medium text-slate-700 mb-2">
+        <label htmlFor={uniqueId} className="block text-sm font-semibold text-slate-900 mb-2">
           {label}
           {showRequired && <span className="text-cebu-red ml-1">*</span>}
         </label>
@@ -78,9 +78,9 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
             <InputTextarea
               id={uniqueId}
               rows={rows}
-              className={`w-full px-2 py-2 border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white transition-colors resize-none
-                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-300'}
-                ${disabled || readonly ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-coral focus:border-coral text-slate-900 bg-white transition-colors resize-none placeholder:text-slate-400
+                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-400'}
+                ${disabled || readonly ? 'bg-slate-50 text-slate-600 cursor-not-allowed' : ''}
                 ${inputClassName}
               `}
               value={field.value || ''}

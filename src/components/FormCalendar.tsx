@@ -70,7 +70,7 @@ export const FormCalendar: React.FC<FormCalendarProps> = ({
   return (
     <div className={`mb-4 ${className}`}>
       {showLabel && label && (
-        <label htmlFor={uniqueId} className="block text-sm font-medium text-slate-700 mb-2">
+        <label htmlFor={uniqueId} className="block text-sm font-semibold text-slate-900 mb-2">
           {label}
           {showRequired && <span className="text-cebu-red ml-1">*</span>}
         </label>

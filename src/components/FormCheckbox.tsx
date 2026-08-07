@@ -69,7 +69,7 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = ({
             {label && (
               <label
                 htmlFor={uniqueId}
-                className={`block text-sm font-medium text-slate-700 cursor-pointer ${
+                className={`block text-sm font-semibold text-slate-900 cursor-pointer ${
                   disabled || readonly ? 'cursor-not-allowed opacity-60' : ''
                 }`}
               >
@@ -77,7 +77,7 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = ({
               </label>
             )}
             {description && (
-              <p className="text-sm text-slate-500 mt-0.5">{description}</p>
+              <p className="text-sm font-medium text-slate-600 mt-0.5">{description}</p>
             )}
             {error && <FormError error={error} />}
           </div>
