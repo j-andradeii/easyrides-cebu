@@ -297,6 +297,18 @@ export default function InquiryDetailPage() {
               <Field label="Vehicle" value={vehicleLabel(opportunity.vehicleType) ?? '—'} />
               <Field label="Preferred date" value={formatDate(opportunity.preferredDate)} />
               {latestInquiry?.tourTitle && <Field label="Tour" value={latestInquiry.tourTitle} />}
+              {latestInquiry?.vehicleName && (
+                <Field label="Car" value={latestInquiry.vehicleName} />
+              )}
+              {latestInquiry?.rentalDays != null && (
+                <Field
+                  label="Rental length"
+                  value={`${latestInquiry.rentalDays} ${latestInquiry.rentalDays === 1 ? 'day' : 'days'}`}
+                />
+              )}
+              {latestInquiry?.pickupLocation && (
+                <Field label="Pickup location" value={latestInquiry.pickupLocation} />
+              )}
               <Field label="Add driver" value={latestInquiry?.addDriver ? 'Yes' : 'No'} />
 
               {latestInquiry?.message && (

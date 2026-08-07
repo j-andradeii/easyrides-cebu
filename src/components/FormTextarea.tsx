@@ -78,8 +78,8 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
             <InputTextarea
               id={uniqueId}
               rows={rows}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white transition-colors resize-none
-                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-200'}
+              className={`w-full px-2 py-2 border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent text-slate-700 bg-white transition-colors resize-none
+                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-300'}
                 ${disabled || readonly ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
                 ${inputClassName}
               `}

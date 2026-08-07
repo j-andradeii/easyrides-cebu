@@ -26,11 +26,17 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
 import * as schema from '../src/db/schema';
+import { slugify } from '../src/lib/slug';
 import type { Vehicle } from '../src/types/vehicle';
 
 loadEnv({ path: '.env.local' });
 
-const FLEET: Vehicle[] = [
+/**
+ * The slug is left out of the seed and derived below, the same way the portal
+ * derives it — a hand-written URL here would be one more thing to keep in step
+ * with `resolveSlug`.
+ */
+const FLEET: Omit<Vehicle, 'slug'>[] = [
   {
     type: 'Sedan',
     models: 'Vios / Mirage G4 (AT)',
@@ -91,6 +97,8 @@ async function main() {
 
     for (const [index, vehicle] of FLEET.entries()) {
       const values = {
+        // Matches the portal's stem, "models then class" — see `resolveSlug`.
+        slug: slugify(`${vehicle.models} ${vehicle.type}`),
         type: vehicle.type,
         models: vehicle.models,
         capacity: vehicle.capacity,

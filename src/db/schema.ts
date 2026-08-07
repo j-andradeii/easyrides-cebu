@@ -256,6 +256,21 @@ export const inquiries = pgTable(
     addDriver: boolean('add_driver').notNull().default(false),
     message: text('message'),
     tourTitle: text('tour_title'),
+    /**
+     * The exact vehicle a /fleet/[slug] visitor was looking at — "Vios /
+     * Mirage G4 (AT)", not the sedan/suv/van bucket `vehicleType` holds. The
+     * fleet has several cars per class, and "which one did they click?" is the
+     * first thing an agent needs before quoting.
+     */
+    vehicleName: text('vehicle_name'),
+    /** How many days they asked to rent for. Only the fleet form collects it. */
+    rentalDays: integer('rental_days'),
+    /**
+     * Where they want the car handed over — "Mactan Airport T2", a hotel name,
+     * an address. Free text on purpose: half of these are landmarks no dropdown
+     * would have, and an agent reads it before dispatching anyway.
+     */
+    pickupLocation: text('pickup_location'),
     /** The exact posted body — future-proofs us against form changes */
     rawPayload: jsonb('raw_payload').notNull(),
     utm: jsonb('utm'),
@@ -610,6 +625,8 @@ export const vehicles = pgTable(
   'vehicles',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    /** URL segment — /fleet/[slug]. Derived from the models and class, unique site-wide. */
+    slug: text('slug').notNull(),
     /** The class name shown as the card heading — "Sedan", "SUV", "Van". */
     type: text('type').notNull(),
     /** The actual cars in that class — "Vios / Mirage G4 (AT)". */
@@ -624,6 +641,14 @@ export const vehicles = pgTable(
       .default(sql`'{}'::text[]`),
     /** Card image URL (Vercel Blob). */
     image: text('image').notNull(),
+    /**
+     * Extra photos shown on /fleet/[slug] — interior, boot, dashboard. Ordered
+     * as the editor arranged them, exactly like `tours.gallery`.
+     */
+    gallery: text('gallery')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     /** Draws the "MOST POPULAR" ribbon and the coral treatment on the card. */
     popular: boolean('popular').notNull().default(false),
     /** Unpublished vehicles stay editable but disappear from the public site. */
@@ -635,7 +660,10 @@ export const vehicles = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('vehicles_published_idx').on(table.isPublished, table.sortOrder)]
+  (table) => [
+    uniqueIndex('vehicles_slug_uidx').on(table.slug),
+    index('vehicles_published_idx').on(table.isPublished, table.sortOrder),
+  ]
 );
 
 // --- Inferred types ---------------------------------------------------------

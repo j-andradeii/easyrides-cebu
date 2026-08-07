@@ -1,12 +1,15 @@
 /**
- * Tour slugs — the /tours/[slug] segment.
+ * URL slugs — the /tours/[slug] and /fleet/[slug] segments.
  *
- * Pure and isomorphic on purpose: the admin form previews the slug while the
- * title is being typed, and the API derives the stored one the same way, so what
+ * Pure and isomorphic on purpose: the admin forms preview the slug while the
+ * name is being typed, and the API derives the stored one the same way, so what
  * the editor sees is what gets saved.
+ *
+ * It lives outside `lib/tours` because the fleet publishes pages under the same
+ * rule — one slugifier means /tours and /fleet can never drift apart.
  */
 
-/** Longest slug we will generate. Long enough for every real tour name. */
+/** Longest slug we will generate. Long enough for every real tour or vehicle. */
 export const SLUG_MAX_LENGTH = 80;
 
 /**
@@ -33,13 +36,15 @@ export function slugify(value: string): string {
  * Appends `-2`, `-3`, … until the slug is free.
  *
  * `isTaken` is injected so the same rule runs against the database on the server
- * and against an in-memory list in tests.
+ * and against an in-memory list in tests. `fallback` is what a name that
+ * slugifies to nothing at all ("!!!") is published as.
  */
 export async function uniqueSlug(
   base: string,
-  isTaken: (candidate: string) => Promise<boolean>
+  isTaken: (candidate: string) => Promise<boolean>,
+  fallback = 'item'
 ): Promise<string> {
-  const root = slugify(base) || 'tour';
+  const root = slugify(base) || fallback;
 
   if (!(await isTaken(root))) return root;
 

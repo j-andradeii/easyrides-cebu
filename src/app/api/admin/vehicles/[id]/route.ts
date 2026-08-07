@@ -39,10 +39,14 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       );
     }
 
+    const existing = await getVehicleById(id);
+    if (!existing) throw new AdminRouteError('Vehicle not found', 404);
+
     const vehicle = await updateVehicle(id, parsed.data, admin.id);
     if (!vehicle) throw new AdminRouteError('Vehicle not found', 404);
 
-    revalidateFleetPages();
+    // The old slug too: a rename leaves a cached page at the previous URL.
+    revalidateFleetPages(existing.slug, vehicle.slug);
 
     return { vehicle };
   });
@@ -55,10 +59,13 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
   // work — an agent can unpublish instead, which is reversible.
   return handleAdminRoute(
     async (): Promise<{ success: true }> => {
+      const existing = await getVehicleById(id);
+      if (!existing) throw new AdminRouteError('Vehicle not found', 404);
+
       const removed = await deleteVehicle(id);
       if (!removed) throw new AdminRouteError('Vehicle not found', 404);
 
-      revalidateFleetPages();
+      revalidateFleetPages(existing.slug);
 
       return { success: true as const };
     },

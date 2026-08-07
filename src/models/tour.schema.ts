@@ -13,7 +13,7 @@
 import { z } from 'zod';
 
 import { richTextToPlainText } from '@/lib/rich-text';
-import { SLUG_MAX_LENGTH } from '@/lib/tours/slug';
+import { SLUG_MAX_LENGTH } from '@/lib/slug';
 
 export const TOUR_TITLE_MAX = 120;
 export const TOUR_SHORT_DESCRIPTION_MAX = 300;

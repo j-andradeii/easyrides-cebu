@@ -204,7 +204,7 @@ export function RichTextEditor({
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: 'rich-text min-h-[14rem] px-4 py-3 focus:outline-none',
+        class: 'rich-text min-h-[14rem] px-2 py-2 focus:outline-none',
         ...(id ? { id } : {}),
       },
     },

@@ -69,6 +69,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'hero-quick-form': 'Hero quick form',
   'contact-form': 'Contact form',
   'tour-inquiry': 'Tour page',
+  'vehicle-inquiry': 'Fleet page',
   referral: 'Referral link',
   // Written by an agent on /admin/inquiries — see ADMIN_LEAD_SOURCES.
   'walk-in': 'Walk-in',

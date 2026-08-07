@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import { slugify } from '@/lib/tours/slug';
+import { slugify } from '@/lib/slug';
 import * as tourService from '@/services/tour.service';
 
 import { FormError } from './FormError';
@@ -40,6 +40,8 @@ interface FormSlugProps {
   className?: string;
   /** Swappable for a non-tour resource; defaults to the tour endpoint. */
   resolve?: typeof tourService.suggestSlug;
+  /** What the record is called in the hints — "tour", "vehicle". */
+  noun?: string;
 }
 
 /** Long enough that a typist is not firing a request per keystroke. */
@@ -61,6 +63,7 @@ export const FormSlug: React.FC<FormSlugProps> = ({
   disabled = false,
   className = '',
   resolve = tourService.suggestSlug,
+  noun = 'tour',
 }) => {
   const {
     control,
@@ -201,7 +204,7 @@ export const FormSlug: React.FC<FormSlugProps> = ({
       {!error && status.kind === 'taken' && (
         <p className="mt-1.5 text-xs text-amber-700">
           {isAuto ? (
-            <>Another tour already uses that name — this one saves as <strong>{status.suggestion}</strong>.</>
+            <>Another {noun} already uses that name — this one saves as <strong>{status.suggestion}</strong>.</>
           ) : (
             <>
               That slug is taken. Saving as-is gives you{' '}
@@ -221,7 +224,7 @@ export const FormSlug: React.FC<FormSlugProps> = ({
       {!error && status.kind !== 'taken' && (
         <p className="mt-1.5 text-xs text-slate-500">
           {isAuto
-            ? 'Generated from the tour name and kept unique automatically.'
+            ? `Generated from the ${noun} name and kept unique automatically.`
             : 'Lowercase letters, numbers and dashes. Changing this moves the live page.'}
         </p>
       )}

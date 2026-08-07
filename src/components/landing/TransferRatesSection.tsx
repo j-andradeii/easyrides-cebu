@@ -49,7 +49,7 @@ const transferRates = [
 
 export function TransferRatesSection() {
   return (
-    <section id="pricing" className="py-12 bg-cream relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
+    <section id="pricing" className="py-12 bg-white relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-mango/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-coral/5 rounded-full blur-3xl" />

@@ -71,7 +71,7 @@ export default async function Home() {
         <ServicesSection />
 
         {/* 4. FRICTION REDUCER - show how easy booking is */}
-        <HowItWorks />
+        {/* <HowItWorks /> */}
 
         {/* 5. DESIRE - core products and pricing */}
         <FleetSection vehicles={vehicles} />
@@ -81,8 +81,6 @@ export default async function Home() {
         {/* 6. UPSELL - professional driver add-on; its CTA pre-fills + scrolls to #contact */}
         <DriverBanner />
 
-        {/* 7. OBJECTION HANDLING - why us */}
-        <WhyChooseUs />
 
         {/* 8. SOCIAL PROOF - guest voices right before the ask */}
         <Testimonials reviews={publishedReviews} />

@@ -11,12 +11,20 @@
 
 import { z } from 'zod';
 
+import { SLUG_MAX_LENGTH } from '@/lib/slug';
+
 export const VEHICLE_TYPE_MAX = 60;
 export const VEHICLE_MODELS_MAX = 160;
 export const VEHICLE_CAPACITY_MAX = 40;
 export const VEHICLE_FEATURE_MAX = 80;
 /** More than this stops being a feature list and starts being a paragraph. */
 export const VEHICLE_FEATURE_COUNT_MAX = 12;
+/**
+ * Gallery ceiling. Smaller than a tour's 24: a car is photographed from a
+ * handful of angles — outside, inside, boot, dashboard — and a longer strip is
+ * scrolling for its own sake.
+ */
+export const VEHICLE_GALLERY_MAX = 12;
 
 const trimmed = (max: number) => z.string().trim().max(max);
 
@@ -31,6 +39,21 @@ const imageUrl = z
 export const vehicleInputSchema = z.object({
   type: trimmed(VEHICLE_TYPE_MAX).min(2, 'Name the vehicle class, e.g. Sedan'),
   models: trimmed(VEHICLE_MODELS_MAX).min(2, 'List the models, e.g. Vios / Mirage G4 (AT)'),
+  /**
+   * Optional: left out (or blank) the server derives it from the models and
+   * class. Either way it is de-duplicated before saving, so this is a
+   * preference, not a claim — the same deal `tourInputSchema` offers.
+   */
+  slug: z
+    .union([
+      z
+        .string()
+        .trim()
+        .max(SLUG_MAX_LENGTH)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and dashes'),
+      z.literal(''),
+    ])
+    .optional(),
   capacity: trimmed(VEHICLE_CAPACITY_MAX).min(1, 'e.g. 5-seater'),
   rate: z.coerce
     .number({ message: 'Enter the daily rate' })
@@ -43,6 +66,11 @@ export const vehicleInputSchema = z.object({
     .default([])
     .refine((items) => items.length > 0, { message: 'Add at least one feature' }),
   image: imageUrl,
+  /**
+   * Extra photos for /fleet/[slug], in display order. The card image stays the
+   * headline shot — this is what a visitor looks through before booking.
+   */
+  gallery: z.array(imageUrl).max(VEHICLE_GALLERY_MAX).default([]),
   /** Only one card should wear the ribbon, but that is an editorial call. */
   popular: z.boolean().default(false),
   isPublished: z.boolean().default(true),
@@ -62,5 +90,8 @@ export type VehiclePatch = z.infer<typeof vehiclePatchSchema>;
  * cannot: an empty rate box is `''`, not 0, so a cleared price asks for a rate
  * instead of publishing a free vehicle. `VehicleForm` casts at that one spot
  * and `pruneBlanks` turns it back into "missing" before the schema runs.
+ *
+ * The slug is also narrower here than in the payload: the field always holds a
+ * string while it is being edited, even though sending it is optional.
  */
-export type VehicleFormValues = VehicleInput;
+export type VehicleFormValues = Omit<VehicleInput, 'slug'> & { slug: string };

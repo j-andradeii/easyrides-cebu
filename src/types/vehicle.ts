@@ -10,6 +10,8 @@
  */
 
 export interface Vehicle {
+  /** URL segment — the card links to /fleet/[slug]. */
+  slug: string;
   /** The card heading — "Sedan", "SUV", "Van". */
   type: string;
   /** The cars in that class — "Vios / Mirage G4 (AT)". */
@@ -19,12 +21,19 @@ export interface Vehicle {
   rate: number;
   features: string[];
   image: string;
+  /**
+   * Extra photos shown on /fleet/[slug], in display order. Optional because the
+   * landing page's card never reads it and older callers predate the column.
+   */
+  gallery?: string[];
   /** Draws the "MOST POPULAR" ribbon on the card. */
   popular: boolean;
 }
 
 /** A vehicle as the admin portal sees it. */
 export interface VehicleRecord extends Vehicle {
+  /** Always present on a record — the editor needs an array to render. */
+  gallery: string[];
   id: string;
   isPublished: boolean;
   sortOrder: number;
@@ -36,6 +45,7 @@ export interface VehicleRecord extends Vehicle {
 /** One row of the /admin/vehicles table. */
 export interface VehicleListItem {
   id: string;
+  slug: string;
   type: string;
   models: string;
   capacity: string;
@@ -45,5 +55,6 @@ export interface VehicleListItem {
   isPublished: boolean;
   sortOrder: number;
   featureCount: number;
+  galleryCount: number;
   updatedAt: string;
 }

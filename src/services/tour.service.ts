@@ -64,8 +64,10 @@ export type CatalogueImageFolder = 'tours' | 'vehicles';
  * Uploads one image and returns its public URL.
  *
  * Shared by both catalogues: tour banners and galleries, and fleet photos. The
- * folder only decides where the blob lands, so a vehicle picture is findable as
- * "vehicles/suv-a1b2.webp" months later.
+ * folder picks the endpoint *and* where the blob lands, so a vehicle picture
+ * goes through /api/admin/vehicles/images and is findable as
+ * "vehicles/suv-a1b2.webp" months later. Both endpoints run the same handler,
+ * so the two paths only differ in the URL an admin sees in the network tab.
  *
  * Plain `fetch`, not `apiClient`: the shared client forces a JSON Content-Type,
  * which would strip the multipart boundary the upload needs.
@@ -78,7 +80,10 @@ export const uploadTourImage = async (
   form.append('file', file, file.name);
   form.append('folder', folder);
 
-  const response = await fetch('/api/admin/tours/images', { method: 'POST', body: form });
+  const endpoint =
+    folder === 'vehicles' ? '/api/admin/vehicles/images' : '/api/admin/tours/images';
+
+  const response = await fetch(endpoint, { method: 'POST', body: form });
   const data = (await response.json().catch(() => ({}))) as { url?: string; message?: string };
 
   if (!response.ok || !data.url) {

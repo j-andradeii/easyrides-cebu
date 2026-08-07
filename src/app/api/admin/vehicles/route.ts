@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const vehicle = await createVehicle(parsed.data, admin.id);
 
-    revalidateFleetPages();
+    revalidateFleetPages(vehicle.slug);
 
     return { vehicle };
   });

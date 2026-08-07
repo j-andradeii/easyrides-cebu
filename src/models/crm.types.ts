@@ -114,6 +114,12 @@ export interface InquiryRecord {
   addDriver: boolean;
   message: string | null;
   tourTitle: string | null;
+  /** The exact car from a /fleet/[slug] inquiry, e.g. "Vios / Mirage G4 (AT)". */
+  vehicleName: string | null;
+  /** How many days they asked to rent for. Only the fleet form collects it. */
+  rentalDays: number | null;
+  /** Where they want the car handed over — free text, may be null. */
+  pickupLocation: string | null;
   rawPayload: unknown;
   utm: unknown;
   createdAt: string;

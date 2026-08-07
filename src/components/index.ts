@@ -21,3 +21,6 @@ export * from './FormStringList';
 export * from './FormItinerary';
 export * from './FormSlug';
 export * from './form-field-error';
+
+// Presentation — the photo grid + lightbox both catalogues render.
+export * from './PhotoGallery';
