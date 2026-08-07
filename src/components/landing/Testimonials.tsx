@@ -64,7 +64,7 @@ export function Testimonials({ reviews = [] }: { reviews?: PublishedTestimonial[
       : testimonials.map((item) => ({ ...item, rating: 5 }));
 
   return (
-    <section className="py-16 sm:py-24 bg-white relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
+    <section className="py-12 bg-white relative overflow-hidden scroll-mt-15 border-t border-cream-dark/50">
       {/* Decorative glows */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-mango/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-coral/5 rounded-full blur-3xl pointer-events-none" />
