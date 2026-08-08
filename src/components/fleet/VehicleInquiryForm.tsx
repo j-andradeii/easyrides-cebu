@@ -288,8 +288,16 @@ export function VehicleInquiryForm({ vehicle }: VehicleInquiryFormProps) {
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-6 sm:px-8 sm:py-8">
             {/* Three columns on a wide screen: who they are on the first row,
-                what they need on the second. Collapses to one on a phone. */}
-            <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+                what they need on the second. Collapses to one on a phone.
+                `grid-cols-1` is not redundant with that collapse: without an
+                explicit template the phone column is an implicit `auto` track,
+                which sizes itself to the widest field's min-content — the
+                country-code box plus a bare input's twenty-character intrinsic
+                width — and pushed every field out past the card on a phone.
+                `grid-cols-*` compiles to `minmax(0, 1fr)`, whose zero floor is
+                the whole point. `min-w-0` does the same for the items, which
+                would otherwise refuse to shrink below their own content. */}
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 [&>*]:min-w-0 sm:grid-cols-2 lg:grid-cols-3">
               <FormInput
                 name="fullName"
                 label="Full Name"
