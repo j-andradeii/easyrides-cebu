@@ -7,10 +7,20 @@
 
 import { z } from 'zod';
 import { FORM_CONST } from '@/core/constants';
+import { SLUG_MAX_LENGTH } from '@/lib/slug';
 
 export const SERVICE_TYPES = ['car-rental', 'airport-transfer', 'tour', 'custom'] as const;
 export const VEHICLE_TYPES = ['sedan', 'suv', 'van'] as const;
 
+/**
+ * The fixed sources the site's own forms write.
+ *
+ * Not exhaustive of what ends up in the column: a promo page writes
+ * `campaign:<slug>`, which is open-ended by design — one value per campaign is
+ * what makes the existing source filter on /admin/inquiries able to answer
+ * "how did that Facebook post do?" with no new filter. `sourceLabel` renders
+ * those; `CAMPAIGN_SOURCE_PREFIX` below is the one place the shape is defined.
+ */
 export const INQUIRY_SOURCES = [
   'hero-quick-form',
   'contact-form',
@@ -18,6 +28,13 @@ export const INQUIRY_SOURCES = [
   'vehicle-inquiry',
   'referral',
 ] as const;
+
+/** `campaign:summer-oslob-2026` — see the note above. */
+export const CAMPAIGN_SOURCE_PREFIX = 'campaign:';
+
+export function campaignSource(slug: string): string {
+  return `${CAMPAIGN_SOURCE_PREFIX}${slug}`;
+}
 
 export const utmSchema = z
   .object({
@@ -69,6 +86,14 @@ export const inquirySubmissionSchema = z.object({
   // --- Attribution (§7A) ---
   /** Set when the visitor arrived through /r/[code]. */
   referralCode: z.string().max(40).optional(),
+  /**
+   * The promo page this was submitted from — the /promo/[slug] segment.
+   *
+   * Trusted only as far as it resolves: intake looks the slug up and attributes
+   * to the row it finds, so a made-up value simply attributes to nothing rather
+   * than inventing a campaign.
+   */
+  campaignSlug: z.string().max(SLUG_MAX_LENGTH).optional(),
   utm: utmSchema.optional(),
 
   // --- Anti-spam (§15) ---
@@ -115,13 +140,14 @@ export type AdminLeadSource = (typeof ADMIN_LEAD_SOURCES)[number];
  * Contract for POST /api/admin/inquiries — an agent creating a lead by hand.
  *
  * Reuses the public shape so both paths land in `createInquiry` and produce
- * identical records. Two fields are dropped rather than made optional:
- * `website` is the bot honeypot (meaningless behind an auth cookie), and `utm`
- * is set by the browser on a real form, so accepting it here would let hand
- * entry fake campaign attribution.
+ * identical records. Three fields are dropped rather than made optional:
+ * `website` is the bot honeypot (meaningless behind an auth cookie), while
+ * `utm` and `campaignSlug` are set by the browser on a real form — accepting
+ * either here would let hand entry fake campaign attribution, and the whole
+ * point of the campaign numbers is that they were earned by the link.
  */
 export const adminLeadSchema = inquirySubmissionSchema
-  .omit({ website: true, utm: true })
+  .omit({ website: true, utm: true, campaignSlug: true })
   .extend({
     source: z.enum(ADMIN_LEAD_SOURCES),
   });

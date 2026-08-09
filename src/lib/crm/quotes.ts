@@ -17,7 +17,15 @@ import 'server-only';
 import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm';
 
 import { db, type DbExecutor } from '@/db/client';
-import { adminUsers, contacts, opportunities, quotes, type Quote } from '@/db/schema';
+import {
+  adminUsers,
+  contacts,
+  opportunities,
+  quotes,
+  referralCredits,
+  type Quote,
+} from '@/db/schema';
+import { applyCreditsToQuote, releaseCreditsForQuotes } from './credits';
 import { serviceLabel, vehicleLabel } from './normalize';
 import {
   OPEN_QUOTE_STATUSES,
@@ -138,6 +146,8 @@ export function effectiveStatus(quote: Pick<Quote, 'status' | 'validUntil'>): Qu
 export interface CreateQuoteResult {
   quote: Quote;
   url: string;
+  /** Of the quote's discount, how much came from referral credits. */
+  creditApplied: number;
 }
 
 /**
@@ -167,11 +177,11 @@ export async function createQuote(params: {
 
   const supersedeOpen = params.input.supersedeOpen ?? true;
 
-  const quote = await db.transaction(async (tx) => {
+  const { quote, creditApplied } = await db.transaction(async (tx) => {
     // Retire earlier open quotes on this deal — unless this one is meant to sit
     // alongside them (a balance following a deposit).
     if (supersedeOpen) {
-      await tx
+      const superseded = await tx
         .update(quotes)
         .set({ status: 'cancelled', updatedAt: new Date() })
         .where(
@@ -179,33 +189,77 @@ export async function createQuote(params: {
             eq(quotes.opportunityId, opportunity.id),
             inArray(quotes.status, [...OPEN_STATUSES])
           )
-        );
+        )
+        .returning({ id: quotes.id });
+
+      // A cancelled quote is not going to be accepted, so anything it had
+      // reserved goes back to the customer — including, usually, the very
+      // credits this replacement quote is about to reserve again.
+      await releaseCreditsForQuotes(
+        superseded.map((row) => row.id),
+        tx
+      );
     }
 
-    const [created] = await tx
-      .insert(quotes)
-      .values({
-        opportunityId: opportunity.id,
+    let created = (
+      await tx
+        .insert(quotes)
+        .values({
+          opportunityId: opportunity.id,
+          contactId: contact.id,
+          token: generateToken(),
+          status: 'sent',
+          quoteType: params.input.quoteType ?? 'full_payment',
+          lineItems,
+          subtotal: subtotal.toFixed(2),
+          discount: discount.toFixed(2),
+          total: total.toFixed(2),
+          notes: params.input.notes ?? null,
+          validUntil,
+          createdBy: params.adminUserId,
+        })
+        .returning()
+    )[0];
+
+    /**
+     * Credits are reserved *after* the insert because reserving them needs the
+     * quote id, and re-priced from what was actually reserved rather than what
+     * the browser asked for — see `applyCreditsToQuote`.
+     */
+    const { amount: reserved } = await applyCreditsToQuote(
+      {
         contactId: contact.id,
-        token: generateToken(),
-        status: 'sent',
-        quoteType: params.input.quoteType ?? 'full_payment',
-        lineItems,
-        subtotal: subtotal.toFixed(2),
-        discount: discount.toFixed(2),
-        total: total.toFixed(2),
-        notes: params.input.notes ?? null,
-        validUntil,
-        createdBy: params.adminUserId,
-      })
-      .returning();
+        creditIds: params.input.creditIds ?? [],
+        quoteId: created.id,
+      },
+      tx
+    );
+
+    if (reserved > 0) {
+      // Same floor as `priceQuote`: a discount can zero a quote, never invert it.
+      const combined = round2(Math.min(discount + reserved, subtotal));
+
+      created = (
+        await tx
+          .update(quotes)
+          .set({
+            discount: combined.toFixed(2),
+            total: round2(subtotal - combined).toFixed(2),
+            updatedAt: new Date(),
+          })
+          .where(eq(quotes.id, created.id))
+          .returning()
+      )[0];
+    }
 
     // Every live quote together is the deal value — not just this one, which on
     // a split payment is only part of what the customer owes.
     await syncOpportunityValue(opportunity.id, tx);
 
-    return created;
+    return { quote: created, creditApplied: reserved };
   });
+
+  const finalTotal = Number(quote.total);
 
   await logActivity({
     opportunityId: opportunity.id,
@@ -213,20 +267,29 @@ export async function createQuote(params: {
     adminUserId: params.adminUserId,
     type: 'message_out',
     channel: 'email',
-    subject: `Quote ${quoteReference(quote.id)} sent — ${quote.currency} ${total.toFixed(2)}${
+    subject: `Quote ${quoteReference(quote.id)} sent — ${quote.currency} ${finalTotal.toFixed(2)}${
       supersedeOpen ? '' : ' (additional payment)'
     }`,
-    body: `Valid until ${validUntil.toISOString()}\n${quoteUrl(quote.token)}`,
+    body: [
+      `Valid until ${validUntil.toISOString()}`,
+      creditApplied > 0
+        ? `Referral credit applied: ${quote.currency} ${creditApplied.toFixed(2)}`
+        : null,
+      quoteUrl(quote.token),
+    ]
+      .filter(Boolean)
+      .join('\n'),
     metadata: {
       quoteId: quote.id,
-      total: total.toFixed(2),
+      total: finalTotal.toFixed(2),
+      creditApplied: creditApplied.toFixed(2),
       supersedeOpen,
       link: null,
       quoteUrl: quoteUrl(quote.token),
     },
   });
 
-  return { quote, url: quoteUrl(quote.token) };
+  return { quote, url: quoteUrl(quote.token), creditApplied };
 }
 
 // --- Read (public) ----------------------------------------------------------
@@ -252,6 +315,16 @@ export async function resolveQuoteByToken(token: string): Promise<ResolvedQuote 
   if (!row) return undefined;
 
   let quote = row.quote;
+
+  const [creditRow] = await db
+    .select({ total: sql<string>`coalesce(sum(${referralCredits.amount}), 0)::text` })
+    .from(referralCredits)
+    .where(
+      and(
+        eq(referralCredits.quoteId, quote.id),
+        inArray(referralCredits.status, ['applied', 'redeemed'])
+      )
+    );
 
   // First open — record it, and let the team see the customer is engaged.
   if (quote.status === 'sent' && !quote.viewedAt) {
@@ -288,6 +361,7 @@ export async function resolveQuoteByToken(token: string): Promise<ResolvedQuote 
       currency: quote.currency,
       subtotal: quote.subtotal,
       discount: quote.discount,
+      creditApplied: creditRow?.total ?? '0',
       total: quote.total,
       depositAmount: quote.depositAmount,
       notes: quote.notes,
@@ -313,6 +387,37 @@ export async function listQuotesForOpportunity(
     .where(eq(quotes.opportunityId, opportunityId))
     .orderBy(desc(quotes.createdAt));
 
+  /**
+   * How much of each quote's discount is referral credit.
+   *
+   * One grouped query rather than a join on the select above: a quote can carry
+   * several credits, and joining would multiply the quote rows. Released
+   * credits are excluded by their status — a credit that came back is no longer
+   * part of this quote's story.
+   */
+  const creditRows = rows.length
+    ? await executor
+        .select({
+          quoteId: referralCredits.quoteId,
+          total: sql<string>`coalesce(sum(${referralCredits.amount}), 0)::text`,
+        })
+        .from(referralCredits)
+        .where(
+          and(
+            inArray(
+              referralCredits.quoteId,
+              rows.map(({ quote }) => quote.id)
+            ),
+            inArray(referralCredits.status, ['applied', 'redeemed'])
+          )
+        )
+        .groupBy(referralCredits.quoteId)
+    : [];
+
+  const creditByQuote = new Map(
+    creditRows.filter((row) => row.quoteId).map((row) => [row.quoteId!, row.total])
+  );
+
   return rows.map(({ quote, createdByName }) => ({
     id: quote.id,
     token: quote.token,
@@ -336,6 +441,7 @@ export async function listQuotesForOpportunity(
     paymentMethod: quote.paymentMethod,
     paymentReference: quote.paymentReference,
     createdByName,
+    creditApplied: creditByQuote.get(quote.id) ?? '0',
     url: quoteUrl(quote.token),
   }));
 }
@@ -354,6 +460,11 @@ export async function expireLapsedQuotes(): Promise<number> {
   for (const opportunityId of new Set(expired.map((row) => row.opportunityId))) {
     await syncOpportunityValue(opportunityId);
   }
+
+  // The customer never accepted, so they never spent their credit. Letting it
+  // stay reserved against a dead quote would quietly confiscate a reward they
+  // earned — the one failure mode of this whole feature nobody would notice.
+  await releaseCreditsForQuotes(expired.map((row) => row.id));
 
   return expired.length;
 }

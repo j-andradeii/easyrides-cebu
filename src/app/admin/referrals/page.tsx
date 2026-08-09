@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import { formatDate } from '@/lib/format';
-import { rewardLabel } from '@/lib/crm/rewards';
+import { REFERRER_REWARD_LABEL, rewardLabel } from '@/lib/crm/rewards';
 import * as inquiryService from '@/services/inquiry.service';
 import type { ReferralRecord } from '@/models/crm.types';
 
@@ -60,6 +60,11 @@ export default function AdminReferralsPage() {
     [items]
   );
 
+  const rewarded = useMemo(
+    () => items.filter((item) => item.status === 'rewarded').length,
+    [items]
+  );
+
   const act = async (referralId: string, action: 'approve' | 'void') => {
     setIsBusy(true);
     setError(null);
@@ -87,7 +92,12 @@ export default function AdminReferralsPage() {
         <h1 className="text-2xl font-bold text-slate-900">Referrals</h1>
         <p className="mt-1 text-sm text-slate-600">
           {items.length} referral{items.length === 1 ? '' : 's'}
-          {awaitingPayout > 0 && ` · ${awaitingPayout} awaiting payout approval`}
+          {awaitingPayout > 0 && ` · ${awaitingPayout} awaiting approval`}
+          {rewarded > 0 && ` · ${rewarded} rewarded`}
+        </p>
+        <p className="mt-1 text-xs text-slate-500">
+          Approving issues the referrer a {REFERRER_REWARD_LABEL.toLowerCase()}, which an agent
+          applies with one click the next time they quote them.
         </p>
       </header>
 
@@ -145,6 +155,13 @@ export default function AdminReferralsPage() {
                         </p>
                       )}
 
+                      {referral.status === 'rewarded' && (
+                        <p className="mt-1 inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800">
+                          <i className="pi pi-gift text-[10px]" />
+                          Credit is on their contact — it comes off their next quote automatically
+                        </p>
+                      )}
+
                       {referral.abuseFlag && (
                         <p className="mt-1.5 inline-flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-xs text-red-700">
                           <i className="pi pi-flag text-[10px]" /> {referral.abuseFlag}
@@ -167,9 +184,10 @@ export default function AdminReferralsPage() {
                           type="button"
                           disabled={isBusy}
                           onClick={() => act(referral.id, 'approve')}
+                          title="Issues the referrer a ₱500 booking credit"
                           className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
                         >
-                          Approve payout
+                          Approve reward
                         </button>
                       )}
 

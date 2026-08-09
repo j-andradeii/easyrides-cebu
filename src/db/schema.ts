@@ -96,6 +96,23 @@ export const referralStatusEnum = pgEnum('referral_status', [
   'void',
 ]);
 
+/**
+ * Where a referral credit sits between "earned" and "spent".
+ *
+ * `applied` is the reservation an agent makes when they put the credit on a
+ * quote: the money is spoken for but the customer has not accepted yet, so it
+ * must not be offered on a second quote — and must come back if that quote is
+ * declined, cancelled or expires. Only an accepted quote turns it into
+ * `redeemed`, which is the one status that cannot be undone.
+ */
+export const creditStatusEnum = pgEnum('credit_status', [
+  'available',
+  'applied',
+  'redeemed',
+  'expired',
+  'void',
+]);
+
 // --- Admin users (portal login) --------------------------------------------
 
 export const adminUsers = pgTable(
@@ -220,6 +237,17 @@ export const opportunities = pgTable(
     currency: text('currency').notNull().default('PHP'),
     preferredDate: date('preferred_date'),
     source: text('source'),
+    /**
+     * The promo page that produced this deal, when one did.
+     *
+     * `source` already carries "campaign:summer-oslob-2026" so the existing
+     * source filter keeps working with no new UI, but a slug in a text column
+     * cannot survive a rename and cannot be counted cheaply. This is what
+     * /admin/campaigns totals its leads from.
+     */
+    campaignId: uuid('campaign_id').references((): AnyPgColumn => campaigns.id, {
+      onDelete: 'set null',
+    }),
     lostReason: text('lost_reason'),
     expectedCloseDate: date('expected_close_date'),
     wonAt: timestamp('won_at', { withTimezone: true }),
@@ -234,6 +262,7 @@ export const opportunities = pgTable(
     index('opportunities_status_idx').on(table.status),
     index('opportunities_owner_idx').on(table.ownerId),
     index('opportunities_created_idx').on(table.createdAt.desc()),
+    index('opportunities_campaign_idx').on(table.campaignId),
   ]
 );
 
@@ -271,6 +300,10 @@ export const inquiries = pgTable(
      * would have, and an agent reads it before dispatching anyway.
      */
     pickupLocation: text('pickup_location'),
+    /** The promo page this submission came through, when it came through one. */
+    campaignId: uuid('campaign_id').references((): AnyPgColumn => campaigns.id, {
+      onDelete: 'set null',
+    }),
     /** The exact posted body — future-proofs us against form changes */
     rawPayload: jsonb('raw_payload').notNull(),
     utm: jsonb('utm'),
@@ -282,6 +315,7 @@ export const inquiries = pgTable(
     index('inquiries_created_idx').on(table.createdAt.desc()),
     index('inquiries_source_idx').on(table.source),
     index('inquiries_opportunity_idx').on(table.opportunityId),
+    index('inquiries_campaign_idx').on(table.campaignId),
   ]
 );
 
@@ -518,6 +552,65 @@ export const referrals = pgTable(
   ]
 );
 
+// --- Referral credits (money off the referrer's next booking) ---------------
+
+/**
+ * A peso balance a contact can spend on a future quote.
+ *
+ * This is the half of §7A the original schema left as a promise: `referrals`
+ * records that a reward was *earned*, but nothing tracked whether it had been
+ * *given*. A referrer who is told "₱500 off next time" and then quoted full
+ * price the next time they book is the fastest way to kill a referral programme,
+ * so the discount is a row an agent can see and apply rather than a note
+ * someone has to remember.
+ *
+ * A ledger of separate rows rather than one running balance on `contacts`:
+ * three referrals are three credits, each with its own expiry and its own
+ * audit trail back to the referral that earned it. Summing is cheap; splitting
+ * a single number back into where it came from is not.
+ *
+ * Amounts are positive and get *subtracted* at quote time — `quotes.discount`
+ * is the field they land in, and `priceQuote` already refuses to let a discount
+ * take a total below zero.
+ */
+export const referralCredits = pgTable(
+  'referral_credits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    contactId: uuid('contact_id')
+      .notNull()
+      .references(() => contacts.id, { onDelete: 'cascade' }),
+    /** The referral that earned it. Null for a goodwill credit an admin issued. */
+    referralId: uuid('referral_id').references(() => referrals.id, { onDelete: 'set null' }),
+    amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    currency: text('currency').notNull().default('PHP'),
+    status: creditStatusEnum('status').notNull().default('available'),
+    /** What the customer was told they were getting — shown on the quote line. */
+    reason: text('reason').notNull(),
+    /** Set while `applied` / `redeemed`: the quote this credit is riding on. */
+    quoteId: uuid('quote_id').references(() => quotes.id, { onDelete: 'set null' }),
+    /**
+     * Credits expire so an unbounded liability doesn't accumulate against the
+     * business. Null means it never lapses.
+     */
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    appliedAt: timestamp('applied_at', { withTimezone: true }),
+    redeemedAt: timestamp('redeemed_at', { withTimezone: true }),
+    issuedBy: uuid('issued_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('referral_credits_contact_idx').on(table.contactId, table.status),
+    index('referral_credits_quote_idx').on(table.quoteId),
+    // One credit per referral, so a double-clicked "Approve payout" cannot pay
+    // the same referrer twice.
+    uniqueIndex('referral_credits_referral_uidx')
+      .on(table.referralId)
+      .where(sql`${table.referralId} is not null`),
+  ]
+);
+
 // --- Reviews / feedback (§7A) -----------------------------------------------
 
 export const reviews = pgTable(
@@ -666,6 +759,69 @@ export const vehicles = pgTable(
   ]
 );
 
+// --- Campaigns (the shareable lead-capture pages) ---------------------------
+
+/**
+ * One row per promo you post to Facebook, Instagram or Viber — the thing that
+ * lives at /promo/[slug].
+ *
+ * It is deliberately *not* a tour and not a vehicle. Those two are the
+ * catalogue: what the business permanently sells. A campaign is an offer with
+ * a shelf life ("Summer Oslob 2026", "Holy Week van, 20% off") whose whole job
+ * is to be pasted into a social post, render a good link preview, and drop the
+ * person who clicks it into `/admin/inquiries` as a lead attributed back here.
+ *
+ * `bannerImage` is the og:image and nothing else — 1200×630, because that is
+ * what Facebook and X crop to. `shortDescription` is the og:description, kept
+ * plain text for the same reason: a link preview cannot render markup.
+ *
+ * `viewCount` is stored on the row rather than derived from a hits table. What
+ * an owner actually asks is "did that post work?", and view count next to lead
+ * count answers it; per-visit rows would be a lot of writes to answer the same
+ * two numbers.
+ */
+export const campaigns = pgTable(
+  'campaigns',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    /** URL segment — /promo/[slug]. Derived from the name, unique site-wide. */
+    slug: text('slug').notNull(),
+    /** The campaign's name — the page's H1 and how it reads in the lead list. */
+    name: text('name').notNull(),
+    /** Plain text: the og:description and the line under the heading. */
+    shortDescription: text('short_description').notNull(),
+    /** Sanitised TipTap HTML — the offer's details, inclusions, fine print. */
+    description: text('description').notNull().default(''),
+    /** The og:image. Also the page's hero. */
+    bannerImage: text('banner_image').notNull(),
+    /** What the submit button says — "Claim this offer", "Reserve my slot". */
+    ctaLabel: text('cta_label').notNull().default('Send Inquiry'),
+    /** Pre-selects the form's service dropdown, e.g. 'tour'. */
+    serviceType: text('service_type'),
+    /** Pre-selects the vehicle class when the promo is for one. */
+    vehicleType: text('vehicle_type'),
+    /** Unpublished campaigns stay editable but 404 on the public site. */
+    isPublished: boolean('is_published').notNull().default(true),
+    /**
+     * When the offer stops accepting submissions. Null runs forever.
+     *
+     * The page still renders after this — a link already shared should explain
+     * that the promo ended rather than 404 — but the form closes.
+     */
+    endsAt: timestamp('ends_at', { withTimezone: true }),
+    /** Bumped once per page render. See the note above. */
+    viewCount: integer('view_count').notNull().default(0),
+    createdBy: uuid('created_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    updatedBy: uuid('updated_by').references(() => adminUsers.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('campaigns_slug_uidx').on(table.slug),
+    index('campaigns_published_idx').on(table.isPublished, table.createdAt.desc()),
+  ]
+);
+
 // --- Inferred types ---------------------------------------------------------
 
 export type AdminUser = typeof adminUsers.$inferSelect;
@@ -681,7 +837,10 @@ export type WorkflowEnrollment = typeof workflowEnrollments.$inferSelect;
 export type Quote = typeof quotes.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type Referral = typeof referrals.$inferSelect;
+export type ReferralCredit = typeof referralCredits.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
+export type CampaignRow = typeof campaigns.$inferSelect;
+export type NewCampaignRow = typeof campaigns.$inferInsert;
 export type TourRow = typeof tours.$inferSelect;
 export type NewTourRow = typeof tours.$inferInsert;
 export type VehicleRow = typeof vehicles.$inferSelect;

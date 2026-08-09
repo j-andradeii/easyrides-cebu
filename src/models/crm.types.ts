@@ -48,6 +48,9 @@ export interface InquiryListItem {
   ownerName: string | null;
   monetaryValue: string;
   tourTitle: string | null;
+  /** The promo page that produced this lead, when one did. */
+  campaignId: string | null;
+  campaignName: string | null;
   /** Open tasks still attached to this deal. */
   openTaskCount: number;
 }
@@ -60,6 +63,8 @@ export interface InquiryListResponse {
   stages: StageSummary[];
   owners: AdminSummary[];
   sources: string[];
+  /** Campaigns that have produced at least one lead — the campaign filter. */
+  campaigns: { id: string; name: string }[];
 }
 
 // --- Detail (/admin/inquiries/[id]) -----------------------------------------
@@ -95,6 +100,10 @@ export interface OpportunityDetail {
   currency: string;
   preferredDate: string | null;
   source: string | null;
+  /** The promo page this deal came in through, when it came through one. */
+  campaignId: string | null;
+  campaignName: string | null;
+  campaignSlug: string | null;
   lostReason: string | null;
   expectedCloseDate: string | null;
   ownerId: string | null;
@@ -199,6 +208,28 @@ export interface ReferralRecord {
   convertedAt: string | null;
 }
 
+/**
+ * One referral credit — pesos this contact can take off a future quote.
+ *
+ * `status` is the ledger's own enum: available | applied | redeemed | expired |
+ * void. The quote builder only ever offers `available` rows; the rest are there
+ * so an agent can answer "what happened to my ₱500?" without a database query.
+ */
+export interface CreditRecord {
+  id: string;
+  /** Decimal string, matching every other money field on the wire. */
+  amount: string;
+  currency: string;
+  status: string;
+  /** What the customer was told they were getting. */
+  reason: string;
+  /** The quote it is reserved against, while it is. */
+  quoteId: string | null;
+  expiresAt: string | null;
+  redeemedAt: string | null;
+  createdAt: string;
+}
+
 export interface InquiryDetailResponse {
   opportunity: OpportunityDetail;
   contact: ContactDetail;
@@ -209,6 +240,8 @@ export interface InquiryDetailResponse {
   reviews: ReviewRecord[];
   referrals: ReferralRecord[];
   quotes: QuoteRecord[];
+  /** This contact's whole credit ledger, newest first. */
+  credits: CreditRecord[];
   stages: StageSummary[];
   owners: AdminSummary[];
 }

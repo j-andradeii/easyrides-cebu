@@ -14,10 +14,13 @@ import { and, eq, gte, isNotNull, isNull, or, sql } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { contacts, inquiries, opportunities, referrals } from '@/db/schema';
+import { findCampaignForIntake } from '@/lib/campaigns/repository';
 import { handleInquiryCreated } from '@/lib/workflows/engine';
-import type { InquirySubmissionData } from '@/models/inquiry.schema';
+import { campaignSource, type InquirySubmissionData } from '@/models/inquiry.schema';
+import { issueCredit } from './credits';
 import { buildOpportunityTitle, normalizeEmail, normalizePhone, toDateOnly } from './normalize';
 import { getDefaultPipelineId, getStageByKey, logActivity } from './repository';
+import { REFEREE_CREDIT_AMOUNT, REFEREE_REWARD_LABEL } from './rewards';
 
 /** §15 — a crude but effective per-IP throttle on the public endpoint. */
 const RATE_LIMIT_WINDOW_MS = 10 * 60_000;
@@ -77,6 +80,18 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
   const pipelineId = await getDefaultPipelineId();
   const newLeadStage = await getStageByKey('new_lead');
 
+  /**
+   * A promo submission is attributed twice over: `campaignId` is the durable
+   * link the /admin/campaigns totals are counted from, and `source` becomes
+   * "campaign:<slug>" so the source filter and the funnel report — both of
+   * which already read that column — pick promos up with no changes.
+   *
+   * Resolved rather than trusted: an unknown slug attributes to nothing instead
+   * of writing a source for a campaign that does not exist.
+   */
+  const campaign = data.campaignSlug ? await findCampaignForIntake(data.campaignSlug) : null;
+  const source = campaign ? campaignSource(campaign.slug) : data.source;
+
   const result = await db.transaction(async (tx) => {
     // 1) Upsert the contact — dedupe by normalized phone, then email.
     const predicates = [];
@@ -117,7 +132,7 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
           email,
           phone,
           countryCode: data.countryCode ?? '+63',
-          firstSource: data.source,
+          firstSource: source,
         })
         .returning();
       contact = created;
@@ -134,7 +149,8 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
         serviceType: data.serviceType ?? null,
         vehicleType: data.vehicleType ?? null,
         preferredDate,
-        source: data.source,
+        source,
+        campaignId: campaign?.id ?? null,
       })
       .returning();
 
@@ -144,7 +160,7 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
       .values({
         contactId: contact.id,
         opportunityId: opportunity.id,
-        source: data.source,
+        source,
         serviceType: data.serviceType ?? null,
         vehicleType: data.vehicleType ?? null,
         preferredDate,
@@ -154,6 +170,7 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
         vehicleName: data.vehicleName ?? null,
         rentalDays: data.rentalDays ?? null,
         pickupLocation: data.pickupLocation?.trim() || null,
+        campaignId: campaign?.id ?? null,
         rawPayload: input.rawPayload as Record<string, unknown>,
         utm: data.utm ?? null,
         ipAddress: input.ipAddress,
@@ -167,8 +184,15 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
         contactId: contact.id,
         type: 'system',
         subject: 'Opportunity created',
-        body: `Inquiry received from ${data.source}`,
-        metadata: { inquiryId: inquiry.id, source: data.source },
+        body: campaign
+          ? `Inquiry received from the “${campaign.name}” promo page`
+          : `Inquiry received from ${source}`,
+        metadata: {
+          inquiryId: inquiry.id,
+          source,
+          campaignId: campaign?.id ?? null,
+          campaignName: campaign?.name ?? null,
+        },
       },
       tx
     );
@@ -205,6 +229,13 @@ export async function createInquiry(input: IntakeInput): Promise<IntakeResult> {
 /**
  * §7A — ties a submission back to the customer whose /r/[code] link brought it
  * in. Self-referrals are recorded but flagged; W5 voids them at payout time.
+ *
+ * The friend's ₱300 is issued here, at sign-up, rather than at conversion like
+ * the referrer's ₱500. The two sides are earned at different moments: the
+ * friend was promised "₱300 off your first booking" on the landing page they
+ * just filled in, so it has to be on the *first* quote an agent builds them —
+ * which is usually within the hour. The referrer's is a reward for an outcome
+ * that has not happened yet, so it waits for the booking and for approval.
  */
 export async function linkReferral(params: {
   code: string;
@@ -244,6 +275,7 @@ export async function linkReferral(params: {
       .update(referrals)
       .set({ status: 'signed_up', refereeOpportunityId: params.refereeOpportunityId })
       .where(eq(referrals.id, existing.id));
+    // No credit: this pair is already tracked, so one was issued the first time.
     return;
   }
 
@@ -272,15 +304,38 @@ export async function linkReferral(params: {
         ...(params.channel ? { channel: params.channel } : {}),
       })
       .where(eq(referrals.id, unclaimed.id));
+
+    await issueRefereeCredit(unclaimed.id, params.refereeContactId);
     return;
   }
 
-  await db.insert(referrals).values({
-    referrerContactId: referrer.id,
-    refereeContactId: params.refereeContactId,
-    refereeOpportunityId: params.refereeOpportunityId,
-    code,
-    channel: params.channel ?? null,
-    status: 'signed_up',
-  });
+  const [created] = await db
+    .insert(referrals)
+    .values({
+      referrerContactId: referrer.id,
+      refereeContactId: params.refereeContactId,
+      refereeOpportunityId: params.refereeOpportunityId,
+      code,
+      channel: params.channel ?? null,
+      status: 'signed_up',
+    })
+    .returning({ id: referrals.id });
+
+  await issueRefereeCredit(created.id, params.refereeContactId);
+}
+
+/**
+ * The friend's welcome discount.
+ *
+ * Failure is logged and swallowed: this runs after the lead is already
+ * committed, and an agent can re-issue a credit by hand far more easily than a
+ * customer can re-submit a form they think went through.
+ */
+async function issueRefereeCredit(referralId: string, refereeContactId: string): Promise<void> {
+  await issueCredit({
+    contactId: refereeContactId,
+    referralId,
+    amount: REFEREE_CREDIT_AMOUNT,
+    reason: REFEREE_REWARD_LABEL,
+  }).catch((error) => console.error('[intake] referee credit failed:', error));
 }

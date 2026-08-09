@@ -37,11 +37,13 @@ import {
   getStageByKey,
   logActivity,
 } from '@/lib/crm/repository';
+import { voidCreditsForReferral } from '@/lib/crm/credits';
 import { truncate } from '@/lib/crm/normalize';
 import {
   REFEREE_REWARD,
   REFERRAL_MONTHLY_CAP,
   REFERRER_REWARD,
+  rewardLabel,
 } from '@/lib/crm/rewards';
 import {
   getWorkflowDefinition,
@@ -855,13 +857,21 @@ async function issueReferralRewards(opportunity: Opportunity, contact: Contact):
       .set({ status: 'void', abuseFlag: reason })
       .where(eq(referrals.id, referral.id));
 
+    // The friend's ₱300 was issued back at sign-up, before we could know this
+    // was a self-referral. Cancelling the referral has to cancel the money it
+    // put on the table, or the guardrail stops nothing.
+    const voided = await voidCreditsForReferral(referral.id).catch((error) => {
+      console.error('[w5] credit void failed:', error);
+      return 0;
+    });
+
     await logActivity({
       opportunityId: opportunity.id,
       contactId: contact.id,
       type: 'workflow',
       subject: 'Referral reward blocked',
-      body: reason,
-      metadata: { referralId: referral.id },
+      body: voided > 0 ? `${reason}\n${voided} unspent credit cancelled.` : reason,
+      metadata: { referralId: referral.id, creditsVoided: voided },
     });
     return;
   }
@@ -876,7 +886,9 @@ async function issueReferralRewards(opportunity: Opportunity, contact: Contact):
     contactId: contact.id,
     type: 'workflow',
     subject: 'Referral reward pending approval',
-    body: `Referrer ${referrer.fullName ?? referrer.phone ?? referrer.id} earns ${REFERRER_REWARD}; referee gets ${REFEREE_REWARD}.`,
+    body: `Referrer ${referrer.fullName ?? referrer.phone ?? referrer.id} earns ${rewardLabel(
+      REFERRER_REWARD
+    )}; referee gets ${rewardLabel(REFEREE_REWARD)}.`,
     metadata: { referralId: referral.id, referrerId: referrer.id },
   });
 }

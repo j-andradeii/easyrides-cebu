@@ -170,7 +170,8 @@ export default function ReviewPage() {
           <div className="mt-8 rounded-2xl bg-gradient-to-br from-coral to-mango p-5 text-white">
             <h2 className="text-lg font-bold">Give ₱300, get ₱500</h2>
             <p className="mt-1 text-sm text-white/90">
-              Share your link — your friend gets ₱300 off, you get ₱500 once they ride.
+              Share your link — your friend gets ₱300 off, and you get ₱500 off your next booking
+              the moment they ride.
             </p>
             <a
               href={`/thanks/${context.referralCode}`}

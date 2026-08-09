@@ -8,6 +8,7 @@
 import type { NextRequest } from 'next/server';
 
 import { AdminRouteError, handleAdminRoute } from '@/lib/auth/require-admin';
+import { onlySentKeys } from '@/lib/patch-body';
 import { sanitizeRichText } from '@/lib/sanitize-rich-text';
 import { deleteTour, getTourById, updateTour } from '@/lib/tours/repository';
 import { revalidateTourPages } from '@/lib/tours/revalidate';
@@ -32,7 +33,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   const { id } = await context.params;
 
   return handleAdminRoute(async (admin): Promise<{ tour: TourRecord }> => {
-    const parsed = tourPatchSchema.safeParse(await request.json().catch(() => null));
+    const body = await request.json().catch(() => null);
+    const parsed = tourPatchSchema.safeParse(body);
     if (!parsed.success) {
       throw new AdminRouteError(
         parsed.error.issues[0]?.message ?? 'Please check the tour details',
@@ -43,7 +45,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const existing = await getTourById(id);
     if (!existing) throw new AdminRouteError('Tour not found', 404);
 
-    const patch = { ...parsed.data };
+    // The table's publish / feature switches send a single field. Without this
+    // filter the schema's defaults ride along and blank the inclusions,
+    // exclusions, gallery and sort order — see `onlySentKeys`.
+    const patch = onlySentKeys(body, parsed.data);
     if (patch.description !== undefined) {
       patch.description = sanitizeRichText(patch.description);
     }

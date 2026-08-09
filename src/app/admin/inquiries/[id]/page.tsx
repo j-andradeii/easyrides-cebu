@@ -96,6 +96,21 @@ export default function InquiryDetailPage() {
 
   const latestInquiry = detail?.inquiries[0];
 
+  /**
+   * What this customer can take off their next quote.
+   *
+   * Only `available` rows: a credit already riding on an open quote is spoken
+   * for, and one that has been redeemed is gone. Counting either would promise
+   * the customer money twice.
+   */
+  const spendableCredit = useMemo(
+    () =>
+      (detail?.credits ?? [])
+        .filter((credit) => credit.status === 'available')
+        .reduce((sum, credit) => sum + Number(credit.amount), 0),
+    [detail?.credits]
+  );
+
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
@@ -273,6 +288,20 @@ export default function InquiryDetailPage() {
                 <Field label="Their referral code" value={contact.referralCode} mono />
               )}
 
+              {/* Only when there is something to spend. A permanent "₱0 credit"
+                  row would train an agent to stop reading this panel. */}
+              {spendableCredit > 0 && (
+                <div>
+                  <dt className="text-xs text-slate-600">Referral credit</dt>
+                  <dd className="mt-1">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                      <i className="pi pi-gift text-xs" />
+                      {formatPeso(spendableCredit)} off their next quote
+                    </span>
+                  </dd>
+                </div>
+              )}
+
               {contact.tags.length > 0 && (
                 <div>
                   <dt className="text-xs text-slate-600">Tags</dt>
@@ -293,6 +322,24 @@ export default function InquiryDetailPage() {
 
           <Panel title="Inquiry details">
             <dl className="space-y-3 text-sm">
+              {/* Which promo brought them in. Named and linked, because the
+                  next question after "this came from a campaign" is always
+                  "which one, and how is it doing?" */}
+              {opportunity.campaignId && opportunity.campaignName && (
+                <div>
+                  <dt className="text-xs text-slate-600">Campaign</dt>
+                  <dd className="mt-1">
+                    <Link
+                      href={`/admin/campaigns/${opportunity.campaignId}`}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-coral/10 px-2.5 py-1 text-xs font-medium text-coral-dark hover:bg-coral/20"
+                    >
+                      <i className="pi pi-megaphone text-[10px]" />
+                      {opportunity.campaignName}
+                    </Link>
+                  </dd>
+                </div>
+              )}
+
               <Field label="Service" value={serviceLabel(opportunity.serviceType)} />
               <Field label="Vehicle" value={vehicleLabel(opportunity.vehicleType) ?? '—'} />
               <Field label="Preferred date" value={formatDate(opportunity.preferredDate)} />
@@ -434,6 +481,7 @@ export default function InquiryDetailPage() {
           <Panel title="Quote">
             <QuoteBuilder
               quotes={detail.quotes}
+              credits={detail.credits}
               busy={isBusy}
               defaultLabel={`${serviceLabel(opportunity.serviceType)}${
                 vehicleLabel(opportunity.vehicleType) ? ` — ${vehicleLabel(opportunity.vehicleType)}` : ''
@@ -442,13 +490,21 @@ export default function InquiryDetailPage() {
                 mutate(
                   () => inquiryService.sendQuote(opportunity.id, payload),
                   // Say where the quote actually went — "sent" is worth nothing
-                  // if the contact has no email or the provider refused it.
-                  (result) =>
-                    result.emailed && result.emailedTo
-                      ? `Quote emailed to ${result.emailedTo}`
+                  // if the contact has no email or the provider refused it. The
+                  // credit is called out separately because it is the figure
+                  // the agent is about to be asked about on the phone.
+                  (result) => {
+                    const credit =
+                      result.creditApplied > 0
+                        ? ` ${formatPeso(result.creditApplied)} referral credit applied.`
+                        : '';
+
+                    return result.emailed && result.emailedTo
+                      ? `Quote emailed to ${result.emailedTo}.${credit}`
                       : `Quote created — ${
                           result.emailError ?? 'email not sent'
-                        }. Copy the link and send it yourself.`
+                        }. Copy the link and send it yourself.${credit}`;
+                  }
                 )
               }
             />

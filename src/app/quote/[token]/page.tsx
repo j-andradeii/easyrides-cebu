@@ -238,10 +238,18 @@ export default function QuoteCheckoutPage() {
                   <span>Subtotal</span>
                   <span className="tabular-nums">{formatPeso(quote.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-emerald-700">
-                  <span>Discount</span>
-                  <span className="tabular-nums">− {formatPeso(quote.discount)}</span>
-                </div>
+                {plainDiscount(quote) > 0 && (
+                  <div className="flex justify-between text-emerald-700">
+                    <span>Discount</span>
+                    <span className="tabular-nums">− {formatPeso(plainDiscount(quote))}</span>
+                  </div>
+                )}
+                {Number(quote.creditApplied) > 0 && (
+                  <div className="flex justify-between text-emerald-700">
+                    <span>Referral credit</span>
+                    <span className="tabular-nums">− {formatPeso(quote.creditApplied)}</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -403,10 +411,19 @@ export default function QuoteCheckoutPage() {
               <span>Subtotal</span>
               <span>{formatPeso(quote.subtotal)}</span>
             </div>
-            {Number.parseFloat(quote.discount) > 0 && (
+            {plainDiscount(quote) > 0 && (
               <div className="flex justify-between text-emerald-700">
                 <span>Discount</span>
-                <span>− {formatPeso(quote.discount)}</span>
+                <span>− {formatPeso(plainDiscount(quote))}</span>
+              </div>
+            )}
+            {Number.parseFloat(quote.creditApplied) > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <span>
+                  <i className="pi pi-gift mr-1 text-[10px]" />
+                  Referral credit
+                </span>
+                <span>− {formatPeso(quote.creditApplied)}</span>
               </div>
             )}
             <div className="flex justify-between pt-1.5 text-lg font-bold text-slate-900">
@@ -611,6 +628,19 @@ export default function QuoteCheckoutPage() {
       </div>
     </main>
   );
+}
+
+/**
+ * The discount the agent typed, with any referral credit taken back out.
+ *
+ * `quote.discount` is the single figure the total was computed from, credits
+ * included — one number is what keeps the arithmetic on the page honest. But
+ * showing the two as one line would hide the credit, and the credit is the part
+ * worth seeing. Subtracting here rather than storing two columns means the
+ * lines can never disagree with the total.
+ */
+function plainDiscount(quote: PublicQuote): number {
+  return Math.max(0, Number(quote.discount) - Number(quote.creditApplied));
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
