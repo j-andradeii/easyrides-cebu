@@ -44,6 +44,16 @@ export const createQuoteSchema = z.object({
   lineItems: z.array(quoteLineItemSchema).min(1, 'Add at least one line item').max(25),
   discount: z.number().min(0).max(10_000_000).optional(),
   /**
+   * Referral credits to spend on this quote.
+   *
+   * Ids, not an amount: the server re-reads each credit's value and its
+   * `available` status inside the same statement that reserves it, so a browser
+   * cannot claim ₱5,000 off a ₱500 credit, and two agents quoting the same
+   * customer at once cannot both spend it. Whatever is actually reserved is
+   * *added* to `discount` above, which stays the agent's own hand-typed figure.
+   */
+  creditIds: z.array(z.string().uuid()).max(20).default([]),
+  /**
    * A partial payment is one instalment of a larger booking — it is what lets
    * several quotes stay live on the same deal at once.
    */
@@ -100,8 +110,17 @@ export interface PublicQuote {
   tourTitle: string | null;
   lineItems: QuoteLineItem[];
   currency: string;
-  subtotal: string;
+  /** The whole reduction, credits included — what `total` was computed from. */
   discount: string;
+  subtotal: string;
+  /**
+   * Of `discount`, the part that came from a referral credit.
+   *
+   * Shown as its own line rather than folded into "Discount": a customer who
+   * sees "Referral credit − ₱500" on the price they are about to pay has just
+   * watched the programme pay out, which is the whole reason they told a friend.
+   */
+  creditApplied: string;
   total: string;
   depositAmount: string | null;
   notes: string | null;
@@ -137,6 +156,14 @@ export interface QuoteRecord {
   paymentMethod: string | null;
   paymentReference: string | null;
   createdByName: string | null;
+  /**
+   * Of `discount`, how much came from referral credits.
+   *
+   * Split out from the agent's own discount so the lead screen can say "₱500 of
+   * this is their referral credit" — which is what makes the credit visible
+   * rather than an unexplained number on a quote.
+   */
+  creditApplied: string;
   /** Absolute link to hand to the customer. */
   url: string;
 }

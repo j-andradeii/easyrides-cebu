@@ -101,7 +101,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       );
     }
 
-    const { quote, url } = await createQuote({
+    const { quote, url, creditApplied } = await createQuote({
       opportunityId: id,
       input: parsed.data,
       adminUserId: admin.id,
@@ -190,6 +190,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       emailedTo: emailed ? loaded.contact.email : null,
       // Trimmed for the toast — the provider's full complaint is on the timeline.
       emailError: emailError ? truncate(emailError, 140) : null,
+      creditApplied,
     };
   });
 }

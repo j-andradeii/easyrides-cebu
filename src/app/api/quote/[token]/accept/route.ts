@@ -17,6 +17,7 @@ import { and, eq, sql } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { activities, opportunities, quotes } from '@/db/schema';
+import { redeemCreditsForQuote } from '@/lib/crm/credits';
 import { truncate } from '@/lib/crm/normalize';
 import {
   ProofRejectedError,
@@ -205,6 +206,14 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       })
       .where(eq(quotes.id, quote.id));
 
+    // The one moment a reserved referral credit is actually spent. Anything
+    // that happens after this is about a booking that already exists, so a
+    // failure here must not be able to un-accept it — hence the catch.
+    const creditsSpent = await redeemCreditsForQuote(quote.id).catch((error) => {
+      console.error('[quote] credit redemption failed:', error);
+      return 0;
+    });
+
     const loaded = await loadOpportunityWithContact(quote.opportunityId);
     if (!loaded) {
       return NextResponse.json({ message: 'Could not confirm this booking' }, { status: 500 });
@@ -234,6 +243,9 @@ export async function POST(request: Request, context: { params: Promise<{ token:
         `Payment method: ${method.label}`,
         parsed.data.paymentReference ? `Reference: ${parsed.data.paymentReference}` : null,
         proof ? 'Proof of payment: screenshot attached' : 'Proof of payment: none attached',
+        creditsSpent > 0
+          ? `Referral credit spent: ${creditsSpent} credit${creditsSpent === 1 ? '' : 's'}`
+          : null,
       ]
         .filter(Boolean)
         .join('\n'),
@@ -243,6 +255,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
         paymentMethod: method.key,
         paymentReference: parsed.data.paymentReference ?? null,
         proofAttached: Boolean(proof),
+        creditsSpent,
       },
     });
 

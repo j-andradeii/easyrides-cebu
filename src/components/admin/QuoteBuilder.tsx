@@ -4,6 +4,13 @@
  * Sending a quote is what moves a lead to **Quote Sent** — the stage isn't a
  * separate click, so the funnel can never claim a quote went out when no
  * customer ever got a link.
+ *
+ * It is also where a referral credit gets spent. Any credit the customer has
+ * earned is offered here, ticked on by default: a reward that an agent has to
+ * remember to look up is a reward that gets forgotten, and a customer who was
+ * promised ₱500 off and quoted full price will not refer anyone again. The
+ * server re-checks and reserves whatever is ticked — see `applyCreditsToQuote`
+ * — so what the browser sends is a request, not the final word.
  */
 
 'use client';
@@ -11,6 +18,7 @@
 import { useMemo, useState } from 'react';
 
 import { formatDate, formatPeso } from '@/lib/format';
+import type { CreditRecord } from '@/models/crm.types';
 import {
   QUOTE_TYPES,
   QUOTE_TYPE_LABELS,
@@ -38,11 +46,14 @@ const STATUS_TONES: Record<string, string> = {
 
 interface QuoteBuilderProps {
   quotes: QuoteRecord[];
+  /** The contact's whole credit ledger; only `available` rows are offered. */
+  credits?: CreditRecord[];
   defaultLabel: string;
   busy?: boolean;
   onSend: (payload: {
     lineItems: { label: string; description?: string; quantity: number; unitPrice: number }[];
     discount?: number;
+    creditIds: string[];
     quoteType: QuoteType;
     notes?: string;
     validForDays: number;
@@ -50,7 +61,13 @@ interface QuoteBuilderProps {
   }) => Promise<void>;
 }
 
-export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilderProps) {
+export function QuoteBuilder({
+  quotes,
+  credits = [],
+  defaultLabel,
+  busy,
+  onSend,
+}: QuoteBuilderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [lines, setLines] = useState<DraftLine[]>([{ ...EMPTY_LINE, label: defaultLabel }]);
   const [discount, setDiscount] = useState('');
@@ -59,8 +76,40 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
   const [validForDays, setValidForDays] = useState('7');
   /** False = this quote sits alongside the open one (a split payment). */
   const [supersedeOpen, setSupersedeOpen] = useState(true);
+  /**
+   * The credits the agent has *un*ticked, rather than the ones they have
+   * ticked.
+   *
+   * Storing the exclusions makes "all of them, by default" the derived state
+   * instead of something an effect has to keep re-syncing — so a credit that
+   * disappears from the ledger (spent on another quote between page loads)
+   * drops out of the selection on its own rather than being sent and silently
+   * ignored.
+   */
+  const [deselectedCredits, setDeselectedCredits] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
+  const availableCredits = useMemo(
+    () => credits.filter((credit) => credit.status === 'available'),
+    [credits]
+  );
+
+  const selectedCredits = useMemo(
+    () =>
+      availableCredits
+        .filter((credit) => !deselectedCredits.includes(credit.id))
+        .map((credit) => credit.id),
+    [availableCredits, deselectedCredits]
+  );
+
+  const creditTotal = useMemo(
+    () =>
+      availableCredits
+        .filter((credit) => selectedCredits.includes(credit.id))
+        .reduce((sum, credit) => sum + Number(credit.amount), 0),
+    [availableCredits, selectedCredits]
+  );
 
   // Only quotes the customer can still act on are at risk of being replaced —
   // so the replace/add choice is only worth showing when one exists.
@@ -75,9 +124,13 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
       const unitPrice = Number.parseFloat(line.unitPrice) || 0;
       return sum + quantity * unitPrice;
     }, 0);
-    const off = Math.min(Number.parseFloat(discount) || 0, subtotal);
-    return { subtotal, discount: off, total: subtotal - off };
-  }, [lines, discount]);
+    const manual = Number.parseFloat(discount) || 0;
+    // The same floor the server applies: a discount can zero a quote, never
+    // invert it. Credits are capped by whatever the manual discount left.
+    const off = Math.min(manual, subtotal);
+    const credit = Math.min(creditTotal, subtotal - off);
+    return { subtotal, discount: off, credit, total: subtotal - off - credit };
+  }, [lines, discount, creditTotal]);
 
   const updateLine = (index: number, patch: Partial<DraftLine>) => {
     setLines((current) =>
@@ -109,6 +162,7 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
     await onSend({
       lineItems,
       discount: totals.discount > 0 ? totals.discount : undefined,
+      creditIds: selectedCredits,
       quoteType,
       notes: notes.trim() || undefined,
       validForDays: Number.parseInt(validForDays, 10) || 7,
@@ -164,6 +218,12 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
                     {quote.paymentMethod && ` · paying via ${quote.paymentMethod}`}
                     {quote.paymentReference && ` · ref ${quote.paymentReference}`}
                   </p>
+                  {Number(quote.creditApplied) > 0 && (
+                    <p className="mt-1 text-xs text-emerald-700">
+                      <i className="pi pi-gift mr-1 text-[10px]" />
+                      Includes {formatPeso(quote.creditApplied)} referral credit
+                    </p>
+                  )}
                   {quote.declineReason && (
                     <p className="mt-1 text-xs text-red-600">Declined: {quote.declineReason}</p>
                   )}
@@ -310,6 +370,46 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
               : 'Settles the whole booking in one payment.'}
           </p>
 
+          {availableCredits.length > 0 && (
+            <fieldset className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-2.5">
+              <legend className="px-1 text-xs font-semibold text-emerald-800">
+                <i className="pi pi-gift mr-1 text-[10px]" />
+                Referral credit available
+              </legend>
+
+              {availableCredits.map((credit) => (
+                <label key={credit.id} className="flex cursor-pointer items-start gap-2 py-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedCredits.includes(credit.id)}
+                    onChange={(event) =>
+                      setDeselectedCredits((current) =>
+                        event.target.checked
+                          ? current.filter((id) => id !== credit.id)
+                          : [...current, credit.id]
+                      )
+                    }
+                    className="mt-0.5 h-3.5 w-3.5 accent-emerald-600"
+                  />
+                  <span className="text-xs text-slate-700">
+                    <strong className="text-slate-900">{formatPeso(credit.amount)}</strong> ·{' '}
+                    {credit.reason}
+                    {credit.expiresAt && (
+                      <span className="block text-[11px] text-slate-500">
+                        Expires {formatDate(credit.expiresAt)}
+                      </span>
+                    )}
+                  </span>
+                </label>
+              ))}
+
+              <p className="mt-1 px-1 text-[11px] text-emerald-800">
+                Comes off this quote automatically. It is only spent once the customer accepts —
+                declining hands it back.
+              </p>
+            </fieldset>
+          )}
+
           {openQuotes.length > 0 && (
             <fieldset className="rounded-lg border border-slate-200 p-2.5">
               <legend className="px-1 text-xs font-medium text-slate-700">
@@ -379,6 +479,12 @@ export function QuoteBuilder({ quotes, defaultLabel, busy, onSend }: QuoteBuilde
               <div className="flex justify-between text-emerald-300">
                 <span>Discount</span>
                 <span>− {formatPeso(totals.discount)}</span>
+              </div>
+            )}
+            {totals.credit > 0 && (
+              <div className="flex justify-between text-emerald-300">
+                <span>Referral credit</span>
+                <span>− {formatPeso(totals.credit)}</span>
               </div>
             )}
             <div className="mt-1 flex justify-between border-t border-slate-700 pt-1.5 font-bold">

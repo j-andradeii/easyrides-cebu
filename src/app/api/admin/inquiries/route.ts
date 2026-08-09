@@ -11,7 +11,15 @@ import type { NextRequest } from 'next/server';
 import { and, count, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { adminUsers, contacts, inquiries, opportunities, pipelineStages, tasks } from '@/db/schema';
+import {
+  adminUsers,
+  campaigns,
+  contacts,
+  inquiries,
+  opportunities,
+  pipelineStages,
+  tasks,
+} from '@/db/schema';
 import { AdminRouteError, handleAdminRoute } from '@/lib/auth/require-admin';
 import { createInquiry } from '@/lib/crm/intake';
 import { getStages, logActivity } from '@/lib/crm/repository';
@@ -37,6 +45,7 @@ export async function GET(request: NextRequest) {
     const pageSize = parsePositiveInt(params.get('pageSize'), 25, MAX_PAGE_SIZE);
     const query = params.get('query')?.trim();
     const source = params.get('source')?.trim();
+    const campaign = params.get('campaign')?.trim();
     const stageKey = params.get('stage')?.trim();
     const owner = params.get('owner')?.trim();
     const status = params.get('status')?.trim();
@@ -63,6 +72,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (source) filters.push(eq(opportunities.source, source));
+
+    // "Show me everything that Facebook post brought in" — the link every
+    // campaign card on /admin/campaigns points at.
+    if (campaign) filters.push(eq(opportunities.campaignId, campaign));
 
     if (stageKey) {
       const stage = stages.find((candidate) => candidate.key === stageKey);
@@ -122,11 +135,14 @@ export async function GET(request: NextRequest) {
         ownerId: opportunities.ownerId,
         ownerName: adminUsers.name,
         monetaryValue: opportunities.monetaryValue,
+        campaignId: opportunities.campaignId,
+        campaignName: campaigns.name,
       })
       .from(opportunities)
       .innerJoin(contacts, eq(contacts.id, opportunities.contactId))
       .innerJoin(pipelineStages, eq(pipelineStages.id, opportunities.stageId))
       .leftJoin(adminUsers, eq(adminUsers.id, opportunities.ownerId))
+      .leftJoin(campaigns, eq(campaigns.id, opportunities.campaignId))
       .where(where)
       .orderBy(desc(opportunities.createdAt))
       .limit(pageSize)
@@ -167,6 +183,19 @@ export async function GET(request: NextRequest) {
       .from(opportunities)
       .where(sql`${opportunities.source} is not null`);
 
+    /**
+     * Only campaigns that have actually produced a lead.
+     *
+     * A filter offering thirty promos of which two ever converted is a filter
+     * nobody reads — and the ones missing from the list are exactly the ones
+     * filtering by would show an empty table.
+     */
+    const campaignOptions = await db
+      .selectDistinct({ id: campaigns.id, name: campaigns.name })
+      .from(opportunities)
+      .innerJoin(campaigns, eq(campaigns.id, opportunities.campaignId))
+      .orderBy(campaigns.name);
+
     const owners = await db
       .select({
         id: adminUsers.id,
@@ -197,6 +226,8 @@ export async function GET(request: NextRequest) {
       ownerName: row.ownerName,
       monetaryValue: row.monetaryValue,
       tourTitle: tourTitleByOpp.get(row.opportunityId) ?? null,
+      campaignId: row.campaignId,
+      campaignName: row.campaignName,
       openTaskCount: openTaskByOpp.get(row.opportunityId) ?? 0,
     }));
 
@@ -219,6 +250,7 @@ export async function GET(request: NextRequest) {
         .map((row) => row.source)
         .filter((value): value is string => Boolean(value))
         .sort(),
+      campaigns: campaignOptions,
     };
   });
 }

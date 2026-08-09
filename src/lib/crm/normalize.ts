@@ -91,8 +91,27 @@ export function vehicleLabel(value: string | null | undefined): string | null {
   return VEHICLE_LABELS[value] ?? value;
 }
 
+/**
+ * "campaign:summer-oslob-2026" → "Promo · Summer Oslob 2026".
+ *
+ * Titled from the slug rather than looked up: this runs in the lead table, the
+ * funnel report and the source filter, none of which have the campaign row to
+ * hand, and a slug is a slugified name — turning it back is lossy only in
+ * punctuation. A campaign's real name is shown wherever the row *is* loaded.
+ */
+function campaignSourceLabel(slug: string): string {
+  const titled = slug
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(' ');
+
+  return `Promo · ${titled || slug}`;
+}
+
 export function sourceLabel(value: string | null | undefined): string {
   if (!value) return 'Unknown';
+  if (value.startsWith('campaign:')) return campaignSourceLabel(value.slice('campaign:'.length));
   return SOURCE_LABELS[value] ?? value;
 }
 

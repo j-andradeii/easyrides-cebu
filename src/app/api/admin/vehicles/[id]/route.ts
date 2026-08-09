@@ -9,6 +9,7 @@ import type { NextRequest } from 'next/server';
 
 import { AdminRouteError, handleAdminRoute } from '@/lib/auth/require-admin';
 import { deleteVehicle, getVehicleById, updateVehicle } from '@/lib/vehicles/repository';
+import { onlySentKeys } from '@/lib/patch-body';
 import { revalidateFleetPages } from '@/lib/vehicles/revalidate';
 import { vehiclePatchSchema } from '@/models/vehicle.schema';
 import type { VehicleRecord } from '@/types/vehicle';
@@ -31,7 +32,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   const { id } = await context.params;
 
   return handleAdminRoute(async (admin): Promise<{ vehicle: VehicleRecord }> => {
-    const parsed = vehiclePatchSchema.safeParse(await request.json().catch(() => null));
+    const body = await request.json().catch(() => null);
+    const parsed = vehiclePatchSchema.safeParse(body);
     if (!parsed.success) {
       throw new AdminRouteError(
         parsed.error.issues[0]?.message ?? 'Please check the vehicle details',
@@ -42,7 +44,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const existing = await getVehicleById(id);
     if (!existing) throw new AdminRouteError('Vehicle not found', 404);
 
-    const vehicle = await updateVehicle(id, parsed.data, admin.id);
+    // The table's publish / popular switches send a single field. Without this
+    // filter the schema's defaults ride along and blank the feature list, the
+    // gallery and the sort order — see `onlySentKeys`.
+    const vehicle = await updateVehicle(id, onlySentKeys(body, parsed.data), admin.id);
     if (!vehicle) throw new AdminRouteError('Vehicle not found', 404);
 
     // The old slug too: a rename leaves a cached page at the previous URL.

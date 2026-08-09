@@ -13,6 +13,7 @@ import { db } from '@/db/client';
 import {
   activities,
   adminUsers,
+  campaigns,
   contacts,
   inquiries,
   opportunities,
@@ -24,6 +25,7 @@ import {
   workflows,
 } from '@/db/schema';
 import { AdminRouteError, requireAdmin } from '@/lib/auth/require-admin';
+import { listCreditsForContact } from '@/lib/crm/credits';
 import { getStages } from '@/lib/crm/repository';
 import { listQuotesForOpportunity } from '@/lib/crm/quotes';
 import { describeStep, type WorkflowDefinition } from '@/lib/workflows/definitions';
@@ -76,6 +78,8 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       owners,
       referredBy,
       quoteRecords,
+      creditRecords,
+      campaignRow,
     ] = await Promise.all([
       db
         .select()
@@ -145,6 +149,18 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
         : Promise.resolve([]),
 
       listQuotesForOpportunity(opportunity.id),
+
+      // The whole ledger, not just what is spendable: an agent asked "where did
+      // my ₱500 go?" needs to see the redeemed row, not an empty list.
+      listCreditsForContact(contact.id),
+
+      opportunity.campaignId
+        ? db
+            .select({ name: campaigns.name, slug: campaigns.slug })
+            .from(campaigns)
+            .where(eq(campaigns.id, opportunity.campaignId))
+            .limit(1)
+        : Promise.resolve([]),
     ]);
 
     const payload: InquiryDetailResponse = {
@@ -162,6 +178,9 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
         currency: opportunity.currency,
         preferredDate: opportunity.preferredDate,
         source: opportunity.source,
+        campaignId: opportunity.campaignId,
+        campaignName: campaignRow[0]?.name ?? null,
+        campaignSlug: campaignRow[0]?.slug ?? null,
         lostReason: opportunity.lostReason,
         expectedCloseDate: opportunity.expectedCloseDate,
         ownerId: opportunity.ownerId,
@@ -299,6 +318,8 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       owners,
 
       quotes: quoteRecords,
+
+      credits: creditRecords,
     };
 
     return NextResponse.json(payload);

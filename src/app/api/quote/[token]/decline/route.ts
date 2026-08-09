@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { quotes } from '@/db/schema';
+import { releaseCreditsForQuote } from '@/lib/crm/credits';
 import {
   hasAcceptedQuote,
   quoteReference,
@@ -56,14 +57,28 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       })
       .where(eq(quotes.id, quote.id));
 
+    // They said no, so they did not spend their referral credit. Handing it
+    // back is what lets them use it on the price we quote them next.
+    const creditsReleased = await releaseCreditsForQuote(quote.id).catch((error) => {
+      console.error('[quote] credit release failed:', error);
+      return 0;
+    });
+
     await logActivity({
       opportunityId: quote.opportunityId,
       contactId: quote.contactId,
       type: 'message_in',
       channel: 'system',
       subject: `Customer declined quote ${quoteReference(quote.id)}`,
-      body: reason || null,
-      metadata: { quoteId: quote.id },
+      body: [
+        reason || null,
+        creditsReleased > 0
+          ? `${creditsReleased} referral credit${creditsReleased === 1 ? '' : 's'} returned to the customer.`
+          : null,
+      ]
+        .filter(Boolean)
+        .join('\n') || null,
+      metadata: { quoteId: quote.id, creditsReleased },
     });
 
     // The declined price stops counting toward the forecast.

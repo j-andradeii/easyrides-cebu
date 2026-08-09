@@ -1,12 +1,17 @@
 /**
  * The catalogue image uploader — SERVER ONLY.
  *
- * Tour banners, tour galleries and fleet photos are the same kind of thing: a
- * public marketing image that belongs in blob storage rather than in a database
- * row behind an auth check, so the pages can serve it straight from the CDN
- * through next/image. One handler covers all of them; the routes under
- * /api/admin/tours/images and /api/admin/vehicles/images are two doors into it,
- * differing only in which folder they default to.
+ * Tour banners, tour galleries, fleet photos and campaign banners are the same
+ * kind of thing: a public marketing image that belongs in blob storage rather
+ * than in a database row behind an auth check, so the pages can serve it
+ * straight from the CDN through next/image. One handler covers all of them; the
+ * routes under /api/admin/tours/images, /api/admin/vehicles/images and
+ * /api/admin/campaigns/images are three doors into it, differing only in which
+ * folder they default to.
+ *
+ * A campaign banner is additionally an og:image — Facebook fetches it from that
+ * public URL when the link is first shared, which is exactly what a CDN blob is
+ * good at and exactly what an auth-gated route could not serve.
  *
  * The declared Content-Type is attacker-controlled (and phones get it wrong on
  * their own), so the stored type comes from the file's magic bytes — an upload
@@ -30,7 +35,10 @@ const ALLOWED_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/a
  * Where the blob lands. Whitelisted rather than taken as given — the folder ends
  * up in a public URL, so a caller must not be able to steer it anywhere.
  */
-const ALLOWED_FOLDERS = new Set(['tours', 'vehicles']);
+const ALLOWED_FOLDERS = new Set(['tours', 'vehicles', 'campaigns']);
+
+/** The catalogues that own a blob folder. */
+export type CatalogueFolder = 'tours' | 'vehicles' | 'campaigns';
 
 export interface CatalogueImageUploadResult {
   url: string;
@@ -47,7 +55,7 @@ export interface CatalogueImageUploadResult {
  */
 export async function uploadCatalogueImage(
   request: NextRequest,
-  defaultFolder: 'tours' | 'vehicles'
+  defaultFolder: CatalogueFolder
 ): Promise<CatalogueImageUploadResult> {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     throw new AdminRouteError(

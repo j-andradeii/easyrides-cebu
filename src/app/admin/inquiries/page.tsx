@@ -7,8 +7,8 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
@@ -29,8 +29,28 @@ const SEARCH_DEBOUNCE_MS = 350;
 
 const ANY_OPTION = { label: 'Any', value: '' };
 
+/**
+ * `useSearchParams` opts the tree into client-side rendering, which Next
+ * requires a Suspense boundary for. The wrapper is the whole reason this file
+ * has two components rather than one.
+ */
 export default function AdminInquiriesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center text-slate-600">
+          <i className="pi pi-spin pi-spinner mr-2 text-xl" /> Loading inquiries…
+        </div>
+      }
+    >
+      <InquiriesTable />
+    </Suspense>
+  );
+}
+
+function InquiriesTable() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [data, setData] = useState<InquiryListResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +62,13 @@ export default function AdminInquiriesPage() {
   const [source, setSource] = useState('');
   const [owner, setOwner] = useState('');
   const [status, setStatus] = useState('');
+  /**
+   * Seeded from the URL so /admin/inquiries?campaign=… lands pre-filtered —
+   * that link is how every campaign card on /admin/campaigns gets here, and a
+   * filter the page ignored would show all leads and quietly claim they came
+   * from that promo.
+   */
+  const [campaign, setCampaign] = useState(() => searchParams.get('campaign') ?? '');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
@@ -69,6 +96,7 @@ export default function AdminInquiriesPage() {
         query: query || undefined,
         stage: stage || undefined,
         source: source || undefined,
+        campaign: campaign || undefined,
         owner: owner || undefined,
         status: status || undefined,
         page,
@@ -80,7 +108,7 @@ export default function AdminInquiriesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [query, stage, source, owner, status, page, pageSize]);
+  }, [query, stage, source, campaign, owner, status, page, pageSize]);
 
   useEffect(() => {
     load();
@@ -111,6 +139,25 @@ export default function AdminInquiriesPage() {
     [data?.owners]
   );
 
+  /**
+   * The campaign that was filtered by is kept in the list even when the API no
+   * longer offers it (an unpublished promo whose only lead was deleted), so an
+   * arriving ?campaign= link never shows a filter dropdown reading "Any" while
+   * the table is filtered.
+   */
+  const campaignOptions = useMemo(() => {
+    const known = data?.campaigns ?? [];
+    const missing =
+      campaign && !known.some((item) => item.id === campaign)
+        ? [{ id: campaign, name: 'Selected campaign' }]
+        : [];
+
+    return [
+      ANY_OPTION,
+      ...[...known, ...missing].map((item) => ({ label: item.name, value: item.id })),
+    ];
+  }, [data?.campaigns, campaign]);
+
   const statusOptions = [
     ANY_OPTION,
     { label: 'Open', value: 'open' },
@@ -118,16 +165,19 @@ export default function AdminInquiriesPage() {
     { label: 'Lost', value: 'lost' },
   ];
 
-  const hasFilters = Boolean(query || stage || source || owner || status);
+  const hasFilters = Boolean(query || stage || source || campaign || owner || status);
 
   const clearFilters = () => {
     setSearchInput('');
     setQuery('');
     setStage('');
     setSource('');
+    setCampaign('');
     setOwner('');
     setStatus('');
     setPage(1);
+    // Drop the ?campaign= too, or a refresh would bring the filter back.
+    router.replace('/admin/inquiries');
   };
 
   const onPage = (event: DataTablePageEvent) => {
@@ -201,6 +251,16 @@ export default function AdminInquiriesPage() {
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 mt-3">
           <FilterSelect label="Status" value={status} options={statusOptions} onChange={(value) => { setStatus(value); setPage(1); }} />
+          {/* Only worth a slot once a promo has produced something — an empty
+              dropdown next to four working ones is just noise. */}
+          {campaignOptions.length > 1 && (
+            <FilterSelect
+              label="Campaign"
+              value={campaign}
+              options={campaignOptions}
+              onChange={(value) => { setCampaign(value); setPage(1); }}
+            />
+          )}
           {hasFilters && (
             <div className="flex items-end">
               <button
@@ -301,9 +361,22 @@ export default function AdminInquiriesPage() {
             />
             <Column
               header="Source"
-              body={(row: InquiryListItem) => (
-                <span className="whitespace-nowrap text-slate-700">{sourceLabel(row.source)}</span>
-              )}
+              body={(row: InquiryListItem) =>
+                // The campaign's real name beats the slug `sourceLabel` would
+                // title-case out of "campaign:summer-oslob-2026" — this is the
+                // one place the row is loaded, so the name is there to use.
+                row.campaignName ? (
+                  <span
+                    className="inline-flex max-w-[11rem] items-center gap-1.5 rounded-full bg-coral/10 px-2 py-0.5 text-xs font-medium text-coral-dark"
+                    title={row.campaignName}
+                  >
+                    <i className="pi pi-megaphone text-[10px]" />
+                    <span className="truncate">{row.campaignName}</span>
+                  </span>
+                ) : (
+                  <span className="whitespace-nowrap text-slate-700">{sourceLabel(row.source)}</span>
+                )
+              }
             />
             <Column
               header="Owner"

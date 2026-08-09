@@ -1063,7 +1063,7 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     body: [
       `So glad you enjoyed the trip, ${ctx.name}! 🎉`,
       ``,
-      `Share your personal link and your friend gets ₱300 off their first booking — you get ₱500 once they ride.`,
+      `Share your personal link and your friend gets ₱300 off their first booking — you get ₱500 off your next one, the moment they ride.`,
       ``,
       `  ${ctx.shareUrl ?? ctx.siteUrl}`,
     ].join('\n'),
@@ -1105,11 +1105,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
   }),
 
   referral_reward_issued: (ctx) => ({
-    subject: `Your ${BRAND} referral reward is on its way`,
+    subject: `Your ${BRAND} referral reward is ready to use`,
     body: [
       `Hi ${ctx.name},`,
       ``,
-      `Your friend just completed their booking — thank you! Your reward is approved and we'll be in touch to send it.`,
+      // Says what it is and how to use it. "Your reward is approved" left the
+      // customer with nothing to do and no idea when anything would happen —
+      // and left us relying on someone remembering months later.
+      // The figure is written out rather than imported: this module stays free
+      // of app-model imports so templates render in isolation. It has to match
+      // `REFERRER_REWARD_LABEL` in lib/crm/rewards.ts.
+      `Your friend just completed their booking — thank you! Your ₱500 off your next booking is now on your account.`,
+      ``,
+      `There's nothing to claim: next time you book with us, just tell us and we'll take it straight off your price. It's valid for a year.`,
+      ``,
+      `Know someone else heading to Cebu? Every friend you send earns you another one.`,
       ``,
       signOff(ctx),
     ].join('\n'),

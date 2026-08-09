@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { getPublishedCampaigns } from '@/lib/campaigns/repository';
 import { getPublishedTours } from '@/lib/tours/repository';
 import { getPublishedVehicles } from '@/lib/vehicles/repository';
 
@@ -55,5 +56,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: vehicle.popular ? 0.9 : 0.8,
     }));
 
-    return [...staticRoutes, ...tourRoutes, ...vehicleRoutes];
+    // Live promos only. An ended campaign keeps its page (an old post still
+    // links to it) but is marked noindex, so listing it here would ask Google
+    // to crawl something we have told it not to index.
+    const campaigns = await getPublishedCampaigns();
+
+    const campaignRoutes: MetadataRoute.Sitemap = campaigns
+        .filter((campaign) => !campaign.hasEnded)
+        .map((campaign) => ({
+            url: `${baseUrl}/promo/${campaign.slug}`,
+            // A promo changes right up until it is posted, and its life is
+            // measured in weeks — worth a frequent recrawl while it runs.
+            lastModified: new Date(),
+            changeFrequency: 'daily' as const,
+            priority: 0.7,
+        }));
+
+    return [...staticRoutes, ...tourRoutes, ...vehicleRoutes, ...campaignRoutes];
 }

@@ -18,6 +18,8 @@ import type { AdminLeadCreateResponse, AdminLeadData } from '@/models/inquiry.sc
 export interface InquiryListFilters {
   query?: string;
   source?: string;
+  /** A campaign id — leads captured by one promo page. */
+  campaign?: string;
   stage?: string;
   owner?: string;
   status?: string;
@@ -125,6 +127,11 @@ export const updateEnrollment = async (
 export interface SendQuoteInput {
   lineItems: { label: string; description?: string; quantity: number; unitPrice: number }[];
   discount?: number;
+  /**
+   * Referral credits to spend on this quote. Ids only — the server re-reads
+   * each one's value and availability, so this is a request, not an amount.
+   */
+  creditIds?: string[];
   /** Whether this quote settles the booking or is one instalment of it. */
   quoteType: QuoteType;
   notes?: string;
@@ -144,6 +151,12 @@ export interface SendQuoteResult {
   emailed: boolean;
   emailedTo: string | null;
   emailError: string | null;
+  /**
+   * Referral credit actually reserved, in pesos. Can be less than what was
+   * asked for — a credit spent on another quote in the meantime is skipped
+   * rather than double-counted — so this is what the toast should report.
+   */
+  creditApplied: number;
 }
 
 export const sendQuote = async (
