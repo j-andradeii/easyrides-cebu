@@ -30,7 +30,14 @@ export interface AdminIdentity {
 export class AdminRouteError extends Error {
   constructor(
     message: string,
-    readonly status: number
+    readonly status: number,
+    /**
+     * Per-field messages keyed by the schema path the form uses, for validation
+     * failures. Sent as `errors` — the shape `api-client` already reads — so an
+     * editor sees the problem on the input that caused it rather than one
+     * sentence at the top of the page.
+     */
+    readonly fields?: Record<string, string[]>
   ) {
     super(message);
     this.name = 'AdminRouteError';
@@ -95,7 +102,10 @@ export async function handleAdminRoute<T>(
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof AdminRouteError) {
-      return NextResponse.json({ message: error.message }, { status: error.status });
+      return NextResponse.json(
+        error.fields ? { message: error.message, errors: error.fields } : { message: error.message },
+        { status: error.status }
+      );
     }
     console.error('[admin-api] unhandled error:', error);
     return NextResponse.json({ message: 'Something went wrong' }, { status: 500 });

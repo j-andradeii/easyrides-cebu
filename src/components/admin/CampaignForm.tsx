@@ -14,6 +14,12 @@
  *
  * Validation is `campaignInputSchema` — the schema the API route re-runs — so a
  * campaign the browser accepts is a campaign the server accepts.
+ *
+ * Because Save lives in the header of a two-column editor that is taller than a
+ * screen, a rejected submit has to say more than "something is wrong": each
+ * field carries its own message, and the summary at the top names every one of
+ * them and scrolls to it. A 400 from the API is unpacked the same way, so a
+ * server-side rejection lands on the field that caused it.
  */
 
 'use client';
@@ -113,21 +119,85 @@ function endOfDay(date: Date): Date {
   return copy;
 }
 
+// --- Fields -----------------------------------------------------------------
+
+/**
+ * Every field the schema can reject, in the order it appears on the page.
+ *
+ * "The fields below are marked" is no help when the marked one is the banner
+ * three cards down or the button text in the sidebar, so this drives a summary
+ * that names each problem and jumps to it — and doubles as the allow-list for
+ * mapping the API's own field errors back onto inputs.
+ */
+const FIELDS: ReadonlyArray<{ name: keyof CampaignFormValues; label: string }> = [
+  { name: 'name', label: 'Campaign name' },
+  { name: 'slug', label: 'Link' },
+  { name: 'shortDescription', label: 'One-liner' },
+  { name: 'bannerImage', label: 'Banner' },
+  { name: 'description', label: 'Details' },
+  { name: 'ctaLabel', label: 'Button text' },
+  { name: 'serviceType', label: 'Pre-select service' },
+  { name: 'vehicleType', label: 'Pre-select vehicle' },
+  { name: 'endsAt', label: 'Offer ends' },
+];
+
+type FieldName = (typeof FIELDS)[number]['name'];
+
+const FIELD_NAMES = new Set<string>(FIELDS.map((field) => field.name));
+
+const anchorId = (name: string) => `campaign-field-${name}`;
+
+/**
+ * The Form* components own their own markup, so the scroll target is the
+ * wrapper around one and the thing to focus is whichever control it rendered —
+ * a plain input, a PrimeReact widget's inner input, TipTap's contenteditable,
+ * or, for the banner, the upload button (its file input is display:none, which
+ * cannot take focus).
+ */
+function focusField(name: string) {
+  const anchor = document.getElementById(anchorId(name));
+  if (!anchor) return;
+
+  anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  const control =
+    anchor.querySelector<HTMLElement>(
+      'input:not([type="hidden"]):not([type="file"]), textarea, [contenteditable="true"]'
+    ) ?? anchor.querySelector<HTMLElement>('button');
+
+  control?.focus({ preventScroll: true });
+}
+
+/** Scroll target for one field, so the summary above can jump to it. */
+function Field({ name, children }: { name: FieldName; children: React.ReactNode }) {
+  return (
+    <div id={anchorId(name)} className="scroll-mt-24">
+      {children}
+    </div>
+  );
+}
+
 // --- Layout helpers ---------------------------------------------------------
 
 function Card({
   title,
   hint,
+  required,
   children,
 }: {
   title: string;
   hint?: string;
+  /** The card *is* the field's label — the banner has no label of its own. */
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
       <header className="mb-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">{title}</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+          {title}
+          {required && <span className="ml-1 text-cebu-red">*</span>}
+        </h2>
         {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
       </header>
       {children}
@@ -221,13 +291,22 @@ export function CampaignForm({
   const methods = useForm<CampaignFormValues, unknown, CampaignInput>({
     resolver,
     defaultValues,
-    mode: 'onBlur',
+    // Nothing goes red while a field is still being typed for the first time,
+    // but once it has been left — or a save has been attempted — corrections
+    // clear as they are made rather than at the next blur.
+    mode: 'onTouched',
+    // Only the slug box registers a DOM ref; the rest are Controller-wrapped
+    // PrimeReact widgets whose refs react-hook-form cannot focus. Left on, it
+    // would skip past the actual first error to whichever field it *can* focus,
+    // so `focusField` below does the job for every field instead.
+    shouldFocusError: false,
   });
 
   const {
     control,
     handleSubmit,
-    formState: { isSubmitting, isDirty, errors },
+    setError,
+    formState: { isSubmitting, isDirty, errors, submitCount },
   } = methods;
 
   // The preview redraws as these three are typed — that is its whole job.
@@ -256,18 +335,42 @@ export function CampaignForm({
     return () => window.removeEventListener('beforeunload', warn);
   }, [isDirty, isSubmitting]);
 
-  const save = handleSubmit(async (values) => {
-    setSubmitError(null);
-    try {
-      await onSubmit(values);
-    } catch (caught) {
-      setSubmitError(
-        (caught as { message?: string })?.message ??
-          'Could not save this campaign. Please try again.'
-      );
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const save = handleSubmit(
+    async (values) => {
+      setSubmitError(null);
+      try {
+        await onSubmit(values);
+      } catch (caught) {
+        const failure = caught as { message?: string; errors?: Record<string, string[]> };
+
+        // The API validates with this same schema and answers with the same
+        // field paths, so each message goes back on the input that caused it
+        // rather than into one opaque banner.
+        const rejected = Object.entries(failure.errors ?? {}).flatMap(([path, messages]) =>
+          FIELD_NAMES.has(path) && messages?.[0] ? [[path, messages[0]] as const] : []
+        );
+
+        for (const [path, message] of rejected) {
+          setError(path as FieldName, { type: 'server', message });
+        }
+
+        setSubmitError(
+          rejected.length
+            ? 'The server rejected some details — they are listed below.'
+            : (failure.message ?? 'Could not save this campaign. Please try again.')
+        );
+
+        if (rejected.length) focusField(rejected[0][0]);
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    (invalid) => {
+      // Save sits in the header. Without this, clicking it from the top of a
+      // form taller than the screen looks like nothing happened at all.
+      const first = FIELDS.find(({ name }) => invalid[name]);
+      if (first) focusField(first.name);
     }
-  });
+  );
 
   const remove = async () => {
     if (!onDelete) return;
@@ -290,7 +393,11 @@ export function CampaignForm({
   };
 
   const isBusy = isSubmitting || isDeleting;
-  const hasErrors = Object.keys(errors).length > 0;
+
+  const invalidFields = FIELDS.flatMap(({ name, label }) => {
+    const message = errors[name]?.message;
+    return typeof message === 'string' ? [{ name, label, message }] : [];
+  });
 
   return (
     <FormProvider {...methods}>
@@ -341,44 +448,77 @@ export function CampaignForm({
           </div>
         )}
 
-        {hasErrors && (
+        {/*
+          Only after a save has been attempted: a summary that appears the
+          moment someone tabs out of an empty box would be nagging, while the
+          field's own message underneath is not.
+        */}
+        {submitCount > 0 && invalidFields.length > 0 && (
           <div
             role="alert"
-            className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800"
+            aria-live="polite"
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3"
           >
-            <i className="pi pi-exclamation-triangle mr-2" />
-            Some details still need attention — the fields below are marked.
+            <p className="flex items-center gap-2 text-sm font-semibold text-red-900">
+              <i className="pi pi-exclamation-circle" />
+              {invalidFields.length === 1
+                ? 'One field needs attention before this can be saved'
+                : `${invalidFields.length} fields need attention before this can be saved`}
+            </p>
+
+            <ul className="mt-2 space-y-1">
+              {invalidFields.map((field) => (
+                <li key={field.name} className="flex gap-2 text-sm text-red-800">
+                  <span aria-hidden className="select-none">
+                    •
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => focusField(field.name)}
+                    className="text-left underline-offset-2 hover:underline"
+                  >
+                    <span className="font-medium">{field.label}:</span> {field.message}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <Card title="The offer" hint="What the page says and what the shared link says.">
-              <FormInput
-                name="name"
-                label="Campaign name"
-                placeholder="Summer Oslob Whale Shark Promo 2026"
-                showRequired
-              />
+              <Field name="name">
+                <FormInput
+                  name="name"
+                  label="Campaign name"
+                  placeholder="Summer Oslob Whale Shark Promo 2026"
+                  showRequired
+                />
+              </Field>
 
-              <FormSlug
-                name="slug"
-                sourceName="name"
-                prefix="/promo/"
-                excludeId={campaign?.id}
-                autoFollow={!isEdit}
-                resolve={suggestSlug}
-                noun="campaign"
-              />
+              <Field name="slug">
+                <FormSlug
+                  name="slug"
+                  sourceName="name"
+                  prefix="/promo/"
+                  excludeId={campaign?.id}
+                  autoFollow={!isEdit}
+                  resolve={suggestSlug}
+                  noun="campaign"
+                />
+              </Field>
 
-              <FormTextarea
-                name="shortDescription"
-                label="One-liner"
-                rows={2}
-                placeholder="₱1,000 off any Oslob day tour booked before 30 April — vehicle, driver and fuel included."
-                maxLength={CAMPAIGN_SHORT_DESCRIPTION_MAX}
-                showRequired
-              />
+              <Field name="shortDescription">
+                <FormTextarea
+                  name="shortDescription"
+                  label="One-liner"
+                  rows={2}
+                  placeholder="₱1,000 off any Oslob day tour booked before 30 April — vehicle, driver and fuel included."
+                  maxLength={CAMPAIGN_SHORT_DESCRIPTION_MAX}
+                  showRequired
+                />
+              </Field>
               <p className="-mt-3 text-xs text-slate-500">
                 This is the line Facebook shows under the banner, and the page&apos;s meta
                 description. One sentence with the actual offer in it beats a slogan.
@@ -387,26 +527,31 @@ export function CampaignForm({
 
             <Card
               title="Banner"
+              required
               hint={`This is the image that shows when the link is shared. ${CAMPAIGN_BANNER_RATIO} works everywhere — anything else gets cropped to it.`}
             >
-              <FormImageUpload
-                name="bannerImage"
-                folder="campaigns"
-                placeholder="Upload the promo banner"
-                placeholderHint="Wide and legible on a phone — keep any text well inside the edges"
-                className="mb-0"
-              />
+              <Field name="bannerImage">
+                <FormImageUpload
+                  name="bannerImage"
+                  folder="campaigns"
+                  placeholder="Upload the promo banner"
+                  placeholderHint="Wide and legible on a phone — keep any text well inside the edges"
+                  className="mb-0"
+                />
+              </Field>
             </Card>
 
             <Card
               title="Details"
               hint="Optional. Inclusions, how the discount works, the fine print — whatever someone needs before they fill in the form."
             >
-              <FormRichText
-                name="description"
-                placeholder="What's included, what the offer covers, any conditions…"
-                className="mb-0"
-              />
+              <Field name="description">
+                <FormRichText
+                  name="description"
+                  placeholder="What's included, what the offer covers, any conditions…"
+                  className="mb-0"
+                />
+              </Field>
             </Card>
           </div>
 
@@ -421,27 +566,33 @@ export function CampaignForm({
             </Card>
 
             <Card title="The form" hint="What the visitor fills in at the bottom of the page.">
-              <FormInput
-                name="ctaLabel"
-                label="Button text"
-                placeholder="Claim this offer"
-                showRequired
-              />
+              <Field name="ctaLabel">
+                <FormInput
+                  name="ctaLabel"
+                  label="Button text"
+                  placeholder="Claim this offer"
+                  showRequired
+                />
+              </Field>
 
-              <FormSelect
-                name="serviceType"
-                label="Pre-select service"
-                options={SERVICE_OPTIONS}
-                placeholder="Let the visitor choose"
-              />
+              <Field name="serviceType">
+                <FormSelect
+                  name="serviceType"
+                  label="Pre-select service"
+                  options={SERVICE_OPTIONS}
+                  placeholder="Let the visitor choose"
+                />
+              </Field>
 
-              <FormSelect
-                name="vehicleType"
-                label="Pre-select vehicle"
-                options={VEHICLE_OPTIONS}
-                placeholder="Not vehicle-specific"
-                className="mb-0"
-              />
+              <Field name="vehicleType">
+                <FormSelect
+                  name="vehicleType"
+                  label="Pre-select vehicle"
+                  options={VEHICLE_OPTIONS}
+                  placeholder="Not vehicle-specific"
+                  className="mb-0"
+                />
+              </Field>
             </Card>
 
             <Card title="Publishing">
@@ -460,13 +611,15 @@ export function CampaignForm({
                   </span>
                 </label>
 
-                <FormCalendar
-                  name="endsAt"
-                  label="Offer ends"
-                  placeholder="Runs until I stop it"
-                  minDate={new Date()}
-                  className="mb-0"
-                />
+                <Field name="endsAt">
+                  <FormCalendar
+                    name="endsAt"
+                    label="Offer ends"
+                    placeholder="Runs until I stop it"
+                    minDate={new Date()}
+                    className="mb-0"
+                  />
+                </Field>
                 <p className="-mt-3 text-xs text-slate-500">
                   Optional. After this the page still opens — a link already shared should explain
                   itself rather than 404 — but the form closes.
