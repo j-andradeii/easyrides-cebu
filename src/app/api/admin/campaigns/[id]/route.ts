@@ -6,6 +6,7 @@
  */
 
 import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 
 import { AdminRouteError, handleAdminRoute } from '@/lib/auth/require-admin';
 import { deleteCampaign, getCampaignById, updateCampaign } from '@/lib/campaigns/repository';
@@ -37,7 +38,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (!parsed.success) {
       throw new AdminRouteError(
         parsed.error.issues[0]?.message ?? 'Please check the campaign details',
-        400
+        400,
+        // Per field, so the editor marks the inputs rather than just apologising.
+        z.flattenError(parsed.error).fieldErrors as Record<string, string[]>
       );
     }
 
