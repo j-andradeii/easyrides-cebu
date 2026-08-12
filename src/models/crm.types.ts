@@ -67,6 +67,41 @@ export interface InquiryListResponse {
   campaigns: { id: string; name: string }[];
 }
 
+// --- Calendar (/admin/calendar) ---------------------------------------------
+
+/**
+ * One won deal placed on the calendar by its trip date.
+ *
+ * Narrower than `InquiryListItem` on purpose: a calendar cell has room for a
+ * name and a service, and the range it fetches can be a whole month, so the
+ * columns nobody reads there are left out of the query entirely. Stage and
+ * status are absent for the same reason — every row is a won booking, so
+ * carrying them would only restate the filter.
+ */
+export interface CalendarBooking {
+  opportunityId: string;
+  /** The lead's own reference, e.g. "L-001042". */
+  reference: string;
+  /** 'YYYY-MM-DD' — a DATE column, never a timestamp. */
+  preferredDate: string;
+  contactName: string | null;
+  phone: string | null;
+  serviceType: string | null;
+  vehicleType: string | null;
+  tourTitle: string | null;
+  monetaryValue: string;
+  ownerName: string | null;
+}
+
+export interface CalendarResponse {
+  items: CalendarBooking[];
+  /**
+   * Whether the range held more bookings than the server will return in one
+   * go. The calendar says so rather than quietly showing a short month.
+   */
+  truncated: boolean;
+}
+
 // --- Detail (/admin/inquiries/[id]) -----------------------------------------
 
 export interface ContactDetail {
