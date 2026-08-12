@@ -6,6 +6,7 @@
 
 import { apiClient } from '@/services/api-client';
 import type {
+  CalendarResponse,
   InquiryDetailResponse,
   InquiryListResponse,
   MetricsResponse,
@@ -44,6 +45,19 @@ export const listInquiries = async (
 ): Promise<InquiryListResponse> => {
   const response = await apiClient.get(`/api/admin/inquiries${toQueryString(filters)}`);
   return (await response.json()) as InquiryListResponse;
+};
+
+export interface CalendarFilters {
+  /** Inclusive 'YYYY-MM-DD' bounds — the visible grid, not a page. */
+  from: string;
+  to: string;
+}
+
+export const listCalendarBookings = async (
+  filters: CalendarFilters
+): Promise<CalendarResponse> => {
+  const response = await apiClient.get(`/api/admin/calendar${toQueryString(filters)}`);
+  return (await response.json()) as CalendarResponse;
 };
 
 export const getInquiryDetail = async (id: string): Promise<InquiryDetailResponse> => {
