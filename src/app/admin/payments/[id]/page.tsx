@@ -154,10 +154,38 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
         {/* The evidence */}
         <section className="rounded-xl border border-slate-200 bg-white p-5 lg:col-span-3">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600">
-            Proof of payment
+            {payment.paidOnPickup ? 'Paying in cash' : 'Proof of payment'}
           </h2>
 
-          {payment.proofUrl ? (
+          {/* A cash payment has no screenshot and never will — asking for one
+              would send whoever picks this up looking for evidence that does
+              not exist. What they need instead is when the customer said the
+              money is coming, which is all a cash booking carries. */}
+          {payment.paidOnPickup ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+                <i className="pi pi-money-bill text-xs" />
+                The customer is paying {formatPeso(payment.amount)} in cash
+              </p>
+              <p className="mt-1 text-sm text-amber-900">
+                Nothing was transferred, so there is no screenshot or reference to match. Verify
+                this once the cash is actually in hand.
+              </p>
+
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-800">
+                When they said they&apos;ll pay
+              </p>
+              {payment.customerNote ? (
+                <p className="mt-1 whitespace-pre-line rounded-lg bg-white/70 px-3 py-2 text-sm leading-relaxed text-amber-900">
+                  {payment.customerNote}
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-amber-900">
+                  They didn&apos;t say — call them before assigning a vehicle.
+                </p>
+              )}
+            </div>
+          ) : payment.proofUrl ? (
             <>
               <button
                 type="button"
@@ -209,7 +237,9 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
             <Row label="Amount" value={formatPeso(payment.amount)} />
             <Row label="Payment type" value={payment.quoteTypeLabel} />
             <Row label="Method" value={payment.methodLabel} />
-            <Row label="Customer reference" value={payment.reference ?? '— none given —'} mono />
+            {!payment.paidOnPickup && (
+              <Row label="Customer reference" value={payment.reference ?? '— none given —'} mono />
+            )}
             <Row label="Submitted" value={formatDateTime(payment.createdAt)} />
             {payment.reviewedAt && (
               <Row
@@ -316,12 +346,20 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
 
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-600">
-              {isLocked ? 'Payment verified' : isPending ? 'Did the money arrive?' : 'Change the decision'}
+              {isLocked
+                ? 'Payment verified'
+                : isPending
+                  ? payment.paidOnPickup
+                    ? 'Has the cash been handed over?'
+                    : 'Did the money arrive?'
+                  : 'Change the decision'}
             </h2>
             <p className="mb-3 text-xs text-slate-600">
               {isLocked
                 ? 'This payment is confirmed and can no longer be changed here. If it was verified by mistake, open the lead and log a note so there is a record of the correction.'
-                : 'Check your GCash or bank app against the screenshot before you verify — nothing here is proof on its own.'}
+                : payment.paidOnPickup
+                  ? 'Only verify once someone has counted the cash. Until then this is an arrangement, not a payment.'
+                  : 'Check your GCash or bank app against the screenshot before you verify — nothing here is proof on its own.'}
             </p>
 
             {isLocked ? (

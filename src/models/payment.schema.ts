@@ -41,7 +41,19 @@ export interface PaymentRecord {
   currency: string;
   method: string;
   methodLabel: string;
+  /**
+   * True when the money changes hands in person rather than arriving in an
+   * account — a cash booking has nothing to verify against a bank app, so every
+   * "did it land?" affordance on the admin screens reads this first.
+   */
+  paidOnPickup: boolean;
   reference: string | null;
+  /**
+   * What the customer wrote at checkout about paying — for cash, when they
+   * intend to hand it over. Lives on the quote; surfaced here because the
+   * payment screen is where the team acts on it.
+   */
+  customerNote: string | null;
   /** 'full_payment' | 'partial_payment' — what the settled quote was asking for. */
   quoteType: QuoteType;
   quoteTypeLabel: string;

@@ -29,6 +29,22 @@ export interface PaymentMethod {
   /** Ask for a reference/receipt number after paying. */
   requiresReference: boolean;
   /**
+   * The customer cannot confirm without attaching a screenshot of the transfer.
+   *
+   * A typed reference number is a claim; the receipt is the only thing an admin
+   * can actually match against the bank app, so for anything paid in advance it
+   * is the price of confirming — not a nice-to-have.
+   */
+  requiresProof: boolean;
+  /**
+   * Ask the customer to say, in their own words, when they will pay.
+   *
+   * Only meaningful for cash: there is no transfer to look at and no receipt to
+   * upload, so "Saturday morning at the hotel lobby" is the entire signal the
+   * team has to plan around.
+   */
+  requiresPaymentNote: boolean;
+  /**
    * True when the money changes hands at pickup rather than up front. The
    * booking emails read this to decide between "we're confirming your payment"
    * and "have the amount ready for your driver".
@@ -57,8 +73,10 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     qrImageUrl: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/payments/gcash.jpg',
     qrFilename: 'easyridecebu-gcash-qr.jpg',
     instructions:
-      'Open GCash → Scan QR (or Send Money to the number above) → enter the amount → confirm. Keep the reference number from your receipt.',
+      'Open GCash → Scan QR (or Send Money to the number above) → enter the amount → confirm. Screenshot your receipt — we need it to confirm your booking.',
     requiresReference: true,
+    requiresProof: true,
+    requiresPaymentNote: false,
     paidOnPickup: false,
     selectable: true,
   },
@@ -72,26 +90,31 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     qrImageUrl: 'https://djuny0idasckxayv.public.blob.vercel-storage.com/payments/bpi.jpg',
     qrFilename: 'easyridecebu-bpi-qr.jpg',
     instructions:
-      'Open your BPI app → Scan QR (or transfer to the account above) → enter the amount → confirm. Keep the reference number from your receipt.',
+      'Open your BPI app → Scan QR (or transfer to the account above) → enter the amount → confirm. Screenshot your receipt — we need it to confirm your booking.',
     requiresReference: true,
+    requiresProof: true,
+    requiresPaymentNote: false,
     paidOnPickup: false,
     selectable: true,
   },
   {
     key: 'cash',
-    label: 'Cash on pickup',
+    label: 'Cash',
     icon: 'pi-money-bill',
-    tagline: 'Pay the driver when your ride arrives',
+    tagline: 'Pay in cash — tell us when',
     accountName: 'EasyRideCebu',
     accountNumber: '—',
     qrImageUrl: '',
     qrFilename: '',
     instructions:
-      'Hand the payment to your driver at pickup. Please have the exact amount ready where possible.',
+      'Hand the payment over in cash. Tell us below when you plan to pay so we can have someone expecting it, and please have the exact amount ready where possible.',
     requiresReference: false,
+    // Nothing has been sent yet, so there is no receipt to show — the note is
+    // what takes its place.
+    requiresProof: false,
+    requiresPaymentNote: true,
     paidOnPickup: true,
-    // Retired from checkout — kept so historical 'cash' rows still resolve a label.
-    selectable: false,
+    selectable: true,
   },
 ];
 

@@ -28,9 +28,16 @@ interface ProofOfPaymentFieldProps {
   value: File | null;
   onChange: (file: File | null) => void;
   disabled?: boolean;
+  /** When true the customer cannot confirm without one — say so, don't imply it. */
+  required?: boolean;
 }
 
-export function ProofOfPaymentField({ value, onChange, disabled }: ProofOfPaymentFieldProps) {
+export function ProofOfPaymentField({
+  value,
+  onChange,
+  disabled,
+  required = false,
+}: ProofOfPaymentFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +105,12 @@ export function ProofOfPaymentField({ value, onChange, disabled }: ProofOfPaymen
   return (
     <div className="mt-4">
       <p className="mb-1.5 text-xs font-medium text-slate-500">
-        Screenshot of your payment <span className="text-slate-400">(optional)</span>
+        Screenshot of your payment{' '}
+        {required ? (
+          <span className="font-semibold text-coral">(required)</span>
+        ) : (
+          <span className="text-slate-400">(optional)</span>
+        )}
       </p>
 
       <input
@@ -152,7 +164,9 @@ export function ProofOfPaymentField({ value, onChange, disabled }: ProofOfPaymen
           type="button"
           disabled={disabled || isProcessing}
           onClick={() => inputRef.current?.click()}
-          className="flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white px-4 py-5 text-center transition-colors hover:border-coral/60 hover:bg-coral/5 disabled:opacity-50"
+          className={`flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed bg-white px-4 py-5 text-center transition-colors hover:border-coral/60 hover:bg-coral/5 disabled:opacity-50 ${
+            required ? 'border-coral/40' : 'border-slate-300'
+          }`}
         >
           {isProcessing ? (
             <>
@@ -164,7 +178,9 @@ export function ProofOfPaymentField({ value, onChange, disabled }: ProofOfPaymen
               <i className="pi pi-cloud-upload text-lg text-slate-400" />
               <span className="text-sm font-medium text-slate-700">Add your payment screenshot</span>
               <span className="text-xs text-slate-400">
-                It is how we confirm your booking fastest
+                {required
+                  ? "We can't confirm your booking without it"
+                  : 'It is how we confirm your booking fastest'}
               </span>
             </>
           )}

@@ -91,6 +91,12 @@ export interface PaymentSummary {
   paidOnPickup: boolean;
   /** The receipt/transaction number they typed in, when they gave one. */
   paymentReference: string | null;
+  /**
+   * What the customer wrote about paying — for cash, when they'll hand it over.
+   * The only forward-looking detail a cash booking carries, so both the receipt
+   * and the team's alert repeat it back.
+   */
+  paymentNote: string | null;
   currency: string;
   /** Raw numeric strings — run them through `money()` before display. */
   total: string;
@@ -708,7 +714,13 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     const paymentLine = !pay
       ? null
       : pay.paidOnPickup
-        ? `You're paying at pickup — please have ${dueAtPickup} ready for your driver.`
+        ? `You're paying in cash — please have ${dueAtPickup} ready.${
+            // Read their own words back to them. A cash booking has no receipt
+            // and no reference; when they said they'd pay is the entire
+            // arrangement, and both sides need to be holding the same version
+            // of it before anyone turns up.
+            pay.paymentNote ? ` You told us: “${pay.paymentNote}”` : ''
+          }`
         : // The old copy promised we'd "only message you if something doesn't
           // match", which is now wrong in the good case: verifying sends a
           // `payment_verified` email. Saying we'll be in touch either way is
@@ -749,6 +761,7 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ['Booking total', owed ? money(owed.currency, owed.bookingTotal) : null],
       ['Payment method', pay?.methodLabel ?? null],
       ['Your payment reference', pay?.paymentReference ?? null],
+      ["When you'll pay", pay?.paidOnPickup ? pay.paymentNote : null],
       // "Confirmed" would be the third place this email overstates things —
       // the timestamp is when they submitted, not when we checked.
       [awaitingVerification ? 'Submitted' : 'Confirmed', pay?.acceptedAt ?? null],
@@ -779,6 +792,7 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         owed ? `  Booking total:  ${money(owed.currency, owed.bookingTotal)}` : null,
         pay ? `  Payment method: ${pay.methodLabel}` : null,
         pay?.paymentReference ? `  Your reference: ${pay.paymentReference}` : null,
+        pay?.paidOnPickup && pay.paymentNote ? `  You'll pay:     ${pay.paymentNote}` : null,
         ...(pay
           ? breakdownLines(pay.currency, pay.lineItems, pay.subtotal, pay.discount, pay.total)
           : []),
@@ -895,21 +909,31 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
           : null,
         pay ? `Payment:   ${pay.methodLabel}` : null,
         pay?.paymentReference ? `Their ref: ${pay.paymentReference}` : null,
+        // For a cash booking this is the only actionable fact in the email —
+        // there is no money to check, just a time and place to be ready for.
+        pay?.paidOnPickup && pay.paymentNote ? `They pay:  ${pay.paymentNote}` : null,
         pay?.depositAmount ? `Deposit:   ${money(pay.currency, pay.depositAmount)}` : null,
         pay?.balanceDue ? `Balance:   ${money(pay.currency, pay.balanceDue)} due at pickup` : null,
         pay?.acceptedAt ? `Confirmed: ${pay.acceptedAt}` : null,
         ``,
         pay && !pay.paidOnPickup
           ? `⚠️ Check the money actually landed before you commit a vehicle — the reference above is what the customer typed in, not a verified receipt.`
-          : `💵 Cash on pickup — the driver collects ${
+          : `💵 Paying in cash — ${
               pay?.balanceDue ? money(pay.currency, pay.balanceDue) : total
+            } to collect${
+              pay?.paymentNote ? `, and they said: “${pay.paymentNote}”` : ' at pickup'
             }.`,
-        pay && !pay.paidOnPickup
-          ? pay.proofAttached
-            ? `📎 They attached a screenshot — open it and mark the payment verified:`
-            : `📎 No screenshot attached. Match it by reference, then mark it verified:`
-          : null,
-        pay?.adminPaymentUrl && !pay.paidOnPickup ? `   ${pay.adminPaymentUrl}` : null,
+        // A cash booking still ends up as a payment row someone has to close —
+        // it just gets verified when the money is handed over rather than when
+        // it shows up in an account, so the link belongs here either way.
+        !pay
+          ? null
+          : pay.paidOnPickup
+            ? `🧾 Nothing to check yet — mark it verified once the cash is in hand:`
+            : pay.proofAttached
+              ? `📎 They attached a screenshot — open it and mark the payment verified:`
+              : `📎 No screenshot attached. Match it by reference, then mark it verified:`,
+        pay?.adminPaymentUrl ? `   ${pay.adminPaymentUrl}` : null,
         ``,
         `Customer: ${ctx.fullName ?? '(no name)'}`,
         `Phone:    ${ctx.phone ?? '(not given)'}`,

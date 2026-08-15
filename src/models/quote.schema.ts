@@ -75,10 +75,19 @@ export const createQuoteSchema = z.object({
 
 export type CreateQuoteInput = z.infer<typeof createQuoteSchema>;
 
+/** Room for "I'll pay at the hotel on Saturday morning", not an essay. */
+export const PAYMENT_NOTE_MAX = 500;
+
 /** Customer → POST /api/quote/[token]/accept */
 export const acceptQuoteSchema = z.object({
   paymentMethod: z.string().min(1, 'Choose how you would like to pay').max(40),
   paymentReference: z.string().max(120).optional(),
+  /**
+   * The customer's note about paying — for cash, when they intend to hand it
+   * over. Optional here because whether it is required depends on the method,
+   * which the route resolves; see `requiresPaymentNote`.
+   */
+  paymentNote: z.string().max(PAYMENT_NOTE_MAX).optional(),
 });
 
 /** Customer → POST /api/quote/[token]/decline */
@@ -129,6 +138,8 @@ export interface PublicQuote {
   isExpired: boolean;
   acceptedAt: string | null;
   paymentMethod: string | null;
+  /** What the customer said about paying — for cash, when they'll hand it over. */
+  paymentNote: string | null;
   businessWhatsApp: string;
 }
 
