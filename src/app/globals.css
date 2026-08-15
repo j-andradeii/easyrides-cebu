@@ -2,7 +2,10 @@
 
 :root {
   --background: #F5F0E1;
-  --foreground: #1A1A1A;
+  /* Pure black, not the old #1A1A1A. This is what every element that doesn't
+     name its own colour inherits — including inputs, via the `color: inherit`
+     in Tailwind's preflight. */
+  --foreground: #000000;
 
   /* EasyRideCebu Brand Colors - Based on Logo */
   /* Primary Red - Car color */
@@ -121,12 +124,63 @@
   --color-golden-dark: var(--golden-dark);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1a1a2e;
-    --foreground: #FFF8E7;
+/* ==========================================================================
+   All grey text is black
+   --------------------------------------------------------------------------
+   Every piece of copy in this app that was set in a grey — the slate ramp from
+   400 up, the few strays on the gray ramp, and the palm-black brand token — is
+   pure #000. The project used ~700 `text-slate-*` classes across seven steps,
+   which on cream and white read as washed out; there is now one text colour.
+
+   Two things are deliberately left alone:
+
+   - Text that is not grey. Coral links, emerald and amber status copy,
+     `text-white` on the dark buttons, the red error text: all untouched. This
+     rule only names the grey scales.
+   - Surfaces. `bg-slate-50`, `border-slate-200`, the `bg-slate-900` buttons
+     and their `hover:bg-slate-800` — none of them move, because this targets
+     the `text-*` utilities rather than redefining the colour tokens. Redefining
+     the tokens would have dragged every background and border along with the
+     text and turned those buttons into black rectangles.
+
+   Why `@layer utilities` and not a bare rule: unlayered author CSS outranks
+   *everything* in a layer no matter how specific, so a plain `.text-slate-600`
+   here would beat `hover:text-coral` and kill every hover state in the app.
+   Inside the layer normal specificity applies again — the variants (0,2,0) win
+   over these (0,1,0) — and among equals the later definition wins, which is
+   why this sits at the end of the block rather than the start.
+   ========================================================================== */
+
+@layer utilities {
+  .text-slate-400,
+  .text-slate-500,
+  .text-slate-600,
+  .text-slate-700,
+  .text-slate-800,
+  .text-slate-900,
+  .text-gray-500,
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-900,
+  .text-palm-black,
+  .text-palm-black-light,
+  .text-palm-black-dark {
+    color: #000;
   }
 }
+
+/* There is deliberately no `prefers-color-scheme: dark` override here.
+   ---------------------------------------------------------------------------
+   There used to be one, flipping --foreground to cream. Nothing else in the app
+   answers to dark mode: every surface is a hard-coded light value (bg-white,
+   bg-cream, the white admin cards), so the only thing that switched was the
+   text — cream on white. Anything carrying its own text-slate-* class survived,
+   which is why it showed up as "some text is invisible" rather than an obviously
+   broken theme. The `color: inherit` that Tailwind's preflight puts on inputs
+   made every unstyled input in the project illegible to anyone browsing with
+   dark mode on.
+
+   Restoring this needs real dark surfaces first, not just a foreground swap. */
 
 html {
   overflow-x: hidden;
@@ -138,7 +192,15 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-poppins), system-ui, sans-serif;
-  font-weight: 400;
+  /* 500 rather than 400: Poppins at 400 reads thin on the cream background,
+     particularly at the 12-14px sizes most of this UI is set in. Loaded in
+     layout.tsx, so this costs no extra font request.
+
+     Note this is the same weight as `font-medium`, which the codebase uses in
+     ~200 places to lift a value out of its surrounding copy. Those spots no
+     longer separate by weight alone — most also carry a colour or size change,
+     so they still read, but that is the trade this line makes. */
+  font-weight: 500;
   line-height: 1.6;
   letter-spacing: -0.01em;
   overflow-x: hidden;
@@ -618,7 +680,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Native selects showing their placeholder option, and disabled controls,
    otherwise sit at the UA grey — which is lighter still. */
 .admin-root select {
-  color: #0f172a; /* slate-900, matching a typed value */
+  color: #000; /* matching a typed value */
 }
 
 .admin-root input:disabled,
