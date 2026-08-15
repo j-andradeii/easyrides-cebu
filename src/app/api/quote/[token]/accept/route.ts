@@ -126,6 +126,7 @@ async function readSubmission(request: Request): Promise<{
     fields: {
       paymentMethod: String(form.get('paymentMethod') ?? ''),
       paymentReference: String(form.get('paymentReference') ?? '') || undefined,
+      paymentNote: String(form.get('paymentNote') ?? '') || undefined,
     },
     proofFile: proof instanceof File && proof.size > 0 ? proof : null,
   };
@@ -147,6 +148,30 @@ export async function POST(request: Request, context: { params: Promise<{ token:
   const method = getPaymentMethod(parsed.data.paymentMethod);
   if (!method) {
     return NextResponse.json({ message: 'That payment method is not available' }, { status: 400 });
+  }
+
+  /**
+   * What the method asks for, enforced here and not only in the browser.
+   *
+   * The checkout page disables the confirm button, but the token is the whole
+   * authentication on this endpoint — anyone holding the link can post to it
+   * directly. Without these two checks a transfer could be booked with no
+   * receipt to match, and a cash booking with no idea when the money is coming.
+   */
+  const paymentNote = parsed.data.paymentNote?.trim() || null;
+
+  if (method.requiresProof && !submission.proofFile) {
+    return NextResponse.json(
+      { message: 'Please attach a screenshot of your payment so we can confirm it' },
+      { status: 400 }
+    );
+  }
+
+  if (method.requiresPaymentNote && !paymentNote) {
+    return NextResponse.json(
+      { message: 'Please tell us when you plan to pay' },
+      { status: 400 }
+    );
   }
 
   // Validate the screenshot before anything is written: a rejected image must
@@ -203,6 +228,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
         updatedAt: now,
         paymentMethod: method.key,
         paymentReference: parsed.data.paymentReference?.trim() || null,
+        paymentNote,
       })
       .where(eq(quotes.id, quote.id));
 
@@ -242,6 +268,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
         `Total: ${quote.currency} ${quote.total}`,
         `Payment method: ${method.label}`,
         parsed.data.paymentReference ? `Reference: ${parsed.data.paymentReference}` : null,
+        paymentNote ? `When they'll pay: ${paymentNote}` : null,
         proof ? 'Proof of payment: screenshot attached' : 'Proof of payment: none attached',
         creditsSpent > 0
           ? `Referral credit spent: ${creditsSpent} credit${creditsSpent === 1 ? '' : 's'}`
@@ -254,6 +281,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
         paymentId: payment.id,
         paymentMethod: method.key,
         paymentReference: parsed.data.paymentReference ?? null,
+        paymentNote,
         proofAttached: Boolean(proof),
         creditsSpent,
       },

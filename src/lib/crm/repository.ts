@@ -336,6 +336,7 @@ export async function paymentSummaryForQuote(
     methodLabel: method?.label ?? paymentMethodLabel(quote.paymentMethod),
     paidOnPickup: method?.paidOnPickup ?? false,
     paymentReference: quote.paymentReference,
+    paymentNote: quote.paymentNote,
     currency: quote.currency,
     total: quote.total,
     depositAmount: quote.depositAmount,

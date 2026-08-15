@@ -22,7 +22,7 @@ import {
   type PaymentMethod,
 } from '@/data/payment-methods';
 import { formatDate, formatPeso } from '@/lib/format';
-import { QUOTE_TYPE_LABELS, type PublicQuote } from '@/models/quote.schema';
+import { PAYMENT_NOTE_MAX, QUOTE_TYPE_LABELS, type PublicQuote } from '@/models/quote.schema';
 
 export default function QuoteCheckoutPage() {
   const params = useParams<{ token: string }>();
@@ -35,6 +35,7 @@ export default function QuoteCheckoutPage() {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [reference, setReference] = useState('');
   const [proof, setProof] = useState<File | null>(null);
+  const [paymentNote, setPaymentNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
@@ -63,12 +64,35 @@ export default function QuoteCheckoutPage() {
   );
 
   /**
-   * A transfer has to arrive with something we can match it against — the
-   * reference number they were told to keep, or a screenshot of the receipt.
-   * Cash on pickup has nothing to show yet, so it needs neither.
+   * Switching methods clears what the previous one asked for.
+   *
+   * Without this, a customer who uploads a GCash receipt and then changes their
+   * mind to cash would send that screenshot along with a cash booking — and the
+   * "when will you pay" note would survive a switch back to a transfer. Each
+   * method asks for its own evidence; none of it carries over.
    */
-  const hasProofOfPayment =
-    !method?.requiresReference || Boolean(reference.trim()) || proof !== null;
+  const pickMethod = useCallback((key: string) => {
+    setSelectedMethod(key);
+    setReference('');
+    setProof(null);
+    setPaymentNote('');
+  }, []);
+
+  /**
+   * What this method needs before the customer can confirm.
+   *
+   * A transfer has to arrive with the receipt itself — a typed reference number
+   * is a claim, the screenshot is the thing an admin can hold against the bank
+   * app. Cash has nothing to show yet, so it asks for the one thing it can:
+   * when the money is coming.
+   */
+  const missingRequirement = !method
+    ? 'method'
+    : method.requiresProof && proof === null
+      ? 'proof'
+      : method.requiresPaymentNote && !paymentNote.trim()
+        ? 'note'
+        : null;
 
   const accept = useCallback(async () => {
     if (!token || !selectedMethod) return;
@@ -86,6 +110,7 @@ export default function QuoteCheckoutPage() {
         const form = new FormData();
         form.append('paymentMethod', selectedMethod);
         if (reference.trim()) form.append('paymentReference', reference.trim());
+        if (paymentNote.trim()) form.append('paymentNote', paymentNote.trim());
         form.append('proofOfPayment', proof, proof.name);
         body = form;
       } else {
@@ -93,6 +118,7 @@ export default function QuoteCheckoutPage() {
         body = JSON.stringify({
           paymentMethod: selectedMethod,
           paymentReference: reference.trim() || undefined,
+          paymentNote: paymentNote.trim() || undefined,
         });
       }
 
@@ -111,7 +137,7 @@ export default function QuoteCheckoutPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [token, selectedMethod, reference, proof]);
+  }, [token, selectedMethod, reference, proof, paymentNote]);
 
   const decline = useCallback(async () => {
     if (!token) return;
@@ -161,12 +187,13 @@ export default function QuoteCheckoutPage() {
   // --- Terminal states -------------------------------------------------------
 
   if (accepted) {
+    const acceptedMethod = PAYMENT_METHODS.find((m) => m.key === quote.paymentMethod);
+
     // Same rule as the booking_confirmation email: a transfer is the
     // customer's word until an admin opens the bank app and verifies it, so
-    // this screen must not promise a seat yet. Cash on pickup has nothing to
-    // verify — they hand the money to the driver — so it stays confirmed.
-    const awaitingVerification = !PAYMENT_METHODS.find((m) => m.key === quote.paymentMethod)
-      ?.paidOnPickup;
+    // this screen must not promise a seat yet. Cash has nothing to verify —
+    // they hand the money over in person — so it stays confirmed.
+    const awaitingVerification = !acceptedMethod?.paidOnPickup;
 
     return (
       <Shell>
@@ -202,6 +229,35 @@ export default function QuoteCheckoutPage() {
             )}
           </p>
         </div>
+
+        {/* Paying in cash. The amount and the moment they said they'd hand it
+            over are the whole arrangement, so they get their own panel rather
+            than a line in the summary — this is what both sides turn up on. */}
+        {acceptedMethod?.paidOnPickup && (
+          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+              <i className="pi pi-money-bill text-xs" />
+              Paying {formatPeso(quote.total)} in cash
+            </p>
+            {quote.paymentNote ? (
+              <>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
+                  When you told us you&apos;ll pay
+                </p>
+                <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-amber-900">
+                  {quote.paymentNote}
+                </p>
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-amber-900">
+                Please have the exact amount ready when you meet your driver.
+              </p>
+            )}
+            <p className="mt-2 text-xs text-amber-800">
+              Plans changed? Message us and we&apos;ll rearrange.
+            </p>
+          </div>
+        )}
 
         {/* The same breakdown the customer saw at checkout. This screen is the
             receipt they come back to — a bare total gives them nothing to check
@@ -285,7 +341,7 @@ export default function QuoteCheckoutPage() {
           {quote.paymentMethod && (
             <Row
               label="Paying via"
-              value={PAYMENT_METHODS.find((m) => m.key === quote.paymentMethod)?.label ?? quote.paymentMethod}
+              value={acceptedMethod?.label ?? quote.paymentMethod}
             />
           )}
         </div>
@@ -470,7 +526,7 @@ export default function QuoteCheckoutPage() {
                 <button
                   key={item.key}
                   type="button"
-                  onClick={() => setSelectedMethod(item.key)}
+                  onClick={() => pickMethod(item.key)}
                   aria-pressed={isSelected}
                   className={`rounded-xl border-2 p-3 text-left transition-all ${
                     isSelected
@@ -510,7 +566,9 @@ export default function QuoteCheckoutPage() {
                     />
                   </div>
                 ) : (
-                  method.key !== 'cash' && (
+                  // Cash never gets a QR, so the placeholder would be promising
+                  // something that is never coming.
+                  !method.paidOnPickup && (
                     <div className="flex h-40 w-40 shrink-0 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white p-3 text-center">
                       <i className="pi pi-qrcode text-2xl text-slate-300" />
                       <span className="text-xs text-slate-400">
@@ -521,49 +579,80 @@ export default function QuoteCheckoutPage() {
                 )}
 
                 <div className="min-w-0 flex-1 text-sm">
-                  {method.key !== 'cash' && (
+                  {!method.paidOnPickup && (
                     <>
                       <Row label="Account name" value={method.accountName} />
                       <Row label="Account number" value={method.accountNumber} mono />
-                      <Row
-                        label={depositDue ? 'Amount (deposit)' : 'Amount'}
-                        value={formatPeso(amountDue)}
-                      />
                     </>
                   )}
+                  {/* Cash needs this most of all — it is the figure they have to
+                      count out and bring with them. */}
+                  <Row
+                    label={depositDue ? 'Amount (deposit)' : 'Amount'}
+                    value={formatPeso(amountDue)}
+                  />
                   <p className="mt-3 text-slate-600">{method.instructions}</p>
 
                   {method.requiresReference && (
-                    <>
-                      <div className="mt-4">
-                        <label
-                          htmlFor="payment-reference"
-                          className="mb-1.5 block text-xs font-medium text-slate-500"
-                        >
-                          Reference number{' '}
-                          <span className="text-slate-400">(from your receipt)</span>
-                        </label>
-                        <input
-                          id="payment-reference"
-                          value={reference}
-                          onChange={(event) => setReference(event.target.value)}
-                          placeholder="e.g. 0123456789"
-                          maxLength={120}
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                        />
-                      </div>
+                    <div className="mt-4">
+                      <label
+                        htmlFor="payment-reference"
+                        className="mb-1.5 block text-xs font-medium text-slate-500"
+                      >
+                        Reference number{' '}
+                        <span className="text-slate-400">(from your receipt, optional)</span>
+                      </label>
+                      <input
+                        id="payment-reference"
+                        value={reference}
+                        onChange={(event) => setReference(event.target.value)}
+                        placeholder="e.g. 0123456789"
+                        maxLength={120}
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+                      />
+                    </div>
+                  )}
 
+                  {method.requiresProof && (
+                    <>
                       <ProofOfPaymentField
                         value={proof}
                         onChange={setProof}
                         disabled={isSubmitting}
+                        required
                       />
 
                       <p className="mt-2 text-xs text-slate-400">
-                        Send us either one — the reference number or the screenshot — and we&apos;ll
-                        match your payment.
+                        The screenshot is how we match your payment — please attach it before you
+                        confirm.
                       </p>
                     </>
+                  )}
+
+                  {method.requiresPaymentNote && (
+                    <div className="mt-4">
+                      <label
+                        htmlFor="payment-note"
+                        className="mb-1.5 block text-xs font-medium text-slate-500"
+                      >
+                        When will you pay?{' '}
+                        <span className="font-semibold text-coral">(required)</span>
+                      </label>
+                      <textarea
+                        id="payment-note"
+                        value={paymentNote}
+                        onChange={(event) => setPaymentNote(event.target.value)}
+                        rows={3}
+                        maxLength={PAYMENT_NOTE_MAX}
+                        disabled={isSubmitting}
+                        placeholder="e.g. I'll pay the driver in cash at pickup, Saturday 8am at Radisson Blu"
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+                      />
+                      <p className="mt-1.5 text-xs text-slate-400">
+                        Tell us when and where you&apos;ll hand the cash over so we can have someone
+                        expecting it.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -582,22 +671,20 @@ export default function QuoteCheckoutPage() {
           <button
             type="button"
             onClick={accept}
-            disabled={!selectedMethod || !hasProofOfPayment || isSubmitting}
+            disabled={missingRequirement !== null || isSubmitting}
             className="w-full rounded-xl bg-gradient-to-r from-coral to-mango px-6 py-4 font-semibold text-white shadow-lg shadow-coral/25 transition-all hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
           >
             {isSubmitting ? 'Confirming…' : 'Confirm my booking'}
           </button>
 
-          {!selectedMethod ? (
+          {missingRequirement && (
             <p className="mt-2 text-center text-xs text-slate-400">
-              Choose a payment method above to continue
+              {missingRequirement === 'method'
+                ? 'Choose a payment method above to continue'
+                : missingRequirement === 'proof'
+                  ? 'Attach a screenshot of your payment to continue'
+                  : 'Tell us when you plan to pay to continue'}
             </p>
-          ) : (
-            !hasProofOfPayment && (
-              <p className="mt-2 text-center text-xs text-slate-400">
-                Add your reference number or a screenshot of your payment to continue
-              </p>
-            )
           )}
 
           <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">

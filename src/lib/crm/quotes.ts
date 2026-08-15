@@ -369,6 +369,7 @@ export async function resolveQuoteByToken(token: string): Promise<ResolvedQuote 
       isExpired: isQuoteExpired(quote),
       acceptedAt: quote.acceptedAt?.toISOString() ?? null,
       paymentMethod: quote.paymentMethod,
+      paymentNote: quote.paymentNote,
       businessWhatsApp: process.env.WHATSAPP_BUSINESS_NUMBER ?? '639178046988',
     },
   };

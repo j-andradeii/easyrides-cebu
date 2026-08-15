@@ -14,6 +14,7 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:reset-leads": "tsx scripts/reset-leads.ts",
     "create-admin": "tsx scripts/create-admin.ts",
+    "reset-admin-password": "tsx scripts/reset-admin-password.ts",
     "import-sheet": "tsx scripts/import-sheet.ts",
     "import-tours": "tsx scripts/import-tours.ts",
     "import-vehicles": "tsx scripts/import-vehicles.ts"

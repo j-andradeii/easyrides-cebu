@@ -449,6 +449,15 @@ export const quotes = pgTable(
     paymentMethod: text('payment_method'),
     /** Reference / receipt number they typed in after paying. */
     paymentReference: text('payment_reference'),
+    /**
+     * The customer's own note about paying — currently "when will you hand the
+     * cash over?", which is the only thing a cash booking can tell us up front.
+     *
+     * Kept on the quote rather than the payment because it is part of what the
+     * customer agreed to at checkout, and the payment row already reads the
+     * quote for everything else it shows.
+     */
+    paymentNote: text('payment_note'),
     createdBy: uuid('created_by').references(() => adminUsers.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

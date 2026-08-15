@@ -71,6 +71,13 @@
       "when": 1786206657365,
       "tag": "0009_ambiguous_stark_industries",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786797095075,
+      "tag": "0010_charming_callisto",
+      "breakpoints": true
     }
   ]
 }

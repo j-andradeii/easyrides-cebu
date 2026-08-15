@@ -151,7 +151,14 @@ export default function AdminPaymentsPage() {
                           {payment.quoteTypeLabel}
                         </span>
                       )}
-                      {payment.hasProof ? (
+                      {/* "No screenshot" is a warning about a transfer nobody
+                          can match — on a cash booking it is just how cash
+                          works, so it would cry wolf on every row. */}
+                      {payment.paidOnPickup ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                          <i className="pi pi-money-bill text-[10px]" /> Cash on pickup
+                        </span>
+                      ) : payment.hasProof ? (
                         <span className="inline-flex items-center gap-1 rounded bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">
                           <i className="pi pi-image text-[10px]" /> Screenshot
                         </span>
