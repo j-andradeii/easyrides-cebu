@@ -405,7 +405,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
                 rows={2}
                 maxLength={500}
                 placeholder="Optional note — e.g. 'Landed 2:41 PM, ref matches'"
-                className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-500 px-3 py-2 text-sm"
               />
             )}
 

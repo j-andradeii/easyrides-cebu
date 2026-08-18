@@ -214,7 +214,7 @@ export const FormGallery: React.FC<FormGalleryProps> = ({
                 type="button"
                 disabled={disabled || isUploading || images.length >= max}
                 onClick={() => inputRef.current?.click()}
-                className={`flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed border-slate-800 bg-white px-4 text-center transition-colors hover:border-coral/60 hover:bg-coral/5 disabled:opacity-50 ${
+                className={`flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed border-slate-500 bg-white px-4 text-center transition-colors hover:border-coral/60 hover:bg-coral/5 disabled:opacity-50 ${
                   images.length > 0 ? 'py-4' : 'py-8'
                 }`}
               >

@@ -150,7 +150,7 @@ export function AutomationsPanel({ enrollments, onAction, onEnroll, busy }: Auto
                 setIsEnrolling(false);
               }
             }}
-            className="w-full rounded-lg border border-slate-800 bg-white px-3 py-2 text-sm text-slate-800 disabled:bg-slate-50"
+            className="w-full rounded-lg border border-slate-500 bg-white px-3 py-2 text-sm text-slate-800 disabled:bg-slate-50"
           >
             <option value="">Choose a workflow…</option>
             {available.map((definition) => (

@@ -348,7 +348,7 @@ export function QuoteBuilder({
                   value={line.label}
                   onChange={(event) => updateLine(index, { label: event.target.value })}
                   placeholder="Van rental — 3 days"
-                  className="min-w-0 flex-1 rounded-lg border border-slate-800 px-2.5 py-1.5 text-sm"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-500 px-2.5 py-1.5 text-sm"
                 />
                 {lines.length > 1 && (
                   <button
@@ -366,7 +366,7 @@ export function QuoteBuilder({
                 value={line.description}
                 onChange={(event) => updateLine(index, { description: event.target.value })}
                 placeholder="Optional detail the customer will see"
-                className="w-full rounded-lg border border-slate-800 px-2.5 py-1.5 text-xs"
+                className="w-full rounded-lg border border-slate-500 px-2.5 py-1.5 text-xs"
               />
 
               <div className="flex items-center gap-2">
@@ -378,7 +378,7 @@ export function QuoteBuilder({
                     step="1"
                     value={line.quantity}
                     onChange={(event) => updateLine(index, { quantity: event.target.value })}
-                    className="w-16 rounded-lg border border-slate-800 px-2 py-1.5 text-sm"
+                    className="w-16 rounded-lg border border-slate-500 px-2 py-1.5 text-sm"
                   />
                 </label>
                 <label className="flex flex-1 items-center gap-1.5 text-xs text-slate-700">
@@ -390,7 +390,7 @@ export function QuoteBuilder({
                     value={line.unitPrice}
                     onChange={(event) => updateLine(index, { unitPrice: event.target.value })}
                     placeholder="3500"
-                    className="w-full rounded-lg border border-slate-800 px-2 py-1.5 text-sm"
+                    className="w-full rounded-lg border border-slate-500 px-2 py-1.5 text-sm"
                   />
                 </label>
                 <span className="w-24 text-right text-sm font-medium text-slate-800">
@@ -420,7 +420,7 @@ export function QuoteBuilder({
                 value={discount}
                 onChange={(event) => setDiscount(event.target.value)}
                 placeholder="0"
-                className="mt-1 w-full rounded-lg border border-slate-800 px-2.5 py-1.5 text-sm"
+                className="mt-1 w-full rounded-lg border border-slate-500 px-2.5 py-1.5 text-sm"
               />
             </label>
             <label className="text-xs text-slate-700">
@@ -435,7 +435,7 @@ export function QuoteBuilder({
                   // saying what it will actually send.
                   if (next !== 'partial_payment') setDeposit('');
                 }}
-                className="mt-1 w-full rounded-lg border border-slate-800 bg-white px-2.5 py-1.5 text-sm"
+                className="mt-1 w-full rounded-lg border border-slate-500 bg-white px-2.5 py-1.5 text-sm"
               >
                 {QUOTE_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -565,7 +565,7 @@ export function QuoteBuilder({
               max="90"
               value={validForDays}
               onChange={(event) => setValidForDays(event.target.value)}
-              className="mt-1 w-24 rounded-lg border border-slate-800 px-2.5 py-1.5 text-sm"
+              className="mt-1 w-24 rounded-lg border border-slate-500 px-2.5 py-1.5 text-sm"
             />
           </label>
 
@@ -574,7 +574,7 @@ export function QuoteBuilder({
             onChange={(event) => setNotes(event.target.value)}
             rows={2}
             placeholder="Notes the customer will see — inclusions, pickup point, terms…"
-            className="w-full rounded-lg border border-slate-800 px-2.5 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-500 px-2.5 py-2 text-sm"
           />
 
           <div className="rounded-lg bg-slate-900 px-3 py-2.5 text-sm text-white">

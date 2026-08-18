@@ -204,9 +204,29 @@ function esc(value: string | null | undefined): string {
 }
 
 /**
+ * The logo, on blob storage rather than the site.
+ *
+ * A relative `/logo.jpg` is meaningless in an inbox — there is no page for the
+ * client to resolve it against — so this has to be absolute either way. Pointing
+ * at the CDN instead of deriving it from `siteUrl` means the image survives
+ * things the app cannot control: a wrong `NEXT_PUBLIC_SITE_URL`, a preview
+ * deploy behind auth, or a send from localhost. An email is read long after it
+ * left, and the one thing worse than no logo is a broken-image box.
+ *
+ * Same host as the payment QRs in data/payment-methods.ts.
+ */
+const LOGO_URL = 'https://djuny0idasckxayv.public.blob.vercel-storage.com/logo.jpg';
+
+/**
  * Wraps content in a branded shell. Table-based with inline styles because
  * that is what survives Gmail, Outlook and the Apple Mail renderers — this is
  * not a place for modern CSS.
+ *
+ * The header is built to degrade twice over. Most clients block images until
+ * the reader allows them, so the wordmark stays live text beside the logo
+ * rather than being baked into it. And Outlook ignores `linear-gradient`
+ * entirely — without the `bgcolor` fallback it would paint the cell white and
+ * leave white text on white.
  */
 function emailShell(options: {
   heading: string;
@@ -232,9 +252,17 @@ function emailShell(options: {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0E1;padding:24px 12px;">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-        <tr><td style="background:linear-gradient(90deg,#DC2626,#F59E0B);padding:24px 32px;">
-          <div style="color:#ffffff;font-size:20px;font-weight:700;">${BRAND}</div>
-          <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:2px;">Car rentals · Airport transfers · Cebu tours</div>
+        <tr><td bgcolor="#DC2626" style="background-color:#DC2626;background:linear-gradient(90deg,#DC2626,#D97706);padding:20px 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td width="52" style="width:52px;padding-right:14px;vertical-align:middle;">
+              <img src="${LOGO_URL}" width="52" height="52" alt="${BRAND}" border="0"
+                   style="display:block;width:52px;height:52px;border:0;outline:none;text-decoration:none;border-radius:50%;background-color:#F5F0E1;" />
+            </td>
+            <td style="vertical-align:middle;">
+              <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.2;">${BRAND}</div>
+              <div style="color:#FFEDD5;font-size:13px;margin-top:3px;">Car rentals · Airport transfers · Cebu tours</div>
+            </td>
+          </tr></table>
         </td></tr>
         <tr><td style="padding:32px 32px 8px;">
           <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#1A1A1A;">${esc(heading)}</h1>
@@ -546,6 +574,22 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       `Hi ${ctx.name}, this is ${BRAND} following up on your ${ctx.serviceLabel} request.`,
       `Are the dates still ${prettyDate(ctx.preferredDate) ?? 'flexible'}? Reply here and we'll lock in a vehicle for you.`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Still planning your trip, ${esc(ctx.name)}?`,
+      preheader: `Following up on your ${esc(ctx.serviceLabel)} request.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          We're following up on your ${esc(ctx.serviceLabel)} request.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Are the dates still <strong>${esc(prettyDate(ctx.preferredDate) ?? 'flexible')}</strong>?
+          Reply here and we'll lock in a vehicle for you.
+        </p>`,
+      ctaLabel: 'Message us on WhatsApp',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   followup_2: (ctx) => ({
@@ -554,6 +598,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       `Hi ${ctx.name}, we still have availability for ${tripLine(ctx)}.`,
       `Tell us your pickup point and group size and we'll send an exact price — no obligation.`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `We still have availability, ${esc(ctx.name)}`,
+      preheader: `${esc(tripLine(ctx))} — tell us your pickup point for an exact price.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          We still have availability for <strong>${esc(tripLine(ctx))}</strong>.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Tell us your pickup point and group size and we'll send an exact price — no obligation.
+        </p>`,
+      ctaLabel: 'Send us your details',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   followup_final: (ctx) => ({
@@ -564,6 +623,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Closing your inquiry for now`,
+      preheader: `Your plans can restart any time — we'll pick up where we left off.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Hi ${esc(ctx.name)}, we haven't heard back so we'll close this request for now.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          If your plans firm up, just message us — we'll pick up right where we left off.
+        </p>`,
+      ctaLabel: 'Message us on WhatsApp',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   /**
@@ -714,6 +788,22 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     ]
       .filter(Boolean)
       .join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Still holding your slot, ${esc(ctx.name)}`,
+      preheader: `Your quote for ${esc(tripLine(ctx))} is still live.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Just checking in on the quote we sent for <strong>${esc(tripLine(ctx))}</strong>.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          We can still hold the vehicle, but
+          ${esc(prettyDate(ctx.preferredDate) ?? 'that date')} books out fast. Want us to reserve it?
+        </p>`,
+      ctaLabel: ctx.quoteUrl ? 'View your quote' : 'Message us on WhatsApp',
+      ctaUrl: ctx.quoteUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   lost_reason_prompt: (ctx) => ({
@@ -1197,6 +1287,30 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       }.`,
       `Your driver will message you with the plate number and pickup time. Safe travels!`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `See you tomorrow, ${esc(ctx.name)}! 🚗`,
+      preheader: `Your ${esc(ctx.serviceLabel)} is tomorrow — driver details are on the way.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Your <strong>${esc(ctx.serviceLabel)}</strong> with ${BRAND} is tomorrow${
+            ctx.preferredDate ? ` (${esc(prettyDate(ctx.preferredDate) ?? '')})` : ''
+          }.
+        </p>
+        ${detailRows([
+          ['Service', ctx.serviceLabel],
+          ['Tour', ctx.tourTitle],
+          ['Vehicle', ctx.vehicleName ?? ctx.vehicleLabel],
+          ['Date', prettyDate(ctx.preferredDate)],
+          ['Pickup', ctx.pickupLocation],
+        ])}
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Your driver will message you with the plate number and pickup time. Safe travels!
+        </p>`,
+      ctaLabel: 'Message us on WhatsApp',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   driver_reminder: (ctx) => ({
@@ -1224,6 +1338,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `How was your trip, ${esc(ctx.name)}?`,
+      preheader: `One tap to tell us how we did.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Thanks for riding with ${BRAND}! It takes one tap to tell us how we did.
+        </p>
+        <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+          Your honest feedback — good or bad — is how we keep the service sharp.
+        </p>`,
+      ctaLabel: 'Leave your feedback',
+      ctaUrl: ctx.reviewUrl ?? ctx.siteUrl,
+    }),
   }),
 
   referral_invite: (ctx) => ({
@@ -1235,6 +1364,23 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       `  ${ctx.shareUrl ?? ctx.siteUrl}`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Give ₱300, get ₱500`,
+      preheader: `Share your link — your friend saves ₱300, you get ₱500 off.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          So glad you enjoyed the trip, ${esc(ctx.name)}! 🎉
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Share your personal link and your friend gets <strong>₱300 off</strong> their first
+          booking — you get <strong>₱500 off</strong> your next one, the moment they ride.
+        </p>
+        ${ctx.referralCode ? detailRows([['Your referral code', ctx.referralCode]]) : ''}`,
+      ctaLabel: 'Share your link',
+      ctaUrl: ctx.shareUrl ?? ctx.siteUrl,
+    }),
   }),
 
   re_engagement_30: (ctx) => ({
@@ -1247,6 +1393,22 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Planning another Cebu trip, ${esc(ctx.name)}?`,
+      preheader: `Your ${BRAND} driver is a message away.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Whale sharks in Oslob, canyoneering in Moalboal, or just an airport run — your ${BRAND}
+          driver is a message away.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Book again and we'll hold your usual vehicle.
+        </p>`,
+      ctaLabel: 'Book your next trip',
+      ctaUrl: ctx.siteUrl,
+    }),
   }),
 
   re_engagement_90: (ctx) => ({
@@ -1262,6 +1424,27 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     ]
       .filter(Boolean)
       .join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Ready when you are, ${esc(ctx.name)}`,
+      preheader: `We've still got your details on file — booking takes one message.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          It's been a few months! Whenever you're back in Cebu (or have friends visiting), we've
+          still got your details on file — booking takes one message.
+        </p>
+        ${
+          ctx.shareUrl
+            ? `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+                 Your referral link is still live:
+                 <a href="${esc(ctx.shareUrl)}" style="color:#DC2626;font-weight:600;">${esc(ctx.shareUrl)}</a>
+               </p>`
+            : ''
+        }`,
+      ctaLabel: 'Book again',
+      ctaUrl: ctx.siteUrl,
+    }),
   }),
 
   referral_payout_pending: (ctx) => ({
@@ -1291,6 +1474,26 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Your ₱500 reward is ready, ${esc(ctx.name)}! 🎉`,
+      preheader: `₱500 off your next booking is on your account — nothing to claim.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Your friend just completed their booking — thank you! Your <strong>₱500 off your next
+          booking</strong> is now on your account.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          There's nothing to claim: next time you book with us, just tell us and we'll take it
+          straight off your price. It's valid for a year.
+        </p>
+        <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+          Know someone else heading to Cebu? Every friend you send earns you another one.
+        </p>`,
+      ctaLabel: ctx.shareUrl ? 'Share your link again' : 'Message us on WhatsApp',
+      ctaUrl: ctx.shareUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   detractor_alert: (ctx) => ({

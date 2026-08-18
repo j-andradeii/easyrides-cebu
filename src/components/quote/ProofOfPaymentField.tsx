@@ -165,7 +165,7 @@ export function ProofOfPaymentField({
           disabled={disabled || isProcessing}
           onClick={() => inputRef.current?.click()}
           className={`flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed bg-white px-4 py-5 text-center transition-colors hover:border-coral/60 hover:bg-coral/5 disabled:opacity-50 ${
-            required ? 'border-coral/40' : 'border-slate-800'
+            required ? 'border-coral/40' : 'border-slate-500'
           }`}
         >
           {isProcessing ? (

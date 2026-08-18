@@ -197,7 +197,7 @@ export const FormInput: React.FC<FormInputProps> = ({
               id={uniqueId}
               type={type}
               className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-coral focus:border-coral text-slate-900 bg-white transition-colors placeholder:text-slate-400
-                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-800'}
+                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-500'}
                 ${disabled || readonly ? 'bg-slate-50 text-slate-600 cursor-not-allowed' : ''}
                 ${inputClassName}
               `}

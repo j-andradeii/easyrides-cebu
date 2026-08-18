@@ -746,7 +746,7 @@ export default function QuoteCheckoutPage() {
                         onChange={(event) => setReference(event.target.value)}
                         placeholder="e.g. 0123456789"
                         maxLength={120}
-                        className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+                        className="w-full rounded-lg border border-slate-500 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
                       />
                     </div>
                   )}
@@ -784,7 +784,7 @@ export default function QuoteCheckoutPage() {
                         maxLength={PAYMENT_NOTE_MAX}
                         disabled={isSubmitting}
                         placeholder="e.g. I'll pay the driver in cash at pickup, Saturday 8am at Radisson Blu"
-                        className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+                        className="w-full rounded-lg border border-slate-500 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
                       />
                       <p className="mt-1.5 text-xs text-slate-400">
                         Tell us when and where you&apos;ll hand the cash over so we can have someone

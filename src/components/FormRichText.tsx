@@ -235,7 +235,7 @@ export function RichTextEditor({
   return (
     <div
       className={`overflow-hidden rounded-lg border bg-white transition-colors ${
-        invalid ? 'border-cebu-red' : 'border-slate-800'
+        invalid ? 'border-cebu-red' : 'border-slate-500'
       } ${disabled ? 'opacity-60' : ''}`}
     >
       {editor && <Toolbar editor={editor} disabled={disabled} />}
