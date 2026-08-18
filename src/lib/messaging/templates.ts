@@ -61,6 +61,14 @@ export interface LiveQuoteSummary {
   isPartial: boolean;
   currency: string;
   total: string;
+  /**
+   * The downpayment due now, when the quote only asks for part of the price up
+   * front. `total` stays the whole booking either way — that is the number the
+   * customer is agreeing to.
+   */
+  depositAmount: string | null;
+  /** `total` − `depositAmount`, to be settled later. Null when nothing is deferred. */
+  balanceDue: string | null;
   url: string;
   /** How long the price is held, formatted for Manila. */
   validUntil: string;
@@ -101,6 +109,17 @@ export interface PaymentSummary {
   /** Raw numeric strings — run them through `money()` before display. */
   total: string;
   depositAmount: string | null;
+  /**
+   * True when this quote asked for a downpayment rather than the whole price.
+   *
+   * The distinction the payment emails turn on: `total` is the booking, but
+   * `amountPaid` is what actually changed hands, and telling a customer we
+   * received the former when they sent the latter is the one mistake in this
+   * flow they will certainly notice.
+   */
+  isDownpayment: boolean;
+  /** What the customer actually sent for this quote: the deposit, or the total. */
+  amountPaid: string;
   /** Total minus deposit, when a deposit was asked for. */
   balanceDue: string | null;
   /** Everything accepted on this deal so far, including the payment just made. */
@@ -185,9 +204,29 @@ function esc(value: string | null | undefined): string {
 }
 
 /**
+ * The logo, on blob storage rather than the site.
+ *
+ * A relative `/logo.jpg` is meaningless in an inbox — there is no page for the
+ * client to resolve it against — so this has to be absolute either way. Pointing
+ * at the CDN instead of deriving it from `siteUrl` means the image survives
+ * things the app cannot control: a wrong `NEXT_PUBLIC_SITE_URL`, a preview
+ * deploy behind auth, or a send from localhost. An email is read long after it
+ * left, and the one thing worse than no logo is a broken-image box.
+ *
+ * Same host as the payment QRs in data/payment-methods.ts.
+ */
+const LOGO_URL = 'https://djuny0idasckxayv.public.blob.vercel-storage.com/logo.jpg';
+
+/**
  * Wraps content in a branded shell. Table-based with inline styles because
  * that is what survives Gmail, Outlook and the Apple Mail renderers — this is
  * not a place for modern CSS.
+ *
+ * The header is built to degrade twice over. Most clients block images until
+ * the reader allows them, so the wordmark stays live text beside the logo
+ * rather than being baked into it. And Outlook ignores `linear-gradient`
+ * entirely — without the `bgcolor` fallback it would paint the cell white and
+ * leave white text on white.
  */
 function emailShell(options: {
   heading: string;
@@ -213,9 +252,17 @@ function emailShell(options: {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0E1;padding:24px 12px;">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-        <tr><td style="background:linear-gradient(90deg,#DC2626,#F59E0B);padding:24px 32px;">
-          <div style="color:#ffffff;font-size:20px;font-weight:700;">${BRAND}</div>
-          <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:2px;">Car rentals · Airport transfers · Cebu tours</div>
+        <tr><td bgcolor="#DC2626" style="background-color:#DC2626;background:linear-gradient(90deg,#DC2626,#D97706);padding:20px 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td width="52" style="width:52px;padding-right:14px;vertical-align:middle;">
+              <img src="${LOGO_URL}" width="52" height="52" alt="${BRAND}" border="0"
+                   style="display:block;width:52px;height:52px;border:0;outline:none;text-decoration:none;border-radius:50%;background-color:#F5F0E1;" />
+            </td>
+            <td style="vertical-align:middle;">
+              <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.2;">${BRAND}</div>
+              <div style="color:#FFEDD5;font-size:13px;margin-top:3px;">Car rentals · Airport transfers · Cebu tours</div>
+            </td>
+          </tr></table>
         </td></tr>
         <tr><td style="padding:32px 32px 8px;">
           <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#1A1A1A;">${esc(heading)}</h1>
@@ -527,6 +574,22 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       `Hi ${ctx.name}, this is ${BRAND} following up on your ${ctx.serviceLabel} request.`,
       `Are the dates still ${prettyDate(ctx.preferredDate) ?? 'flexible'}? Reply here and we'll lock in a vehicle for you.`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Still planning your trip, ${esc(ctx.name)}?`,
+      preheader: `Following up on your ${esc(ctx.serviceLabel)} request.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          We're following up on your ${esc(ctx.serviceLabel)} request.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Are the dates still <strong>${esc(prettyDate(ctx.preferredDate) ?? 'flexible')}</strong>?
+          Reply here and we'll lock in a vehicle for you.
+        </p>`,
+      ctaLabel: 'Message us on WhatsApp',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   followup_2: (ctx) => ({
@@ -535,6 +598,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       `Hi ${ctx.name}, we still have availability for ${tripLine(ctx)}.`,
       `Tell us your pickup point and group size and we'll send an exact price — no obligation.`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `We still have availability, ${esc(ctx.name)}`,
+      preheader: `${esc(tripLine(ctx))} — tell us your pickup point for an exact price.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          We still have availability for <strong>${esc(tripLine(ctx))}</strong>.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Tell us your pickup point and group size and we'll send an exact price — no obligation.
+        </p>`,
+      ctaLabel: 'Send us your details',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   followup_final: (ctx) => ({
@@ -545,6 +623,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Closing your inquiry for now`,
+      preheader: `Your plans can restart any time — we'll pick up where we left off.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Hi ${esc(ctx.name)}, we haven't heard back so we'll close this request for now.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          If your plans firm up, just message us — we'll pick up right where we left off.
+        </p>`,
+      ctaLabel: 'Message us on WhatsApp',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   /**
@@ -558,30 +651,51 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     const total = quote ? money(quote.currency, quote.total) : money('PHP', ctx.monetaryValue);
     const url = quote?.url ?? ctx.quoteUrl;
 
+    /**
+     * The downpayment, when this quote asks for one.
+     *
+     * `total` above stays the whole trip — that is what the customer is booking
+     * — and this is the slice they have to send today. Leading with the total
+     * and never naming this figure is how a customer ends up transferring the
+     * lot, or nothing at all.
+     */
+    const deposit =
+      quote?.depositAmount && Number.parseFloat(quote.depositAmount) > 0 ? quote : null;
+    const dueNow = deposit ? money(deposit.currency, deposit.depositAmount) : null;
+    const balance = deposit?.balanceDue ? money(deposit.currency, deposit.balanceDue) : null;
+
     const summary: [string, string | null][] = [
       ['Reference', quote?.reference ?? null],
       ['Service', ctx.serviceLabel],
       ['Tour', ctx.tourTitle],
       ['Vehicle', ctx.vehicleLabel],
       ['Date', prettyDate(ctx.preferredDate)],
-      [quote?.isPartial ? 'This payment' : 'Total', total],
+      [deposit ? 'Booking total' : quote?.isPartial ? 'This payment' : 'Total', total],
+      ['Downpayment due now', dueNow],
+      ['Balance to follow', balance],
       ['Payment type', quote?.typeLabel ?? null],
       ['Price held until', quote?.validUntil ?? null],
     ];
 
     return {
-      subject: quote?.isPartial
-        ? `Your ${BRAND} payment request — ${total}`
-        : `Your ${BRAND} quote — ${total} for ${ctx.serviceLabel}`,
+      subject: deposit
+        ? `Your ${BRAND} quote — ${total}, ${dueNow} to book`
+        : quote?.isPartial
+          ? `Your ${BRAND} payment request — ${total}`
+          : `Your ${BRAND} quote — ${total} for ${ctx.serviceLabel}`,
       body: [
         `Hi ${ctx.name},`,
         ``,
-        quote?.isPartial
-          ? `Here's the next payment for ${tripLine(ctx)}:`
-          : `Here's your quote for ${tripLine(ctx)}:`,
+        deposit
+          ? `Here's your quote for ${tripLine(ctx)}. The trip comes to ${total}, and ${dueNow} secures it:`
+          : quote?.isPartial
+            ? `Here's the next payment for ${tripLine(ctx)}:`
+            : `Here's your quote for ${tripLine(ctx)}:`,
         ``,
         quote ? `  Reference:    ${quote.reference}` : null,
-        `  ${quote?.isPartial ? 'This payment:' : 'Total:       '} ${total}`,
+        `  ${deposit ? 'Booking total:' : quote?.isPartial ? 'This payment:' : 'Total:       '} ${total}`,
+        dueNow ? `  Pay now:      ${dueNow} (downpayment)` : null,
+        balance ? `  Balance:      ${balance}` : null,
         quote ? `  Payment type: ${quote.typeLabel}` : null,
         quote ? `  Held until:   ${quote.validUntil}` : null,
         ...(quote
@@ -595,9 +709,11 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
           : []),
         ...notesLines(quote?.notes ?? null),
         ``,
-        quote?.isPartial
-          ? `This covers part of your booking — we'll send the rest separately.`
-          : `Includes an air-conditioned vehicle, fuel and hotel/airport pickup. Entrance fees, parking and meals are billed separately.`,
+        deposit
+          ? `Only the ${dueNow} downpayment is due now — it's what secures the vehicle for your date. We'll arrange the remaining ${balance ?? 'balance'} with you before your trip. Because it's paid in advance, this one has to go by GCash or bank transfer rather than cash on the day.`
+          : quote?.isPartial
+            ? `This covers part of your booking — we'll send the rest separately.`
+            : `Includes an air-conditioned vehicle, fuel and hotel/airport pickup. Entrance fees, parking and meals are billed separately.`,
         ``,
         url
           ? `See the full breakdown, pay, and confirm your booking here:\n\n  ${url}\n`
@@ -612,18 +728,24 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
 
       html: emailShell({
         ctx,
-        heading: quote?.isPartial
+        heading: quote?.isPartial && !deposit
           ? `Your next payment, ${esc(ctx.name)}`
           : `Your quote, ${esc(ctx.name)}`,
-        preheader: `${esc(total)} · ${esc(tripLine(ctx))}`,
+        preheader: deposit
+          ? `${esc(total)} · ${esc(dueNow ?? '')} to book · ${esc(tripLine(ctx))}`
+          : `${esc(total)} · ${esc(tripLine(ctx))}`,
         content: `
           <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
             ${
-              quote?.isPartial
-                ? `Here's the next payment for your booking. It covers <strong>part</strong> of the
-                   trip — we'll send the rest separately.`
-                : `Here's your quote. The price is held until the date below, and the button
-                   opens the page where you can pay and confirm.`
+              deposit
+                ? `Here's your quote. Your booking comes to <strong>${esc(total)}</strong> — but you
+                   only pay <strong>${esc(dueNow ?? '')}</strong> now to secure it, and we'll
+                   arrange the remaining ${esc(balance ?? 'balance')} with you before your trip.`
+                : quote?.isPartial
+                  ? `Here's the next payment for your booking. It covers <strong>part</strong> of the
+                     trip — we'll send the rest separately.`
+                  : `Here's your quote. The price is held until the date below, and the button
+                     opens the page where you can pay and confirm.`
             }
           </p>
           ${detailRows(summary)}
@@ -641,9 +763,17 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
           ${notesBlock(quote?.notes ?? null)}
           <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
             Pay by GCash or bank transfer, then upload a screenshot of your receipt on that
-            page — it is the fastest way for us to confirm your booking.
+            page — it is the fastest way for us to confirm your booking.${
+              deposit
+                ? ` A downpayment has to reach us in advance, so cash on pickup is not an option on this one.`
+                : ''
+            }
           </p>`,
-        ctaLabel: quote?.isPartial ? `Pay ${total}` : 'View and confirm your quote',
+        ctaLabel: deposit
+          ? `Pay ${dueNow} and book`
+          : quote?.isPartial
+            ? `Pay ${total}`
+            : 'View and confirm your quote',
         ctaUrl: url ?? `https://wa.me/${ctx.businessWhatsApp}`,
       }),
     };
@@ -658,6 +788,22 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     ]
       .filter(Boolean)
       .join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Still holding your slot, ${esc(ctx.name)}`,
+      preheader: `Your quote for ${esc(tripLine(ctx))} is still live.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Just checking in on the quote we sent for <strong>${esc(tripLine(ctx))}</strong>.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          We can still hold the vehicle, but
+          ${esc(prettyDate(ctx.preferredDate) ?? 'that date')} books out fast. Want us to reserve it?
+        </p>`,
+      ctaLabel: ctx.quoteUrl ? 'View your quote' : 'Message us on WhatsApp',
+      ctaUrl: ctx.quoteUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   lost_reason_prompt: (ctx) => ({
@@ -683,6 +829,16 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     const pay = ctx.payment;
     const total = pay ? money(pay.currency, pay.total) : money('PHP', ctx.monetaryValue);
     const dueAtPickup = pay?.balanceDue ? money(pay.currency, pay.balanceDue) : total;
+
+    /**
+     * The quote asked for a downpayment, so `total` above is the booking and
+     * `paidNow` is what they actually sent. Every "we've got your payment" line
+     * below has to name the second figure — a receipt that repeats the booking
+     * total back at someone who paid a deposit reads as a demand for the lot.
+     */
+    const down = pay?.isDownpayment ? pay : null;
+    const paidNow = pay ? money(pay.currency, pay.amountPaid) : total;
+    const downBalance = down?.balanceDue ? money(down.currency, down.balanceDue) : null;
 
     /**
      * Whether the trip is actually confirmed, or only *claimed* to be paid.
@@ -725,14 +881,27 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
           // match", which is now wrong in the good case: verifying sends a
           // `payment_verified` email. Saying we'll be in touch either way is
           // both true and the thing that stops them wondering.
-          `We're checking your ${pay.methodLabel} payment against our account — this is usually quick, and we'll email you as soon as it's confirmed.`;
+          `We're checking your ${paidNow} ${down ? 'downpayment' : 'payment'} via ${
+            pay.methodLabel
+          } against our account — this is usually quick, and we'll email you as soon as it's confirmed.`;
 
     // Never claim a booking is settled off the back of a partial payment: the
     // rest may simply not have been billed yet, and "nothing else is due" is
     // the one sentence a customer will quote back at the pickup point.
     // Same rule as the heading: until someone has actually looked at the
     // account, these say what the payment *will* do, not what it has done.
-    const outstandingLine = owed
+    const outstandingLine = down
+      ? // A downpayment quote already carries its own balance, so this says what
+        // is left on *this* booking rather than pointing at a second quote that
+        // does not exist yet.
+        awaitingVerification
+        ? `Once confirmed, that's your ${paidNow} downpayment settled and your ${total} booking secured. The remaining ${
+            downBalance ?? 'balance'
+          } is arranged with you before your trip.`
+        : `That's your ${paidNow} downpayment settled and your ${total} booking secured. The remaining ${
+            downBalance ?? 'balance'
+          } is arranged with you before your trip.`
+      : owed
       ? `That leaves ${outstanding} on this booking.${
           owed.outstandingUrl ? ` You can settle it here: ${owed.outstandingUrl}` : ''
         }`
@@ -752,10 +921,11 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ['Tour', ctx.tourTitle],
       ['Vehicle', ctx.vehicleLabel],
       ['Date', prettyDate(ctx.preferredDate)],
-      [split ? 'This payment' : 'Total', total],
+      [down ? 'Booking total' : split ? 'This payment' : 'Total', total],
+      ['Downpayment paid', down ? paidNow : null],
       ['Payment type', pay?.isPartial ? pay.typeLabel : null],
-      ['Deposit', pay?.depositAmount ? money(pay.currency, pay.depositAmount) : null],
-      ['Balance at pickup', pay?.balanceDue ? money(pay.currency, pay.balanceDue) : null],
+      ['Deposit', !down && pay?.depositAmount ? money(pay.currency, pay.depositAmount) : null],
+      [down ? 'Balance to follow' : 'Balance at pickup', pay?.balanceDue ? money(pay.currency, pay.balanceDue) : null],
       ['Still to pay', outstanding],
       ['Paid so far', !owed && paidBefore && pay ? money(pay.currency, pay.settledTotal) : null],
       ['Booking total', owed ? money(owed.currency, owed.bookingTotal) : null],
@@ -769,13 +939,17 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
 
     return {
       subject: awaitingVerification
-        ? `We're confirming your payment${pay ? ` (${pay.reference})` : ''} — ${tripLine(ctx)}`
+        ? `We're confirming your ${down ? 'downpayment' : 'payment'}${
+            pay ? ` (${pay.reference})` : ''
+          } — ${tripLine(ctx)}`
         : `Booking confirmed${pay ? ` (${pay.reference})` : ''} — ${tripLine(ctx)}`,
       body: [
         `Hi ${ctx.name},`,
         ``,
         awaitingVerification
-          ? `Thanks — we've got your booking request and your payment details. We're checking the payment now and will email you the moment it clears. Here's what you sent:`
+          ? `Thanks — we've got your booking request and your ${
+              down ? `${paidNow} downpayment` : 'payment'
+            } details. We're checking it now and will email you the moment it clears. Here's what you sent:`
           : `You're booked! Here are your details:`,
         ``,
         pay ? `  Reference:      ${pay.reference}` : null,
@@ -783,10 +957,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         ctx.tourTitle ? `  Tour:           ${ctx.tourTitle}` : null,
         ctx.vehicleLabel ? `  Vehicle:        ${ctx.vehicleLabel}` : null,
         ctx.preferredDate ? `  Date:           ${prettyDate(ctx.preferredDate)}` : null,
-        `  ${split ? 'This payment:  ' : 'Total:         '} ${total}`,
+        `  ${down ? 'Booking total: ' : split ? 'This payment:  ' : 'Total:         '} ${total}`,
+        down ? `  Downpayment:    ${paidNow}` : null,
+        down && downBalance ? `  Balance:        ${downBalance} to follow` : null,
         pay?.isPartial ? `  Payment type:   ${pay.typeLabel}` : null,
-        pay?.depositAmount ? `  Deposit:        ${money(pay.currency, pay.depositAmount)}` : null,
-        pay?.balanceDue ? `  Balance:        ${money(pay.currency, pay.balanceDue)} at pickup` : null,
+        !down && pay?.depositAmount ? `  Deposit:        ${money(pay.currency, pay.depositAmount)}` : null,
+        !down && pay?.balanceDue ? `  Balance:        ${money(pay.currency, pay.balanceDue)} at pickup` : null,
         owed ? `  Still to pay:   ${outstanding}` : null,
         !owed && paidBefore && pay ? `  Paid so far:    ${money(pay.currency, pay.settledTotal)}` : null,
         owed ? `  Booking total:  ${money(owed.currency, owed.bookingTotal)}` : null,
@@ -813,10 +989,12 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       html: emailShell({
         ctx,
         heading: awaitingVerification
-          ? `Thanks, ${esc(ctx.name)} — we're confirming your payment`
+          ? `Thanks, ${esc(ctx.name)} — we're confirming your ${down ? 'downpayment' : 'payment'}`
           : `You're booked, ${esc(ctx.name)}! 🎉`,
         preheader: awaitingVerification
-          ? `Payment received and being checked · ${esc(tripLine(ctx))} · ${esc(total)}`
+          ? down
+            ? `${esc(paidNow)} downpayment received and being checked · ${esc(tripLine(ctx))}`
+            : `Payment received and being checked · ${esc(tripLine(ctx))} · ${esc(total)}`
           : owed
             ? `Confirmed: ${esc(tripLine(ctx))} · ${esc(outstanding ?? '')} still to pay`
             : `Confirmed: ${esc(tripLine(ctx))} · ${esc(total)}`,
@@ -824,9 +1002,10 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
           <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
             ${
               awaitingVerification
-                ? `We've got your booking request and your payment details. Your trip isn't
-                   confirmed just yet — we're checking the payment against our account first,
-                   and we'll email you the moment it clears.`
+                ? `We've got your booking request and your ${
+                    down ? `<strong>${esc(paidNow)}</strong> downpayment` : 'payment'
+                  } details. Your trip isn't confirmed just yet — we're checking it against our
+                   account first, and we'll email you the moment it clears.`
                 : `Thanks for booking with ${BRAND} — your trip is confirmed.`
             }
             Keep this email
@@ -890,19 +1069,27 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         ? pay
         : null;
 
+    // The figure to look for in the bank app is what they *sent*, which on a
+    // downpayment quote is not the booking total. Leading the subject with the
+    // total would have whoever opens this hunting for money that was never due.
+    const down = pay?.isDownpayment ? pay : null;
+    const paidNow = pay ? money(pay.currency, pay.amountPaid) : total;
+
     return {
-      subject: `💰 Payment to verify — ${total}${
-        pay?.isPartial ? ' (partial)' : ''
+      subject: `💰 ${down ? 'Downpayment' : 'Payment'} to verify — ${paidNow}${
+        down ? ` of ${total}` : pay?.isPartial ? ' (partial)' : ''
       } · ${ctx.opportunityTitle}`,
       body: [
-        `${ctx.fullName ?? 'A customer'} submitted a payment${
+        `${ctx.fullName ?? 'A customer'} submitted a ${down ? 'downpayment' : 'payment'}${
           pay ? ` for quote ${pay.reference}` : ''
         }. Please check it and mark it verified.`,
         ``,
         pay ? `Type:      ${pay.typeLabel}` : null,
-        `${split ? 'Paid now: ' : 'Total:    '} ${total}`,
+        down ? `Paid now:  ${paidNow} (downpayment)` : `${split ? 'Paid now: ' : 'Total:    '} ${total}`,
+        down ? `Booking:   ${total} all in` : null,
+        down?.balanceDue ? `Balance:   ${money(down.currency, down.balanceDue)} to arrange later` : null,
         owed ? `Still due: ${money(owed.currency, owed.outstanding)} (quote still open)` : null,
-        split
+        !down && split
           ? `Booking:   ${money(split.currency, split.bookingTotal)} all in${
               owed ? '' : ' — settled in full'
             }`
@@ -912,11 +1099,16 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
         // For a cash booking this is the only actionable fact in the email —
         // there is no money to check, just a time and place to be ready for.
         pay?.paidOnPickup && pay.paymentNote ? `They pay:  ${pay.paymentNote}` : null,
-        pay?.depositAmount ? `Deposit:   ${money(pay.currency, pay.depositAmount)}` : null,
-        pay?.balanceDue ? `Balance:   ${money(pay.currency, pay.balanceDue)} due at pickup` : null,
+        // Skipped on a downpayment — the three lines above already said it, and
+        // repeating the figure under a second name is how a deposit gets
+        // mistaken for a separate charge.
+        !down && pay?.depositAmount ? `Deposit:   ${money(pay.currency, pay.depositAmount)}` : null,
+        !down && pay?.balanceDue ? `Balance:   ${money(pay.currency, pay.balanceDue)} due at pickup` : null,
         pay?.acceptedAt ? `Confirmed: ${pay.acceptedAt}` : null,
         ``,
-        pay && !pay.paidOnPickup
+        down
+          ? `⚠️ Look for ${paidNow}, not ${total} — this quote only asked for the downpayment. Check it actually landed before you commit a vehicle.`
+          : pay && !pay.paidOnPickup
           ? `⚠️ Check the money actually landed before you commit a vehicle — the reference above is what the customer typed in, not a verified receipt.`
           : `💵 Paying in cash — ${
               pay?.balanceDue ? money(pay.currency, pay.balanceDue) : total
@@ -961,47 +1153,70 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     const owed = pay && Number.parseFloat(pay.outstanding) > 0 ? pay : null;
     const outstanding = owed ? money(owed.currency, owed.outstanding) : null;
 
+    /**
+     * The amount we are confirming, which is not always the booking.
+     *
+     * On a downpayment quote the customer sent a slice of `total`, so every
+     * figure in this email has to be `amountPaid` — telling someone we received
+     * ₱12,000 when they sent ₱3,000 would have them assume the trip is settled,
+     * and they'd find out otherwise at the pickup point.
+     */
+    const down = pay?.isDownpayment ? pay : null;
+    const received = pay ? money(pay.currency, pay.amountPaid) : total;
+    const downBalance = down?.balanceDue ? money(down.currency, down.balanceDue) : null;
+
     // "Nothing else is due" is only ever said about a full payment with nothing
-    // outstanding. A partial payment leaves the rest to be billed, whether or
-    // not a quote for it exists yet.
+    // outstanding. A downpayment or a partial payment leaves the rest to be
+    // billed, whether or not a quote for it exists yet.
     const standing = !pay
       ? `Your payment is confirmed.`
-      : owed
-        ? `That covers ${
-            pay.isPartial ? 'this instalment' : 'this payment'
-          } — ${outstanding} is still to come on this booking.`
-        : pay.isPartial
-          ? `That covers this instalment. We'll send your next payment request when it's due.`
-          : `Your booking is now paid in full. Nothing else is due.`;
+      : down
+        ? `Your downpayment is accepted and your booking is secured — the vehicle is held for your date. The remaining ${
+            downBalance ?? 'balance'
+          } of your ${total} booking is arranged with you before your trip.`
+        : owed
+          ? `That covers ${
+              pay.isPartial ? 'this instalment' : 'this payment'
+            } — ${outstanding} is still to come on this booking.`
+          : pay.isPartial
+            ? `That covers this instalment. We'll send your next payment request when it's due.`
+            : `Your booking is now paid in full. Nothing else is due.`;
 
     const paidBefore = pay ? Number.parseFloat(pay.settledTotal) > Number.parseFloat(pay.total) : false;
 
     const summary: [string, string | null][] = [
       ['Reference', pay?.reference ?? null],
-      ['Payment received', total],
+      [down ? 'Downpayment received' : 'Payment received', received],
+      ['Booking total', down ? total : owed ? money(owed.currency, owed.bookingTotal) : null],
+      ['Balance to follow', downBalance],
       ['Payment type', pay?.typeLabel ?? null],
       ['Paid by', pay?.methodLabel ?? null],
       ['Still to pay', outstanding],
       ['Paid so far', !owed && paidBefore && pay ? money(pay.currency, pay.settledTotal) : null],
-      ['Booking total', owed ? money(owed.currency, owed.bookingTotal) : null],
       ['Service', ctx.serviceLabel],
       ['Date', prettyDate(ctx.preferredDate)],
     ];
 
     return {
-      subject: `Payment received — ${total}${pay?.isPartial ? ' (partial payment)' : ''}`,
+      subject: down
+        ? `Downpayment accepted — ${received} received, your booking is secured`
+        : `Payment received — ${total}${pay?.isPartial ? ' (partial payment)' : ''}`,
       body: [
         `Hi ${ctx.name},`,
         ``,
-        `Good news — we've checked our account and your payment of ${total} came through.`,
+        down
+          ? `Good news — we've checked our account and your downpayment of ${received} came through. It's accepted, and your booking is secured.`
+          : `Good news — we've checked our account and your payment of ${total} came through.`,
         ``,
         pay ? `  Reference:    ${pay.reference}` : null,
-        `  Received:     ${total}`,
+        `  ${down ? 'Downpayment: ' : 'Received:    '} ${received}`,
+        down ? `  Booking total: ${total}` : null,
+        down && downBalance ? `  Balance:      ${downBalance} to follow` : null,
         pay ? `  Payment type: ${pay.typeLabel}` : null,
         pay ? `  Paid by:      ${pay.methodLabel}` : null,
         owed ? `  Still to pay: ${outstanding}` : null,
         !owed && paidBefore && pay ? `  Paid so far:  ${money(pay.currency, pay.settledTotal)}` : null,
-        owed ? `  Booking total: ${money(owed.currency, owed.bookingTotal)}` : null,
+        !down && owed ? `  Booking total: ${money(owed.currency, owed.bookingTotal)}` : null,
         ...(pay
           ? breakdownLines(pay.currency, pay.lineItems, pay.subtotal, pay.discount, pay.total)
           : []),
@@ -1019,14 +1234,27 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
 
       html: emailShell({
         ctx,
-        heading: owed
-          ? `Payment received, ${esc(ctx.name)}`
-          : `You're all paid up, ${esc(ctx.name)}! 🎉`,
-        preheader: `${esc(total)} confirmed${owed ? ` · ${esc(outstanding ?? '')} still to pay` : ''}`,
+        heading: down
+          ? `Downpayment accepted, ${esc(ctx.name)} — you're booked! 🎉`
+          : owed
+            ? `Payment received, ${esc(ctx.name)}`
+            : `You're all paid up, ${esc(ctx.name)}! 🎉`,
+        preheader: down
+          ? `${esc(received)} downpayment accepted · booking secured${
+              downBalance ? ` · ${esc(downBalance)} to follow` : ''
+            }`
+          : `${esc(total)} confirmed${owed ? ` · ${esc(outstanding ?? '')} still to pay` : ''}`,
         content: `
           <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
-            We've checked our account and your payment of <strong>${esc(total)}</strong> came
-            through. Thank you!
+            ${
+              down
+                ? `We've checked our account and your downpayment of <strong>${esc(
+                    received
+                  )}</strong> came through. It is <strong>accepted</strong> — your booking is
+                   secured and the vehicle is held for your date. Thank you!`
+                : `We've checked our account and your payment of <strong>${esc(total)}</strong> came
+                   through. Thank you!`
+            }
           </p>
           ${detailRows(summary)}
           ${
@@ -1039,8 +1267,14 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
           <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
             We'll send your driver's name, vehicle and plate number the day before your trip.
           </p>`,
-        ctaLabel: owed?.outstandingUrl ? `Pay the remaining ${outstanding}` : 'Message us on WhatsApp',
-        ctaUrl: owed?.outstandingUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
+        ctaLabel: owed?.outstandingUrl
+          ? `Pay the remaining ${outstanding}`
+          : down && pay?.quoteUrl
+            ? 'View your booking'
+            : 'Message us on WhatsApp',
+        ctaUrl:
+          owed?.outstandingUrl ??
+          (down ? pay?.quoteUrl ?? `https://wa.me/${ctx.businessWhatsApp}` : `https://wa.me/${ctx.businessWhatsApp}`),
       }),
     };
   },
@@ -1053,6 +1287,30 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       }.`,
       `Your driver will message you with the plate number and pickup time. Safe travels!`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `See you tomorrow, ${esc(ctx.name)}! 🚗`,
+      preheader: `Your ${esc(ctx.serviceLabel)} is tomorrow — driver details are on the way.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Your <strong>${esc(ctx.serviceLabel)}</strong> with ${BRAND} is tomorrow${
+            ctx.preferredDate ? ` (${esc(prettyDate(ctx.preferredDate) ?? '')})` : ''
+          }.
+        </p>
+        ${detailRows([
+          ['Service', ctx.serviceLabel],
+          ['Tour', ctx.tourTitle],
+          ['Vehicle', ctx.vehicleName ?? ctx.vehicleLabel],
+          ['Date', prettyDate(ctx.preferredDate)],
+          ['Pickup', ctx.pickupLocation],
+        ])}
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Your driver will message you with the plate number and pickup time. Safe travels!
+        </p>`,
+      ctaLabel: 'Message us on WhatsApp',
+      ctaUrl: `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   driver_reminder: (ctx) => ({
@@ -1080,6 +1338,21 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `How was your trip, ${esc(ctx.name)}?`,
+      preheader: `One tap to tell us how we did.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Thanks for riding with ${BRAND}! It takes one tap to tell us how we did.
+        </p>
+        <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+          Your honest feedback — good or bad — is how we keep the service sharp.
+        </p>`,
+      ctaLabel: 'Leave your feedback',
+      ctaUrl: ctx.reviewUrl ?? ctx.siteUrl,
+    }),
   }),
 
   referral_invite: (ctx) => ({
@@ -1091,6 +1364,23 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       `  ${ctx.shareUrl ?? ctx.siteUrl}`,
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Give ₱300, get ₱500`,
+      preheader: `Share your link — your friend saves ₱300, you get ₱500 off.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          So glad you enjoyed the trip, ${esc(ctx.name)}! 🎉
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Share your personal link and your friend gets <strong>₱300 off</strong> their first
+          booking — you get <strong>₱500 off</strong> your next one, the moment they ride.
+        </p>
+        ${ctx.referralCode ? detailRows([['Your referral code', ctx.referralCode]]) : ''}`,
+      ctaLabel: 'Share your link',
+      ctaUrl: ctx.shareUrl ?? ctx.siteUrl,
+    }),
   }),
 
   re_engagement_30: (ctx) => ({
@@ -1103,6 +1393,22 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Planning another Cebu trip, ${esc(ctx.name)}?`,
+      preheader: `Your ${BRAND} driver is a message away.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Whale sharks in Oslob, canyoneering in Moalboal, or just an airport run — your ${BRAND}
+          driver is a message away.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Book again and we'll hold your usual vehicle.
+        </p>`,
+      ctaLabel: 'Book your next trip',
+      ctaUrl: ctx.siteUrl,
+    }),
   }),
 
   re_engagement_90: (ctx) => ({
@@ -1118,6 +1424,27 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
     ]
       .filter(Boolean)
       .join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Ready when you are, ${esc(ctx.name)}`,
+      preheader: `We've still got your details on file — booking takes one message.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          It's been a few months! Whenever you're back in Cebu (or have friends visiting), we've
+          still got your details on file — booking takes one message.
+        </p>
+        ${
+          ctx.shareUrl
+            ? `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+                 Your referral link is still live:
+                 <a href="${esc(ctx.shareUrl)}" style="color:#DC2626;font-weight:600;">${esc(ctx.shareUrl)}</a>
+               </p>`
+            : ''
+        }`,
+      ctaLabel: 'Book again',
+      ctaUrl: ctx.siteUrl,
+    }),
   }),
 
   referral_payout_pending: (ctx) => ({
@@ -1147,6 +1474,26 @@ const TEMPLATES: Record<TemplateKey, (ctx: TemplateContext) => RenderedMessage> 
       ``,
       signOff(ctx),
     ].join('\n'),
+
+    html: emailShell({
+      ctx,
+      heading: `Your ₱500 reward is ready, ${esc(ctx.name)}! 🎉`,
+      preheader: `₱500 off your next booking is on your account — nothing to claim.`,
+      content: `
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          Your friend just completed their booking — thank you! Your <strong>₱500 off your next
+          booking</strong> is now on your account.
+        </p>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:#333;">
+          There's nothing to claim: next time you book with us, just tell us and we'll take it
+          straight off your price. It's valid for a year.
+        </p>
+        <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#666;">
+          Know someone else heading to Cebu? Every friend you send earns you another one.
+        </p>`,
+      ctaLabel: ctx.shareUrl ? 'Share your link again' : 'Message us on WhatsApp',
+      ctaUrl: ctx.shareUrl ?? `https://wa.me/${ctx.businessWhatsApp}`,
+    }),
   }),
 
   detractor_alert: (ctx) => ({

@@ -239,7 +239,7 @@ function InquiriesTable() {
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Name, phone, email or L-000000"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-slate-500 rounded-lg text-sm"
               />
             </span>
           </div>

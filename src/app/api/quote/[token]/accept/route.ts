@@ -26,8 +26,10 @@ import {
   type ProofUpload,
 } from '@/lib/crm/payments';
 import {
+  amountDueNow,
   isQuoteExpired,
   quoteReference,
+  requiresAdvancePayment,
   resolveQuoteByToken,
   syncOpportunityValue,
 } from '@/lib/crm/quotes';
@@ -219,6 +221,24 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       );
     }
 
+    /**
+     * A downpayment has to actually arrive before the trip.
+     *
+     * Checkout already hides the cash tile on these quotes, but the token is the
+     * whole authentication here — anyone holding the link can post `cash`
+     * directly and book a vehicle having sent nothing. The quote is only read
+     * now because this needs the stored row, not the browser's claim about it.
+     */
+    if (method.paidOnPickup && requiresAdvancePayment(quote)) {
+      return NextResponse.json(
+        {
+          message:
+            'This booking needs its downpayment in advance, so cash on pickup is not available. Please pay by GCash or bank transfer.',
+        },
+        { status: 400 }
+      );
+    }
+
     const now = new Date();
     await db
       .update(quotes)
@@ -247,11 +267,17 @@ export async function POST(request: Request, context: { params: Promise<{ token:
 
     // The payment record is what /admin/payments works from — one row per
     // settlement attempt, holding the screenshot and awaiting a human check.
+    //
+    // Its amount is what the customer actually sent, not what the trip costs:
+    // on a downpayment quote those differ, and recording the total would have
+    // the payments queue claim the booking was settled in full by a deposit.
+    const paidNow = amountDueNow(quote);
+
     const payment = await recordPayment({
       quoteId: quote.id,
       opportunityId: quote.opportunityId,
       contactId: quote.contactId,
-      amount: quote.total,
+      amount: paidNow,
       currency: quote.currency,
       method: method.key,
       reference: parsed.data.paymentReference,
@@ -266,6 +292,11 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       subject: `Customer accepted quote ${quoteReference(quote.id)}`,
       body: [
         `Total: ${quote.currency} ${quote.total}`,
+        quote.depositAmount
+          ? `Downpayment paid: ${quote.currency} ${paidNow} (balance ${quote.currency} ${(
+              Number.parseFloat(quote.total) - Number.parseFloat(paidNow)
+            ).toFixed(2)})`
+          : null,
         `Payment method: ${method.label}`,
         parsed.data.paymentReference ? `Reference: ${parsed.data.paymentReference}` : null,
         paymentNote ? `When they'll pay: ${paymentNote}` : null,
@@ -279,6 +310,8 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       metadata: {
         quoteId: quote.id,
         paymentId: payment.id,
+        amountPaid: paidNow,
+        depositAmount: quote.depositAmount,
         paymentMethod: method.key,
         paymentReference: parsed.data.paymentReference ?? null,
         paymentNote,

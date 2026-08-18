@@ -262,9 +262,9 @@ h1, h2, h3, h4, h5, h6 {
   /* px-2 py-2, matching FormInput — the date box shares a grid row with text
      fields, so a taller one would step out of line. */
   padding: 0.5rem;
-  /* slate-300, matching the Tailwind border on FormInput/FormTextarea — the
+  /* slate-500, matching the Tailwind border on FormInput/FormTextarea — the
      date box must not read lighter than the fields either side of it. */
-  border: 1px solid #cbd5e1;
+  border: 1px solid #64748b;
   border-radius: 0.5rem;
   font-size: 1rem;
   color: #334155;
@@ -376,8 +376,8 @@ h1, h2, h3, h4, h5, h6 {
 /* Base Dropdown Styles */
 .p-dropdown {
   width: 100%;
-  /* slate-300 — same weight as the text inputs it sits alongside. */
-  border: 1px solid #cbd5e1;
+  /* slate-500 — same weight as the text inputs it sits alongside. */
+  border: 1px solid #64748b;
   border-radius: 0.5rem;
   background-color: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -475,7 +475,7 @@ h1, h2, h3, h4, h5, h6 {
   height: auto;
   /* Must match the phone field it is glued to, or the pair reads as two
      different controls. */
-  border: 1px solid #cbd5e1;
+  border: 1px solid #64748b;
   border-radius: 0.5rem;
   background-color: #fff;
 }
@@ -495,9 +495,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .phone-country-dropdown.p-dropdown:hover {
-  /* One step past the resting slate-300, which this used to sit at — matching
-     it exactly would leave the control with no hover feedback at all. */
-  border-color: #94a3b8;
+  /* The brand colour, same as every other control's hover. This used to step
+     one grey darker than the resting border, which is fragile — it silently
+     inverts the moment the resting colour is retuned. Hovering to coral cannot
+     collide with whatever grey the fields settle on. */
+  border-color: var(--coral);
 }
 
 .phone-country-dropdown.p-dropdown.p-focus {

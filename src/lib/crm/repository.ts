@@ -25,7 +25,7 @@ import {
 } from '@/db/schema';
 import { getPaymentMethod, paymentMethodLabel } from '@/data/payment-methods';
 import { DEFAULT_PIPELINE_ID, type StageKey } from '@/lib/funnel/stages';
-import { quoteTypeLabel } from '@/models/quote.schema';
+import { balanceAfterDeposit, quoteTypeLabel } from '@/models/quote.schema';
 import type {
   LiveQuoteSummary,
   PaymentSummary,
@@ -261,6 +261,8 @@ export async function loadLiveQuoteSummary(
     isPartial: quote.quoteType === 'partial_payment',
     currency: quote.currency,
     total: quote.total,
+    depositAmount: quote.depositAmount,
+    balanceDue: balanceAfterDeposit(quote.total, quote.depositAmount),
     url: quoteUrl(quote.token),
     validUntil: VALID_UNTIL_FORMATTER.format(quote.validUntil),
     lineItems: quoteLines(quote.lineItems),
@@ -340,6 +342,10 @@ export async function paymentSummaryForQuote(
     currency: quote.currency,
     total: quote.total,
     depositAmount: quote.depositAmount,
+    isDownpayment: deposit !== null && deposit > 0 && deposit < total,
+    // What actually changed hands. Mirrors `amountDueNow` in lib/crm/quotes and
+    // the amount the accept route files on the payment row.
+    amountPaid: deposit !== null && deposit > 0 && deposit < total ? deposit.toFixed(2) : quote.total,
     balanceDue: balance !== null ? balance.toFixed(2) : null,
     settledTotal,
     outstanding,

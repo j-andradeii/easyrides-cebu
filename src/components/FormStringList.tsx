@@ -143,7 +143,7 @@ export const FormStringList: React.FC<FormStringListProps> = ({
                               }
                             }}
                             className={`w-full rounded-lg border bg-white px-3 py-2.5 text-slate-700 transition-colors focus:border-transparent focus:ring-2 focus:ring-coral ${
-                              rowError ? 'border-cebu-red' : 'border-slate-200'
+                              rowError ? 'border-cebu-red' : 'border-slate-500'
                             } ${disabled ? 'cursor-not-allowed bg-slate-50 text-slate-500' : ''}`}
                           />
 

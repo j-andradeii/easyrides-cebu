@@ -163,7 +163,7 @@ export default function AdminToursPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search by name or slug…"
-            className="w-full rounded-lg border border-slate-200 py-2.5 pl-9 pr-4 text-sm text-slate-700"
+            className="w-full rounded-lg border border-slate-500 py-2.5 pl-9 pr-4 text-sm text-slate-700"
           />
         </div>
 

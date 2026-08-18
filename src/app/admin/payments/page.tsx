@@ -146,10 +146,20 @@ export default function AdminPaymentsPage() {
                       >
                         {STATUS_LABELS[payment.status]}
                       </span>
-                      {payment.quoteType === 'partial_payment' && (
+                      {/* The bold figure on the left is what to look for in the
+                          bank app. On a downpayment that is deliberately less
+                          than the booking, so the row has to say so — verifying
+                          it does not mean the trip is paid for. */}
+                      {payment.isDownpayment ? (
                         <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
-                          {payment.quoteTypeLabel}
+                          Downpayment of {formatPeso(payment.quoteTotal)}
                         </span>
+                      ) : (
+                        payment.quoteType === 'partial_payment' && (
+                          <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                            {payment.quoteTypeLabel}
+                          </span>
+                        )
                       )}
                       {/* "No screenshot" is a warning about a transfer nobody
                           can match — on a cash booking it is just how cash

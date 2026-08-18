@@ -12,6 +12,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 
 import { ProofOfPaymentField } from '@/components/quote/ProofOfPaymentField';
@@ -195,6 +196,12 @@ export default function QuoteCheckoutPage() {
     // they hand the money over in person — so it stays confirmed.
     const awaitingVerification = !acceptedMethod?.paidOnPickup;
 
+    // What they actually sent, which on a downpayment quote is not the total.
+    const paidNow =
+      quote.depositAmount && Number.parseFloat(quote.depositAmount) > 0
+        ? quote.depositAmount
+        : null;
+
     return (
       <Shell>
         <div className="text-center">
@@ -210,12 +217,17 @@ export default function QuoteCheckoutPage() {
             />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">
-            {awaitingVerification ? 'Payment received — confirming now' : "You're booked! 🎉"}
+            {awaitingVerification
+              ? paidNow
+                ? 'Downpayment received — confirming now'
+                : 'Payment received — confirming now'
+              : "You're booked! 🎉"}
           </h1>
           <p className="mt-2 text-slate-600">
             {awaitingVerification ? (
               <>
-                Thanks, {quote.customerName}. We&apos;re checking your payment for{' '}
+                Thanks, {quote.customerName}. We&apos;re checking your{' '}
+                {paidNow ? <strong>{formatPeso(paidNow)} downpayment</strong> : 'payment'} for{' '}
                 <strong>{quote.serviceLabel}</strong>
                 {quote.tripDate ? ` on ${formatDate(quote.tripDate)}` : ''} and will email you as
                 soon as it&apos;s confirmed.
@@ -337,7 +349,11 @@ export default function QuoteCheckoutPage() {
           <Row label="Reference" value={quote.reference} />
           {/* Kept even though the breakdown repeats it — this is the block a
               customer screenshots, and it has to stand alone. */}
-          <Row label="Total" value={formatPeso(quote.total)} />
+          <Row label={paidNow ? 'Booking total' : 'Total'} value={formatPeso(quote.total)} />
+          {paidNow && <Row label="Downpayment paid" value={formatPeso(paidNow)} />}
+          {paidNow && quote.balanceDue && (
+            <Row label="Balance to follow" value={formatPeso(quote.balanceDue)} />
+          )}
           {quote.paymentMethod && (
             <Row
               label="Paying via"
@@ -399,39 +415,122 @@ export default function QuoteCheckoutPage() {
     quote.depositAmount && Number.parseFloat(quote.depositAmount) > 0 ? quote.depositAmount : null;
   const amountDue = depositDue ?? quote.total;
 
+  /**
+   * What checkout is allowed to offer.
+   *
+   * A downpayment exists to be in our hands before the vehicle is committed, so
+   * "pay the driver in cash on the day" is not an option on these quotes — it
+   * would defeat the whole arrangement. The accept route enforces the same rule;
+   * hiding the tile here just stops the customer picking something we would then
+   * have to refuse.
+   */
+  const methods = quote.requiresAdvancePayment
+    ? SELECTABLE_PAYMENT_METHODS.filter((item) => !item.paidOnPickup)
+    : SELECTABLE_PAYMENT_METHODS;
+
+  /** Whether anything was taken off the list price, so a subtotal has a job. */
+  const hasReductions =
+    plainDiscount(quote) > 0 || Number.parseFloat(quote.creditApplied) > 0;
+
   return (
     <main className="min-h-screen bg-cream px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-2xl space-y-5">
-        {/* Header */}
-        <div className="rounded-3xl bg-gradient-to-br from-coral to-mango p-6 text-white shadow-xl sm:p-8">
+        {/* Header
+            Gradient stops deliberately darker than the brand's usual
+            coral→mango: mango is #F59E0B, and white text on it lands around
+            2:1 contrast — unreadable. Holding coral through the midpoint and
+            ending on mango-dark (#D97706) keeps the warm sunset look while
+            giving every white label something it can actually be read on. */}
+        <div className="rounded-3xl bg-gradient-to-br from-coral via-coral to-mango-dark p-6 text-white shadow-xl sm:p-8">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-white/80">Your quote from EasyRideCebu</p>
-              <h1 className="mt-1 text-3xl font-bold">{formatPeso(quote.total)}</h1>
-              <p className="mt-1 text-white/90">
-                {quote.serviceLabel}
-                {quote.vehicleLabel ? ` · ${quote.vehicleLabel}` : ''}
-                {quote.tripDate ? ` · ${formatDate(quote.tripDate)}` : ''}
-              </p>
+            <div className="flex items-center gap-3">
+              {/* A tokenised link arrives with no browser chrome to vouch for
+                  it — the logo is the first thing that says this page is really
+                  from us, which matters on a page that asks for money. */}
+              <Image
+                src="/logo.jpg"
+                alt="EasyRideCebu"
+                width={52}
+                height={52}
+                className="shrink-0 rounded-full object-cover ring-2 ring-white/40"
+                style={{ backgroundColor: '#F5F0E1' }}
+                priority
+              />
+              <div>
+                <p className="text-sm font-medium text-white/90">Your quote from</p>
+                <p className="text-lg font-bold leading-tight">EasyRideCebu</p>
+              </div>
             </div>
+            {/* Chips darken their patch of the gradient instead of lightening
+                it. `bg-white/20` was washing the background out *under* white
+                text, which is the wrong direction and why these read as ghosts
+                — they sit on the lightest corner of the card. */}
             <div className="flex shrink-0 flex-col items-end gap-1.5">
-              <span className="rounded-lg bg-white/20 px-2.5 py-1 font-mono text-xs">
+              <span className="rounded-lg bg-black/20 px-2.5 py-1 font-mono text-xs text-white">
                 {quote.reference}
               </span>
-              {quote.quoteType === 'partial_payment' && (
-                <span className="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-medium">
-                  {QUOTE_TYPE_LABELS.partial_payment}
+              {/* Says what the customer has to *do*, not which enum the quote
+                  carries — "Partial payment" left them guessing what part. */}
+              {depositDue ? (
+                <span className="rounded-lg bg-black/25 px-2.5 py-1 text-xs font-bold text-white">
+                  Downpayment
                 </span>
+              ) : (
+                quote.quoteType === 'partial_payment' && (
+                  <span className="rounded-lg bg-black/20 px-2.5 py-1 text-xs font-semibold text-white">
+                    {QUOTE_TYPE_LABELS.partial_payment}
+                  </span>
+                )
               )}
             </div>
           </div>
 
-          <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-1.5 text-sm">
+          {/* The headline stays the full price of the trip even when only a
+              downpayment is due — the customer is agreeing to the whole
+              booking, and a smaller number here would read as the cost. */}
+          <div className="mt-5">
+            {depositDue && (
+              <p className="text-xs font-bold uppercase tracking-wide text-white/90">
+                Booking total
+              </p>
+            )}
+            <h1 className="text-3xl font-bold sm:text-4xl">{formatPeso(quote.total)}</h1>
+            <p className="mt-1 font-medium text-white">
+              {quote.serviceLabel}
+              {quote.vehicleLabel ? ` · ${quote.vehicleLabel}` : ''}
+              {quote.tripDate ? ` · ${formatDate(quote.tripDate)}` : ''}
+            </p>
+          </div>
+
+          {/* Solid white, not another translucent chip. This is the one
+              instruction on the page and it was disappearing into the
+              gradient — it has to out-contrast everything around it. */}
+          {depositDue && (
+            <div className="mt-5 rounded-2xl bg-white p-4 text-slate-900 shadow-lg">
+              <div className="flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-2 font-semibold text-coral-dark">
+                  <i className="pi pi-wallet text-sm" />
+                  Pay your downpayment now
+                </span>
+                <span className="shrink-0 text-2xl font-bold text-coral-dark">
+                  {formatPeso(depositDue)}
+                </span>
+              </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+                This secures your booking.
+                {quote.balanceDue
+                  ? ` The remaining ${formatPeso(quote.balanceDue)} is arranged with you before your trip.`
+                  : ''}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-black/20 px-3 py-1.5 text-sm font-medium text-white">
             <i className="pi pi-clock text-xs" />
             {daysLeft === 0
               ? 'Expires today'
               : `Held for ${daysLeft} more day${daysLeft === 1 ? '' : 's'}`}
-            <span className="text-white/70">· until {formatDate(quote.validUntil)}</span>
+            <span className="text-white/85">· until {formatDate(quote.validUntil)}</span>
           </div>
         </div>
 
@@ -463,10 +562,15 @@ export default function QuoteCheckoutPage() {
           </ul>
 
           <div className="mt-4 space-y-1.5 border-t border-slate-200 pt-4 text-sm">
-            <div className="flex justify-between text-slate-600">
-              <span>Subtotal</span>
-              <span>{formatPeso(quote.subtotal)}</span>
-            </div>
+            {/* Subtotal only earns a row when something actually comes off it.
+                With no discount it is the total written twice, and two
+                identical figures stacked read as two separate charges. */}
+            {hasReductions && (
+              <div className="flex justify-between text-slate-600">
+                <span>Subtotal</span>
+                <span>{formatPeso(quote.subtotal)}</span>
+              </div>
+            )}
             {plainDiscount(quote) > 0 && (
               <div className="flex justify-between text-emerald-700">
                 <span>Discount</span>
@@ -482,20 +586,44 @@ export default function QuoteCheckoutPage() {
                 <span>− {formatPeso(quote.creditApplied)}</span>
               </div>
             )}
-            <div className="flex justify-between pt-1.5 text-lg font-bold text-slate-900">
-              <span>{quote.quoteType === 'partial_payment' ? 'This payment' : 'Total'}</span>
+
+            {/* With a downpayment this is context, not the ask — so it steps
+                down and the amount due now becomes the biggest thing on the
+                page. Two competing bold totals is what made this confusing. */}
+            <div
+              className={`flex justify-between pt-1.5 ${
+                depositDue
+                  ? 'text-base font-semibold text-slate-700'
+                  : 'text-lg font-bold text-slate-900'
+              }`}
+            >
+              <span>{depositDue ? 'Booking total' : 'Total'}</span>
               <span>{formatPeso(quote.total)}</span>
             </div>
-            {quote.quoteType === 'partial_payment' && (
+
+            {/* Labels that say what each figure *is*, so the numbers don't need
+                a paragraph underneath repeating them back. */}
+            {depositDue && (
+              <div className="!mt-3 rounded-xl bg-coral/5 p-4 ring-1 ring-coral/20">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-semibold text-coral-dark">Downpayment due now</span>
+                  <span className="shrink-0 text-2xl font-bold text-coral-dark">
+                    {formatPeso(depositDue)}
+                  </span>
+                </div>
+                {quote.balanceDue && (
+                  <div className="mt-2.5 flex items-baseline justify-between gap-3 border-t border-coral/20 pt-2.5 text-slate-600">
+                    <span>Balance, arranged before your trip</span>
+                    <span className="shrink-0">{formatPeso(quote.balanceDue)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {quote.quoteType === 'partial_payment' && !depositDue && (
               <p className="pt-2 text-xs text-slate-500">
                 This is a <strong>partial payment</strong> toward your booking — the remaining
                 balance is billed separately.
-              </p>
-            )}
-            {depositDue && (
-              <p className="pt-2 text-xs text-slate-500">
-                A deposit of <strong>{formatPeso(depositDue)}</strong> secures your booking; the
-                balance is due on the day.
               </p>
             )}
           </div>
@@ -510,17 +638,21 @@ export default function QuoteCheckoutPage() {
         {/* Payment */}
         <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-xl">
           <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            How would you like to pay?
+            {depositDue
+              ? `How would you like to pay the ${formatPeso(depositDue)} downpayment?`
+              : 'How would you like to pay?'}
           </h2>
-          <p className="mb-4 text-sm text-slate-500">Pick one to see the payment details.</p>
+          <p className="mb-4 text-sm text-slate-500">
+            {quote.requiresAdvancePayment
+              ? 'Pick one to see the payment details. A downpayment has to reach us in advance, so cash on pickup is not available.'
+              : 'Pick one to see the payment details.'}
+          </p>
 
           {/* Column count follows the list so a retired method doesn't leave a gap. */}
           <div
-            className={`grid gap-3 ${
-              SELECTABLE_PAYMENT_METHODS.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'
-            }`}
+            className={`grid gap-3 ${methods.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
           >
-            {SELECTABLE_PAYMENT_METHODS.map((item) => {
+            {methods.map((item) => {
               const isSelected = selectedMethod === item.key;
               return (
                 <button
@@ -586,9 +718,15 @@ export default function QuoteCheckoutPage() {
                     </>
                   )}
                   {/* Cash needs this most of all — it is the figure they have to
-                      count out and bring with them. */}
+                      count out and bring with them. On a downpayment quote it
+                      is the one number they must not get wrong: sending the
+                      full total, or the balance, both create work to unpick. */}
+                  {/* Deliberately the only figure in this panel. The breakdown
+                      above already covers the booking and the balance; putting
+                      a second number beside the one they are about to type into
+                      their banking app is how the wrong amount gets sent. */}
                   <Row
-                    label={depositDue ? 'Amount (deposit)' : 'Amount'}
+                    label={depositDue ? 'Send exactly' : 'Amount'}
                     value={formatPeso(amountDue)}
                   />
                   <p className="mt-3 text-slate-600">{method.instructions}</p>
@@ -608,7 +746,7 @@ export default function QuoteCheckoutPage() {
                         onChange={(event) => setReference(event.target.value)}
                         placeholder="e.g. 0123456789"
                         maxLength={120}
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+                        className="w-full rounded-lg border border-slate-500 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
                       />
                     </div>
                   )}
@@ -646,7 +784,7 @@ export default function QuoteCheckoutPage() {
                         maxLength={PAYMENT_NOTE_MAX}
                         disabled={isSubmitting}
                         placeholder="e.g. I'll pay the driver in cash at pickup, Saturday 8am at Radisson Blu"
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
+                        className="w-full rounded-lg border border-slate-500 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400"
                       />
                       <p className="mt-1.5 text-xs text-slate-400">
                         Tell us when and where you&apos;ll hand the cash over so we can have someone
@@ -672,9 +810,15 @@ export default function QuoteCheckoutPage() {
             type="button"
             onClick={accept}
             disabled={missingRequirement !== null || isSubmitting}
-            className="w-full rounded-xl bg-gradient-to-r from-coral to-mango px-6 py-4 font-semibold text-white shadow-lg shadow-coral/25 transition-all hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
+            // Same reason as the header: white on plain `mango` is ~2:1, and
+            // this is the button the whole page exists to get pressed.
+            className="w-full rounded-xl bg-gradient-to-r from-coral to-mango-dark px-6 py-4 font-semibold text-white shadow-lg shadow-coral/25 transition-all hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
           >
-            {isSubmitting ? 'Confirming…' : 'Confirm my booking'}
+            {isSubmitting
+              ? 'Confirming…'
+              : depositDue
+                ? `I've paid the ${formatPeso(depositDue)} downpayment`
+                : 'Confirm my booking'}
           </button>
 
           {missingRequirement && (
@@ -733,7 +877,23 @@ function plainDiscount(quote: PublicQuote): number {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-cream px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl sm:p-8">{children}</div>
+      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl sm:p-8">
+        {/* Every terminal state renders through here — including the accepted
+            screen, which is the receipt a customer screenshots and shows at the
+            pickup point. It needs to be obvious who it is from. */}
+        <div className="mb-5 flex items-center justify-center gap-2.5">
+          <Image
+            src="/logo.jpg"
+            alt="EasyRideCebu"
+            width={40}
+            height={40}
+            className="rounded-full object-cover"
+            style={{ backgroundColor: '#F5F0E1' }}
+          />
+          <span className="font-bold text-slate-900">EasyRideCebu</span>
+        </div>
+        {children}
+      </div>
     </main>
   );
 }
