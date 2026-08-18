@@ -376,7 +376,7 @@ export default function InquiryDetailPage() {
                     step="100"
                     value={dealValue}
                     onChange={(event) => setDealValue(event.target.value)}
-                    className="w-32 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+                    className="w-32 rounded-lg border border-slate-800 px-2.5 py-1.5 text-sm"
                   />
                   <button
                     type="button"
@@ -412,7 +412,7 @@ export default function InquiryDetailPage() {
                         'Owner updated'
                       )
                     }
-                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
+                    className="w-full rounded-lg border border-slate-800 bg-white px-2.5 py-1.5 text-sm"
                   >
                     <option value="">Unassigned</option>
                     {detail.owners.map((owner) => (
@@ -552,13 +552,13 @@ export default function InquiryDetailPage() {
                 value={taskTitle}
                 onChange={(event) => setTaskTitle(event.target.value)}
                 placeholder="Follow up with a quote…"
-                className="min-w-[12rem] flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="min-w-[12rem] flex-1 rounded-lg border border-slate-800 px-3 py-2 text-sm"
               />
               <input
                 type="datetime-local"
                 value={taskDue}
                 onChange={(event) => setTaskDue(event.target.value)}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                className="rounded-lg border border-slate-800 px-3 py-2 text-sm text-slate-700"
               />
               <button
                 type="submit"
@@ -643,7 +643,7 @@ export default function InquiryDetailPage() {
                 onChange={(event) => setNote(event.target.value)}
                 rows={2}
                 placeholder="Add a note — what did you discuss?"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
               />
               <div className="flex flex-wrap gap-2">
                 <button

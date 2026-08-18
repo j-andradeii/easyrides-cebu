@@ -225,7 +225,7 @@ export default function ReviewPage() {
           onChange={(event) => setComment(event.target.value)}
           maxLength={2000}
           placeholder="Your driver, the vehicle, the route…"
-          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-700 focus:border-transparent focus:ring-2 focus:ring-coral"
+          className="w-full rounded-xl border border-slate-800 px-4 py-3 text-slate-700 focus:border-transparent focus:ring-2 focus:ring-coral"
         />
       </div>
 

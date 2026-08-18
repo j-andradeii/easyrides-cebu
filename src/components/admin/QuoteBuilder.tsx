@@ -22,6 +22,7 @@ import type { CreditRecord } from '@/models/crm.types';
 import {
   QUOTE_TYPES,
   QUOTE_TYPE_LABELS,
+  resolveDeposit,
   type QuoteRecord,
   type QuoteType,
 } from '@/models/quote.schema';
@@ -55,6 +56,8 @@ interface QuoteBuilderProps {
     discount?: number;
     creditIds: string[];
     quoteType: QuoteType;
+    /** The slice of the total due up front. Only sent on a partial payment. */
+    depositAmount?: number;
     notes?: string;
     validForDays: number;
     supersedeOpen: boolean;
@@ -71,7 +74,14 @@ export function QuoteBuilder({
   const [isOpen, setIsOpen] = useState(false);
   const [lines, setLines] = useState<DraftLine[]>([{ ...EMPTY_LINE, label: defaultLabel }]);
   const [discount, setDiscount] = useState('');
-  const [quoteType, setQuoteType] = useState<QuoteType>('full_payment');
+  /**
+   * Partial payment is the house default: most bookings are secured with a
+   * downpayment, so the form opens asking for one. An agent quoting the whole
+   * trip up front switches to Full payment, which is the rarer case.
+   */
+  const [quoteType, setQuoteType] = useState<QuoteType>('partial_payment');
+  /** The downpayment, as typed. Only ever sent on a partial payment. */
+  const [deposit, setDeposit] = useState('');
   const [notes, setNotes] = useState('');
   const [validForDays, setValidForDays] = useState('7');
   /** False = this quote sits alongside the open one (a split payment). */
@@ -118,6 +128,22 @@ export function QuoteBuilder({
     [quotes]
   );
 
+  /**
+   * A downpayment the customer has already settled on this deal.
+   *
+   * Worth calling out because a downpayment quote prices the *whole* booking:
+   * the deal value already includes the balance, so quoting that balance again
+   * as a second quote counts it twice. The usual move is to collect it against
+   * the existing booking instead.
+   */
+  const settledDownpayment = useMemo(
+    () =>
+      quotes.find(
+        (quote) => quote.status === 'accepted' && quote.depositAmount && quote.balanceDue
+      ),
+    [quotes]
+  );
+
   const totals = useMemo(() => {
     const subtotal = lines.reduce((sum, line) => {
       const quantity = Number.parseFloat(line.quantity) || 0;
@@ -131,6 +157,19 @@ export function QuoteBuilder({
     const credit = Math.min(creditTotal, subtotal - off);
     return { subtotal, discount: off, credit, total: subtotal - off - credit };
   }, [lines, discount, creditTotal]);
+
+  const isPartial = quoteType === 'partial_payment';
+
+  /**
+   * The downpayment as the server will actually store it — same clamp, so the
+   * summary below can never promise a figure the quote won't carry.
+   */
+  const depositDue = useMemo(
+    () => (isPartial ? resolveDeposit(Number.parseFloat(deposit), totals.total) : null),
+    [isPartial, deposit, totals.total]
+  );
+
+  const balanceDue = depositDue === null ? null : totals.total - depositDue;
 
   const updateLine = (index: number, patch: Partial<DraftLine>) => {
     setLines((current) =>
@@ -159,11 +198,26 @@ export function QuoteBuilder({
       return;
     }
 
+    /**
+     * A partial payment without a downpayment is just a full quote wearing the
+     * wrong label — the customer would be shown the whole price with nothing
+     * said about what to send, so this is worth blocking rather than guessing.
+     */
+    if (isPartial && depositDue === null) {
+      setError(
+        Number.parseFloat(deposit) >= totals.total
+          ? 'The downpayment has to be less than the total — otherwise send this as a full payment.'
+          : 'Enter the downpayment the customer has to pay now.'
+      );
+      return;
+    }
+
     await onSend({
       lineItems,
       discount: totals.discount > 0 ? totals.discount : undefined,
       creditIds: selectedCredits,
       quoteType,
+      depositAmount: depositDue ?? undefined,
       notes: notes.trim() || undefined,
       validForDays: Number.parseInt(validForDays, 10) || 7,
       supersedeOpen,
@@ -171,7 +225,8 @@ export function QuoteBuilder({
 
     setLines([{ ...EMPTY_LINE, label: defaultLabel }]);
     setDiscount('');
-    setQuoteType('full_payment');
+    setQuoteType('partial_payment');
+    setDeposit('');
     setNotes('');
     setSupersedeOpen(true);
     setIsOpen(false);
@@ -212,6 +267,16 @@ export function QuoteBuilder({
                       </span>
                     )}
                   </div>
+                  {/* The bold figure above is the booking; this is the slice the
+                      customer was asked to send. Without it an agent reading
+                      the row would quote them the whole trip on the phone. */}
+                  {quote.depositAmount && quote.balanceDue && (
+                    <p className="mt-1 text-xs font-medium text-indigo-700">
+                      <i className="pi pi-wallet mr-1 text-[10px]" />
+                      {formatPeso(quote.depositAmount)} downpayment ·{' '}
+                      {formatPeso(quote.balanceDue)} balance
+                    </p>
+                  )}
                   <p className="mt-1 text-xs text-slate-700">
                     Valid until {formatDate(quote.validUntil)}
                     {quote.viewedAt && ' · opened by customer'}
@@ -266,6 +331,16 @@ export function QuoteBuilder({
         </button>
       ) : (
         <div className="space-y-3 rounded-lg border border-slate-200 p-3">
+          {settledDownpayment && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900">
+              <i className="pi pi-exclamation-triangle mr-1 text-[10px]" />
+              This lead already has a settled downpayment on a{' '}
+              {formatPeso(settledDownpayment.total)} booking, with{' '}
+              {formatPeso(settledDownpayment.balanceDue)} still to come. That booking value is
+              already counted — a new quote for the balance will add to it rather than replace it.
+            </p>
+          )}
+
           {lines.map((line, index) => (
             <div key={index} className="space-y-2 rounded-lg bg-slate-50 p-2.5">
               <div className="flex gap-2">
@@ -273,7 +348,7 @@ export function QuoteBuilder({
                   value={line.label}
                   onChange={(event) => updateLine(index, { label: event.target.value })}
                   placeholder="Van rental — 3 days"
-                  className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-800 px-2.5 py-1.5 text-sm"
                 />
                 {lines.length > 1 && (
                   <button
@@ -291,7 +366,7 @@ export function QuoteBuilder({
                 value={line.description}
                 onChange={(event) => updateLine(index, { description: event.target.value })}
                 placeholder="Optional detail the customer will see"
-                className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs"
+                className="w-full rounded-lg border border-slate-800 px-2.5 py-1.5 text-xs"
               />
 
               <div className="flex items-center gap-2">
@@ -303,7 +378,7 @@ export function QuoteBuilder({
                     step="1"
                     value={line.quantity}
                     onChange={(event) => updateLine(index, { quantity: event.target.value })}
-                    className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
+                    className="w-16 rounded-lg border border-slate-800 px-2 py-1.5 text-sm"
                   />
                 </label>
                 <label className="flex flex-1 items-center gap-1.5 text-xs text-slate-700">
@@ -315,7 +390,7 @@ export function QuoteBuilder({
                     value={line.unitPrice}
                     onChange={(event) => updateLine(index, { unitPrice: event.target.value })}
                     placeholder="3500"
-                    className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
+                    className="w-full rounded-lg border border-slate-800 px-2 py-1.5 text-sm"
                   />
                 </label>
                 <span className="w-24 text-right text-sm font-medium text-slate-800">
@@ -345,15 +420,22 @@ export function QuoteBuilder({
                 value={discount}
                 onChange={(event) => setDiscount(event.target.value)}
                 placeholder="0"
-                className="mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+                className="mt-1 w-full rounded-lg border border-slate-800 px-2.5 py-1.5 text-sm"
               />
             </label>
             <label className="text-xs text-slate-700">
               Quote type
               <select
                 value={quoteType}
-                onChange={(event) => setQuoteType(event.target.value as QuoteType)}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm"
+                onChange={(event) => {
+                  const next = event.target.value as QuoteType;
+                  setQuoteType(next);
+                  // A downpayment left over from a partial quote would be
+                  // silently dropped on a full one — clearing it keeps the form
+                  // saying what it will actually send.
+                  if (next !== 'partial_payment') setDeposit('');
+                }}
+                className="mt-1 w-full rounded-lg border border-slate-800 bg-white px-2.5 py-1.5 text-sm"
               >
                 {QUOTE_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -365,10 +447,38 @@ export function QuoteBuilder({
           </div>
 
           <p className="-mt-1 text-[11px] text-slate-500">
-            {quoteType === 'partial_payment'
-              ? 'One instalment of this booking — the customer will be billed the rest separately.'
+            {isPartial
+              ? 'The customer sees the full price but only pays the downpayment now — the balance is settled later.'
               : 'Settles the whole booking in one payment.'}
           </p>
+
+          {/* Only a partial payment has a "now" and a "later" to split, so the
+              field appears with the choice rather than sitting greyed out. */}
+          {isPartial && (
+            <label className="block rounded-lg border border-indigo-200 bg-indigo-50/60 p-2.5 text-xs font-medium text-indigo-900">
+              Downpayment ₱ <span className="text-coral">(required)</span>
+              <input
+                type="number"
+                min="0"
+                step="100"
+                value={deposit}
+                onChange={(event) => setDeposit(event.target.value)}
+                placeholder="e.g. 2000"
+                className="mt-1 w-full rounded-lg border border-indigo-200 bg-white px-2.5 py-1.5 text-sm font-normal text-slate-900"
+              />
+              <span className="mt-1.5 block font-normal text-[11px] text-indigo-800">
+                {depositDue !== null && balanceDue !== null ? (
+                  <>
+                    They pay <strong>{formatPeso(depositDue)}</strong> now to secure the booking;{' '}
+                    <strong>{formatPeso(balanceDue)}</strong> is still to come. Cash on pickup is
+                    hidden on their quote page — a downpayment has to arrive in advance.
+                  </>
+                ) : (
+                  <>Must be less than the {formatPeso(totals.total)} total.</>
+                )}
+              </span>
+            </label>
+          )}
 
           {availableCredits.length > 0 && (
             <fieldset className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-2.5">
@@ -455,7 +565,7 @@ export function QuoteBuilder({
               max="90"
               value={validForDays}
               onChange={(event) => setValidForDays(event.target.value)}
-              className="mt-1 w-24 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+              className="mt-1 w-24 rounded-lg border border-slate-800 px-2.5 py-1.5 text-sm"
             />
           </label>
 
@@ -464,7 +574,7 @@ export function QuoteBuilder({
             onChange={(event) => setNotes(event.target.value)}
             rows={2}
             placeholder="Notes the customer will see — inclusions, pickup point, terms…"
-            className="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-800 px-2.5 py-2 text-sm"
           />
 
           <div className="rounded-lg bg-slate-900 px-3 py-2.5 text-sm text-white">
@@ -491,6 +601,21 @@ export function QuoteBuilder({
               <span>Total</span>
               <span>{formatPeso(totals.total)}</span>
             </div>
+            {/* The total above is the whole trip. What the customer is actually
+                asked for today is a different number, and it is the one they
+                will ring up about — so it gets its own line, not a footnote. */}
+            {depositDue !== null && balanceDue !== null && (
+              <div className="mt-1.5 space-y-1 border-t border-slate-700 pt-1.5">
+                <div className="flex justify-between font-semibold text-indigo-300">
+                  <span>Downpayment due now</span>
+                  <span>{formatPeso(depositDue)}</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Balance later</span>
+                  <span>{formatPeso(balanceDue)}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {error && (

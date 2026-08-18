@@ -57,6 +57,16 @@ export interface PaymentRecord {
   /** 'full_payment' | 'partial_payment' — what the settled quote was asking for. */
   quoteType: QuoteType;
   quoteTypeLabel: string;
+  /**
+   * True when `amount` is a downpayment rather than the whole booking.
+   *
+   * The distinction the whole payments queue turns on once deposits exist:
+   * `amount` is what to look for in the bank app, `quoteTotal` is what the trip
+   * costs, and verifying the first does not settle the second.
+   */
+  isDownpayment: boolean;
+  /** What is still to come after this payment. Null when nothing is deferred. */
+  quoteBalance: string | null;
   hasProof: boolean;
   proofSize: number | null;
   createdAt: string;

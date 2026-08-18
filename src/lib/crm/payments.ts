@@ -34,7 +34,7 @@ import {
   type PaymentRecord,
   type PaymentStatus,
 } from '@/models/payment.schema';
-import { quoteTypeLabel, type QuoteType } from '@/models/quote.schema';
+import { balanceAfterDeposit, quoteTypeLabel, type QuoteType } from '@/models/quote.schema';
 import { buildOpportunityTitle, serviceLabel, vehicleLabel } from './normalize';
 import { quoteReference, quoteUrl } from './quote-links';
 
@@ -171,6 +171,9 @@ function toRecord(row: {
     customerNote: quote.paymentNote,
     quoteType: quote.quoteType as QuoteType,
     quoteTypeLabel: quoteTypeLabel(quote.quoteType),
+    isDownpayment:
+      quote.depositAmount !== null && Number.parseFloat(quote.depositAmount) > 0,
+    quoteBalance: balanceAfterDeposit(quote.total, quote.depositAmount),
     hasProof: Boolean(payment.proofData),
     proofSize: payment.proofSize,
     createdAt: payment.createdAt.toISOString(),

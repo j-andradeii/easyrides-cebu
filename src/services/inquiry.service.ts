@@ -148,6 +148,11 @@ export interface SendQuoteInput {
   creditIds?: string[];
   /** Whether this quote settles the booking or is one instalment of it. */
   quoteType: QuoteType;
+  /**
+   * The downpayment due up front on a partial payment. The quote still shows
+   * the full price — this is only what the customer has to send now.
+   */
+  depositAmount?: number;
   notes?: string;
   validForDays: number;
   /**

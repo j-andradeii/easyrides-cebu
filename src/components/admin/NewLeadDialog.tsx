@@ -210,7 +210,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                   value={form.fullName}
                   onChange={(event) => update('fullName', event.target.value)}
                   placeholder="Juan dela Cruz"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
                 />
               </Field>
 
@@ -220,7 +220,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                     aria-label="Country code"
                     value={form.countryCode}
                     onChange={(event) => update('countryCode', event.target.value)}
-                    className="w-20 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="w-20 rounded-lg border border-slate-800 px-3 py-2 text-sm"
                   />
                   <InputText
                     id="lead-phone"
@@ -228,7 +228,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                     onChange={(event) => update('phone', event.target.value)}
                     placeholder="917 123 4567"
                     inputMode="tel"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
                   />
                 </div>
               </Field>
@@ -240,7 +240,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                   onChange={(event) => update('email', event.target.value)}
                   placeholder="juan@example.com"
                   type="email"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
                 />
               </Field>
 
@@ -289,7 +289,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                   value={form.preferredDate}
                   onChange={(event) => update('preferredDate', event.target.value)}
                   type="date"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
                 />
               </Field>
 
@@ -299,7 +299,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                   value={form.referralCode}
                   onChange={(event) => update('referralCode', event.target.value)}
                   placeholder="ABC123"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase"
+                  className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm uppercase"
                 />
               </Field>
             </div>
@@ -311,7 +311,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                   value={form.tourTitle}
                   onChange={(event) => update('tourTitle', event.target.value)}
                   placeholder="Kawasan Falls Day Tour"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
                 />
               </Field>
             )}
@@ -324,7 +324,7 @@ function NewLeadForm({ onClose, onCreate }: Omit<NewLeadDialogProps, 'open'>) {
                 rows={3}
                 autoResize
                 placeholder="Wants a van for 8 pax, pickup at Mactan airport 6am."
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
               />
             </Field>
           </div>

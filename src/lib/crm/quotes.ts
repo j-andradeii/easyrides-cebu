@@ -37,6 +37,7 @@ import {
 } from './quote-links';
 import { loadOpportunityWithContact, logActivity } from './repository';
 import { generateToken } from './tokens';
+import { balanceAfterDeposit, resolveDeposit } from '@/models/quote.schema';
 import type {
   CreateQuoteInput,
   PublicQuote,
@@ -121,6 +122,31 @@ export function priceQuote(input: CreateQuoteInput): {
   return { lineItems, subtotal, discount, total: round2(subtotal - discount) };
 }
 
+
+/**
+ * Whether a quote has to be paid before the trip rather than at pickup.
+ *
+ * A downpayment only does its job if it arrives in advance — that is the whole
+ * point of asking for one — so checkout must not offer to settle it in cash on
+ * the day. Kept here, next to the quote, because both the public page and the
+ * accept route have to reach the same verdict from the same row.
+ */
+export function requiresAdvancePayment(
+  quote: Pick<Quote, 'quoteType' | 'depositAmount'>
+): boolean {
+  if (quote.quoteType === 'partial_payment') return true;
+  return quote.depositAmount !== null && Number.parseFloat(quote.depositAmount) > 0;
+}
+
+/**
+ * What the customer actually has to send to settle this quote now: the
+ * downpayment when there is one, otherwise the whole total.
+ */
+export function amountDueNow(quote: Pick<Quote, 'total' | 'depositAmount'>): string {
+  return quote.depositAmount && Number.parseFloat(quote.depositAmount) > 0
+    ? quote.depositAmount
+    : quote.total;
+}
 
 /** Has the customer already settled a quote on this deal? */
 export async function hasAcceptedQuote(
@@ -214,6 +240,7 @@ export async function createQuote(params: {
           subtotal: subtotal.toFixed(2),
           discount: discount.toFixed(2),
           total: total.toFixed(2),
+          depositAmount: resolveDeposit(params.input.depositAmount, total)?.toFixed(2) ?? null,
           notes: params.input.notes ?? null,
           validUntil,
           createdBy: params.adminUserId,
@@ -238,13 +265,20 @@ export async function createQuote(params: {
     if (reserved > 0) {
       // Same floor as `priceQuote`: a discount can zero a quote, never invert it.
       const combined = round2(Math.min(discount + reserved, subtotal));
+      const discountedTotal = round2(subtotal - combined);
 
       created = (
         await tx
           .update(quotes)
           .set({
             discount: combined.toFixed(2),
-            total: round2(subtotal - combined).toFixed(2),
+            total: discountedTotal.toFixed(2),
+            // The credit just moved the price the downpayment was a slice of.
+            // Re-clamping here is what stops a ₱3,000 deposit surviving onto a
+            // quote a referral credit brought down to ₱2,500 — the customer
+            // would be asked for more up front than the trip now costs.
+            depositAmount:
+              resolveDeposit(params.input.depositAmount, discountedTotal)?.toFixed(2) ?? null,
             updatedAt: new Date(),
           })
           .where(eq(quotes.id, created.id))
@@ -272,6 +306,14 @@ export async function createQuote(params: {
     }`,
     body: [
       `Valid until ${validUntil.toISOString()}`,
+      // The figure the customer is actually being asked for today. On a
+      // downpayment quote the total above is the whole trip, so without this
+      // line the timeline reads as if we billed them the lot.
+      quote.depositAmount
+        ? `Downpayment due now: ${quote.currency} ${quote.depositAmount} (balance ${
+            quote.currency
+          } ${balanceAfterDeposit(quote.total, quote.depositAmount) ?? '0.00'})`
+        : null,
       creditApplied > 0
         ? `Referral credit applied: ${quote.currency} ${creditApplied.toFixed(2)}`
         : null,
@@ -282,6 +324,7 @@ export async function createQuote(params: {
     metadata: {
       quoteId: quote.id,
       total: finalTotal.toFixed(2),
+      depositAmount: quote.depositAmount,
       creditApplied: creditApplied.toFixed(2),
       supersedeOpen,
       link: null,
@@ -364,6 +407,8 @@ export async function resolveQuoteByToken(token: string): Promise<ResolvedQuote 
       creditApplied: creditRow?.total ?? '0',
       total: quote.total,
       depositAmount: quote.depositAmount,
+      balanceDue: balanceAfterDeposit(quote.total, quote.depositAmount),
+      requiresAdvancePayment: requiresAdvancePayment(quote),
       notes: quote.notes,
       validUntil: quote.validUntil.toISOString(),
       isExpired: isQuoteExpired(quote),
@@ -431,6 +476,7 @@ export async function listQuotesForOpportunity(
     discount: quote.discount,
     total: quote.total,
     depositAmount: quote.depositAmount,
+    balanceDue: balanceAfterDeposit(quote.total, quote.depositAmount),
     notes: quote.notes,
     validUntil: quote.validUntil.toISOString(),
     isExpired: isQuoteExpired(quote),

@@ -24,7 +24,7 @@ import {
 import { deliverMessage } from '@/lib/messaging';
 import { paymentMethodLabel } from '@/data/payment-methods';
 import { reviewPaymentSchema } from '@/models/payment.schema';
-import { quoteTypeLabel } from '@/models/quote.schema';
+import { balanceAfterDeposit, quoteTypeLabel } from '@/models/quote.schema';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -74,6 +74,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     const [quote] = await db.select().from(quotes).where(eq(quotes.id, payment.quoteId)).limit(1);
     const verified = parsed.data.action === 'verify';
+    const isDownpayment = Boolean(
+      quote?.depositAmount && Number.parseFloat(quote.depositAmount) > 0
+    );
 
     // Verifying is the first time anyone can honestly tell the customer their
     // money arrived, so that is when they hear from us — and the email has to
@@ -128,15 +131,24 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       contactId: payment.contactId,
       adminUserId: admin.id,
       type: 'note',
-      subject: `Payment ${verified ? 'verified' : 'rejected'} — ${payment.currency} ${
-        payment.amount
-      } via ${paymentMethodLabel(payment.method)}`,
+      subject: `${isDownpayment ? 'Downpayment' : 'Payment'} ${
+        verified ? 'verified' : 'rejected'
+      } — ${payment.currency} ${payment.amount} via ${paymentMethodLabel(payment.method)}`,
       body: [
         quote ? `Quote: ${quoteReference(quote.id)} (${quoteTypeLabel(quote.quoteType)})` : null,
+        // Spells out that this was a slice, so nobody reading the timeline later
+        // takes a verified deposit for a settled booking.
+        isDownpayment && quote
+          ? `Downpayment on a ${payment.currency} ${quote.total} booking — ${
+              payment.currency
+            } ${balanceAfterDeposit(quote.total, quote.depositAmount) ?? '0.00'} still to come`
+          : null,
         payment.reference ? `Customer reference: ${payment.reference}` : null,
         verified
           ? customerNotified
-            ? 'The customer has been emailed that their payment is accepted.'
+            ? `The customer has been emailed that their ${
+                isDownpayment ? 'downpayment is accepted and their booking is secured' : 'payment is accepted'
+              }.`
             : 'Note: the customer was not emailed — check they have an address on file.'
           : null,
         parsed.data.note?.trim() || null,

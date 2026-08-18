@@ -164,7 +164,7 @@ export const FormSlug: React.FC<FormSlugProps> = ({
 
       <div
         className={`flex items-center overflow-hidden rounded-lg border bg-white transition-colors focus-within:ring-2 focus-within:ring-coral ${
-          error ? 'border-cebu-red' : 'border-slate-200'
+          error ? 'border-cebu-red' : 'border-slate-800'
         } ${isAuto || disabled ? 'bg-slate-50' : ''}`}
       >
         <span className="shrink-0 border-r border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-500">

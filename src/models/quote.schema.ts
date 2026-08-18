@@ -39,6 +39,40 @@ export function quoteTypeLabel(value: string | null | undefined): string {
   return QUOTE_TYPE_LABELS[value as QuoteType] ?? 'Full payment';
 }
 
+/**
+ * The downpayment a quote actually carries, given what was asked for.
+ *
+ * A deposit only means something when it is *part* of the price: zero is no
+ * deposit, and anything at or above the total is simply the whole thing — which
+ * would otherwise leave the customer staring at a ₱0 "balance" and the team
+ * chasing it. Both the builder and the server run this so the figure an agent
+ * sees on screen is the figure that gets stored.
+ */
+export function resolveDeposit(
+  requested: number | null | undefined,
+  total: number
+): number | null {
+  if (requested === null || requested === undefined) return null;
+  if (!Number.isFinite(requested) || requested <= 0) return null;
+
+  const deposit = Math.round((Math.min(requested, total) + Number.EPSILON) * 100) / 100;
+  return deposit >= total ? null : deposit;
+}
+
+/** What is left once the downpayment is paid. Null when nothing is deferred. */
+export function balanceAfterDeposit(
+  total: string | number,
+  deposit: string | number | null
+): string | null {
+  if (deposit === null) return null;
+
+  const owed =
+    (typeof total === 'string' ? Number.parseFloat(total) : total) -
+    (typeof deposit === 'string' ? Number.parseFloat(deposit) : deposit);
+
+  return owed > 0 ? owed.toFixed(2) : null;
+}
+
 /** Admin → POST /api/admin/opportunities/[id]/quotes */
 export const createQuoteSchema = z.object({
   lineItems: z.array(quoteLineItemSchema).min(1, 'Add at least one line item').max(25),
@@ -54,10 +88,20 @@ export const createQuoteSchema = z.object({
    */
   creditIds: z.array(z.string().uuid()).max(20).default([]),
   /**
-   * A partial payment is one instalment of a larger booking — it is what lets
-   * several quotes stay live on the same deal at once.
+   * A partial payment quotes the *whole* booking but only asks for part of it
+   * up front — see `depositAmount`. It is also what lets several quotes stay
+   * live on the same deal at once.
    */
   quoteType: z.enum(QUOTE_TYPES).default('full_payment'),
+  /**
+   * The downpayment the customer has to send to secure the booking.
+   *
+   * Only meaningful on a partial payment, where the line items price the full
+   * trip and this is the slice due now — the customer sees the whole figure and
+   * pays this one. The server clamps it to the total and drops it when it would
+   * leave nothing behind, so a "deposit" can never quietly become the price.
+   */
+  depositAmount: z.number().min(0).max(10_000_000).optional(),
   notes: z.string().max(2000).optional(),
   /** How long the price is held. */
   validForDays: z.number().int().min(1).max(90).default(7),
@@ -131,7 +175,22 @@ export interface PublicQuote {
    */
   creditApplied: string;
   total: string;
+  /**
+   * What the customer has to send now, when the quote only asks for part of the
+   * price up front. Null means the whole `total` is due.
+   */
   depositAmount: string | null;
+  /** `total` − `depositAmount`, settled later. Null when nothing is deferred. */
+  balanceDue: string | null;
+  /**
+   * Whether this quote has to be paid before the trip.
+   *
+   * True for anything asking for a downpayment: the point of a downpayment is
+   * that it arrives in advance, so checkout must not offer to settle it in cash
+   * at pickup. Computed on the server because the accept route enforces the
+   * same rule — the page only mirrors it.
+   */
+  requiresAdvancePayment: boolean;
   notes: string | null;
   validUntil: string;
   /** Server-computed so the page never has to trust the browser clock. */
@@ -155,7 +214,10 @@ export interface QuoteRecord {
   subtotal: string;
   discount: string;
   total: string;
+  /** The downpayment asked for up front, when this quote asked for one. */
   depositAmount: string | null;
+  /** `total` − `depositAmount`, still to come. Null when nothing is deferred. */
+  balanceDue: string | null;
   notes: string | null;
   validUntil: string;
   isExpired: boolean;

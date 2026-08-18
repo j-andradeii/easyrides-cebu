@@ -117,7 +117,7 @@ export const FormItinerary: React.FC<FormItineraryProps> = ({
                             onChange={(event) => setAt(index, { time: event.target.value })}
                             onBlur={field.onBlur}
                             className={`w-24 shrink-0 rounded-lg border bg-white px-2.5 py-2 text-sm text-slate-700 transition-colors focus:border-transparent focus:ring-2 focus:ring-coral ${
-                              timeError ? 'border-cebu-red' : 'border-slate-200'
+                              timeError ? 'border-cebu-red' : 'border-slate-800'
                             } ${disabled ? 'cursor-not-allowed bg-slate-50' : ''}`}
                           />
 
@@ -143,7 +143,7 @@ export const FormItinerary: React.FC<FormItineraryProps> = ({
                               }
                             }}
                             className={`min-w-0 flex-1 rounded-lg border bg-white px-3 py-2 text-slate-700 transition-colors focus:border-transparent focus:ring-2 focus:ring-coral ${
-                              activityError ? 'border-cebu-red' : 'border-slate-200'
+                              activityError ? 'border-cebu-red' : 'border-slate-800'
                             } ${disabled ? 'cursor-not-allowed bg-slate-50' : ''}`}
                           />
 

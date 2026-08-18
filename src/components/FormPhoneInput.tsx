@@ -143,7 +143,7 @@ export const FormPhoneInput: React.FC<FormPhoneInputProps> = ({
               id={uniqueId}
               type="tel"
               className={`flex-1 min-w-0 px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-coral focus:border-coral text-slate-900 bg-white transition-colors placeholder:text-slate-400
-                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-400'}
+                ${fieldState.invalid ? 'border-cebu-red' : 'border-slate-800'}
                 ${disabled || readonly ? 'bg-slate-50 text-slate-600 cursor-not-allowed' : ''}
               `}
               value={field.value || ''}

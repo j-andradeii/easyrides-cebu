@@ -173,7 +173,7 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                   type="button"
                   disabled={disabled || isUploading}
                   onClick={() => inputRef.current?.click()}
-                  className="flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white px-4 py-8 text-center transition-colors hover:border-coral/60 hover:bg-coral/5 disabled:opacity-50"
+                  className="flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed border-slate-800 bg-white px-4 py-8 text-center transition-colors hover:border-coral/60 hover:bg-coral/5 disabled:opacity-50"
                 >
                   <i
                     className={`pi ${isUploading ? 'pi-spin pi-spinner' : 'pi-image'} text-lg text-slate-400`}

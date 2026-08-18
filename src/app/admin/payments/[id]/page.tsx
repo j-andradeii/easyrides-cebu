@@ -135,9 +135,13 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
         </div>
 
         <p className="mt-1.5 text-sm text-slate-600">
-          {payment.quoteType === 'partial_payment'
-            ? 'One instalment of this booking — the rest is billed separately.'
-            : 'Settles the whole booking.'}
+          {payment.isDownpayment
+            ? `Downpayment on a ${formatPeso(payment.quoteTotal)} booking${
+                payment.quoteBalance ? ` — ${formatPeso(payment.quoteBalance)} still to come` : ''
+              }. Verifying this secures the trip; it does not settle it.`
+            : payment.quoteType === 'partial_payment'
+              ? 'One instalment of this booking — the rest is billed separately.'
+              : 'Settles the whole booking.'}
         </p>
       </div>
 
@@ -234,7 +238,18 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
           )}
 
           <dl className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm">
-            <Row label="Amount" value={formatPeso(payment.amount)} />
+            <Row
+              label={payment.isDownpayment ? 'Downpayment sent' : 'Amount'}
+              value={formatPeso(payment.amount)}
+            />
+            {payment.isDownpayment && (
+              <>
+                <Row label="Booking total" value={formatPeso(payment.quoteTotal)} />
+                {payment.quoteBalance && (
+                  <Row label="Balance to follow" value={formatPeso(payment.quoteBalance)} />
+                )}
+              </>
+            )}
             <Row label="Payment type" value={payment.quoteTypeLabel} />
             <Row label="Method" value={payment.methodLabel} />
             {!payment.paidOnPickup && (
@@ -347,11 +362,15 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-600">
               {isLocked
-                ? 'Payment verified'
+                ? payment.isDownpayment
+                  ? 'Downpayment verified'
+                  : 'Payment verified'
                 : isPending
                   ? payment.paidOnPickup
                     ? 'Has the cash been handed over?'
-                    : 'Did the money arrive?'
+                    : payment.isDownpayment
+                      ? `Did the ${formatPeso(payment.amount)} downpayment arrive?`
+                      : 'Did the money arrive?'
                   : 'Change the decision'}
             </h2>
             <p className="mb-3 text-xs text-slate-600">
@@ -359,7 +378,15 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
                 ? 'This payment is confirmed and can no longer be changed here. If it was verified by mistake, open the lead and log a note so there is a record of the correction.'
                 : payment.paidOnPickup
                   ? 'Only verify once someone has counted the cash. Until then this is an arrangement, not a payment.'
-                  : 'Check your GCash or bank app against the screenshot before you verify — nothing here is proof on its own.'}
+                  : payment.isDownpayment
+                    ? // Verifying is what sends the customer their "downpayment
+                      // accepted" email, so say so here — an agent who thinks
+                      // this is a silent bookkeeping flip will leave the
+                      // customer waiting on a mail that already went.
+                      `Look for ${formatPeso(payment.amount)}, not the ${formatPeso(
+                        payment.quoteTotal
+                      )} booking total. Verifying emails the customer that their downpayment is accepted and their booking is secured.`
+                    : 'Check your GCash or bank app against the screenshot before you verify — nothing here is proof on its own.'}
             </p>
 
             {isLocked ? (
@@ -378,7 +405,7 @@ export default function AdminPaymentDetailPage({ params }: { params: Promise<{ i
                 rows={2}
                 maxLength={500}
                 placeholder="Optional note — e.g. 'Landed 2:41 PM, ref matches'"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-800 px-3 py-2 text-sm"
               />
             )}
 
