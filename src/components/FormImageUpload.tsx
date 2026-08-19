@@ -7,7 +7,15 @@
  *
  * The picked file is re-encoded to WebP in the browser first
  * (`optimizeImageForUpload`), which is what keeps a 12 MP phone photo inside the
- * serverless body cap.
+ * serverless body cap. There is no upper limit on what an admin may pick: the
+ * re-encode is given the cap as a target and keeps stepping down until it hits
+ * it, so a picture is never refused for being big.
+ *
+ * `minSize` is the opposite end, and the only thing a picture *is* refused for.
+ * A campaign banner has to survive being rendered as a Facebook link card, and
+ * one too small for that looks broken in the one place it exists to be seen —
+ * so the field checks the pixels before uploading, and the re-encode is told
+ * the same floor so compression cannot undo the check.
  */
 
 'use client';
@@ -16,6 +24,7 @@ import { useId, useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { ensureExtension, resolveImageMime } from '@/lib/image-mime';
+import { readImageSize, type ImageSize } from '@/lib/image-size';
 import { optimizeImageForUpload } from '@/lib/image-to-webp';
 import { TOUR_IMAGE_ACCEPT, TOUR_IMAGE_MAX_BYTES } from '@/models/tour.schema';
 import * as tourService from '@/services/tour.service';
@@ -33,6 +42,11 @@ interface FormImageUploadProps {
   /** Copy for the empty drop zone — a fleet photo is not a tour banner. */
   placeholder?: string;
   placeholderHint?: string;
+  /**
+   * Smallest image the field will take, in pixels. Anything larger is accepted
+   * as-is. Left out, any size goes.
+   */
+  minSize?: ImageSize;
   /** Object-fit for the preview: a car on white reads better contained. */
   fit?: 'cover' | 'contain';
   disabled?: boolean;
@@ -41,12 +55,16 @@ interface FormImageUploadProps {
 }
 
 /**
- * Reads the file, checks it really is an image, shrinks it and uploads it.
- * Shared with the gallery field below.
+ * Reads the file, checks it really is an image and is big enough, shrinks it to
+ * fit the upload and stores it. Shared with the gallery field below.
+ *
+ * `minSize` is optional: a gallery photo and a car picture have no floor, a
+ * campaign banner does.
  */
 export async function prepareAndUploadImage(
   file: File,
-  folder: CatalogueImageFolder = 'tours'
+  folder: CatalogueImageFolder = 'tours',
+  minSize?: ImageSize
 ): Promise<string> {
   const buffer = await file.arrayBuffer();
   const mime = resolveImageMime(new Uint8Array(buffer), file.type || '', file.name);
@@ -60,13 +78,44 @@ export async function prepareAndUploadImage(
     lastModified: file.lastModified,
   });
 
-  const optimized = await optimizeImageForUpload(stable).catch(() => stable);
+  if (minSize) {
+    assertLargeEnough(await readImageSize(stable), minSize, file.name);
+  }
 
+  const optimized = await optimizeImageForUpload(stable, {
+    targetBytes: TOUR_IMAGE_MAX_BYTES,
+    minWidth: minSize?.width,
+    minHeight: minSize?.height,
+  }).catch(() => stable);
+
+  // Only reachable when the browser could not decode the image at all, so
+  // nothing was re-encoded — a picture that decodes always compresses under the
+  // cap, however many megapixels it arrived as.
   if (optimized.size > TOUR_IMAGE_MAX_BYTES) {
-    throw new Error(`“${file.name}” is too large — keep images under 4 MB.`);
+    throw new Error(
+      `“${file.name}” could not be opened for resizing — save it as a JPG or PNG and try again.`
+    );
   }
 
   return tourService.uploadTourImage(optimized, folder);
+}
+
+/**
+ * The message names the size that was actually picked. "Too small" sends an
+ * admin back to a folder of images with no way to tell which of them qualify;
+ * "that one is 800 × 420" tells them what they are looking for.
+ */
+function assertLargeEnough(size: ImageSize | null, min: ImageSize, filename: string): void {
+  if (!size) {
+    throw new Error(`“${filename}” could not be opened — save it as a JPG or PNG and try again.`);
+  }
+
+  if (size.width < min.width || size.height < min.height) {
+    throw new Error(
+      `“${filename}” is ${size.width} × ${size.height}. The banner needs to be at least ` +
+        `${min.width} × ${min.height} — larger is fine.`
+    );
+  }
 }
 
 export const FormImageUpload: React.FC<FormImageUploadProps> = ({
@@ -76,6 +125,7 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
   folder = 'tours',
   placeholder = 'Upload the banner image',
   placeholderHint = 'Landscape works best — it fills the top of the tour page',
+  minSize,
   fit = 'cover',
   disabled = false,
   showRequired = false,
@@ -116,7 +166,7 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
             setUploadError(null);
             setIsUploading(true);
             try {
-              field.onChange(await prepareAndUploadImage(file, folder));
+              field.onChange(await prepareAndUploadImage(file, folder, minSize));
             } catch (caught) {
               setUploadError(caught instanceof Error ? caught.message : 'Upload failed');
             } finally {

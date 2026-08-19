@@ -139,7 +139,12 @@ export default function AdminCampaignsPage() {
                 <img
                   src={campaign.bannerImage}
                   alt=""
-                  className="aspect-[1200/630] w-full bg-slate-100 object-cover"
+                  // `contain`, not `cover`: the cards keep one height so the
+                  // grid stays a grid, but a banner that is not 1.91:1 is shown
+                  // whole rather than with its edges cut off. Spotting the
+                  // wrong banner is the whole job of this thumbnail, and half a
+                  // banner is harder to recognise than a small one.
+                  className="aspect-[1200/630] w-full bg-slate-100 object-contain"
                 />
               </Link>
 
