@@ -27,8 +27,22 @@ export const CAMPAIGN_SHORT_DESCRIPTION_MAX = 200;
 export const CAMPAIGN_DESCRIPTION_MAX = 20_000;
 export const CAMPAIGN_CTA_MAX = 40;
 
-/** What a social link preview crops to. Shown as a hint on the upload field. */
-export const CAMPAIGN_BANNER_RATIO = '1200 × 630';
+/**
+ * The smallest banner worth publishing, and the shape every social preview
+ * crops to.
+ *
+ * 1200 × 630 is the size Facebook, LinkedIn and X all render as a full-width
+ * link card. Below 600 × 315 Facebook drops to a small square thumbnail beside
+ * the text instead, so anything under this is a promo that looks broken in the
+ * one place it is meant to be seen. It is a floor, not a target — a larger
+ * image at the same 1.91:1 shape is better, and is what the upload field asks
+ * for.
+ */
+export const CAMPAIGN_BANNER_MIN_WIDTH = 1200;
+export const CAMPAIGN_BANNER_MIN_HEIGHT = 630;
+
+/** The floor as an admin reads it. Shown as a hint on the upload field. */
+export const CAMPAIGN_BANNER_RATIO = `${CAMPAIGN_BANNER_MIN_WIDTH} × ${CAMPAIGN_BANNER_MIN_HEIGHT}`;
 
 const trimmed = (max: number) => z.string().trim().max(max);
 

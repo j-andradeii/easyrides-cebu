@@ -40,6 +40,8 @@ import {
 } from '@/components';
 import * as campaignService from '@/services/campaign.service';
 import {
+  CAMPAIGN_BANNER_MIN_HEIGHT,
+  CAMPAIGN_BANNER_MIN_WIDTH,
   CAMPAIGN_BANNER_RATIO,
   CAMPAIGN_SHORT_DESCRIPTION_MAX,
   campaignInputSchema,
@@ -226,6 +228,9 @@ function LinkPreview({
   return (
     <div className="overflow-hidden rounded-lg border border-slate-300 bg-white">
       {banner ? (
+        // The one place that still crops, and on purpose: Facebook crops its
+        // link card to 1.91:1 whatever it is given, so a preview that showed
+        // the whole banner would be a preview of something nobody will see.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={banner} alt="" className="aspect-[1200/630] w-full bg-slate-100 object-cover" />
       ) : (
@@ -528,14 +533,21 @@ export function CampaignForm({
             <Card
               title="Banner"
               required
-              hint={`This is the image that shows when the link is shared. ${CAMPAIGN_BANNER_RATIO} works everywhere — anything else gets cropped to it.`}
+              hint={`This is the image that shows when the link is shared. It has to be at least ${CAMPAIGN_BANNER_RATIO}; bigger is welcome, and the same wide shape stops anything being cropped away.`}
             >
               <Field name="bannerImage">
                 <FormImageUpload
                   name="bannerImage"
                   folder="campaigns"
                   placeholder="Upload the promo banner"
-                  placeholderHint="Wide and legible on a phone — keep any text well inside the edges"
+                  placeholderHint={`At least ${CAMPAIGN_BANNER_RATIO} — keep any text well inside the edges`}
+                  minSize={{
+                    width: CAMPAIGN_BANNER_MIN_WIDTH,
+                    height: CAMPAIGN_BANNER_MIN_HEIGHT,
+                  }}
+                  // The whole banner, not a slice of it: this thumbnail is how
+                  // an editor confirms they picked the right file.
+                  fit="contain"
                   className="mb-0"
                 />
               </Field>
@@ -556,7 +568,10 @@ export function CampaignForm({
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-            <Card title="Link preview" hint="Roughly what a Facebook or Viber post will show.">
+            <Card
+              title="Link preview"
+              hint={`Roughly what a Facebook or Viber post will show. Those crop the banner to ${CAMPAIGN_BANNER_RATIO} — the promo page itself shows all of it.`}
+            >
               <LinkPreview
                 banner={banner}
                 name={name}

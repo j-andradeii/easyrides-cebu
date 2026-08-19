@@ -110,14 +110,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: campaign.shortDescription,
       url,
       siteName: 'EasyRideCebu',
-      images: [
-        {
-          url: campaign.bannerImage,
-          width: 1200,
-          height: 630,
-          alt: campaign.name,
-        },
-      ],
+      /**
+       * No declared width/height. They are only a hint for the first scrape,
+       * before the crawler has fetched the picture and measured it — and a
+       * banner is whatever shape the designer drew, so hard-coding 1200 × 630
+       * described most of them wrongly. A crawler that measures the real file
+       * is better served by being told nothing than by being told that.
+       */
+      images: [{ url: campaign.bannerImage, alt: campaign.name }],
       type: 'website',
       locale: 'en_US',
     },
@@ -334,18 +334,30 @@ export default async function CampaignPage({ params }: Props) {
               the one element everyone looks at first. `ring-inset` rather than
               a border, so a pale banner still has a defined edge without the
               ring stealing a pixel of the picture. */}
-          <div className="relative aspect-[1200/630] w-full overflow-hidden rounded-2xl bg-cream-light shadow-xl shadow-slate-900/10 ring-1 ring-inset ring-slate-900/10 lg:col-start-1 lg:row-start-1">
+          <div className="relative w-full overflow-hidden rounded-2xl bg-cream-light shadow-xl shadow-slate-900/10 ring-1 ring-inset ring-slate-900/10 lg:col-start-1 lg:row-start-1">
             <Image
               src={campaign.bannerImage}
               alt={campaign.name}
-              fill
+              // The banner sets its own height rather than being cut to fit a
+              // 1200×630 frame. A promo banner is a designed thing — a phone
+              // number along the bottom, a logo in a corner — and cropping it to
+              // a shape it was not drawn for loses exactly the parts that were
+              // put at the edges on purpose. Facebook still crops its own card
+              // (that is what the portal's Link preview shows), but this page
+              // does not have to, so it doesn't.
+              //
+              // `width`/`height` are the placeholder ratio held before the image
+              // loads, not a claim about the file: `h-auto` hands the final
+              // height to the picture's real proportions.
+              width={1200}
+              height={630}
               // The real measurements, not a round number: the container is
               // 72rem less its 3rem of padding on a wide screen and 40rem less
               // the same below that, so this stops asking for an image half as
               // wide again as anything that will ever be painted.
               sizes="(min-width: 1024px) 630px, (min-width: 640px) 592px, 100vw"
               // An expired promo should look expired before a word is read.
-              className={`object-cover ${campaign.hasEnded ? 'opacity-70 grayscale' : ''}`}
+              className={`h-auto w-full ${campaign.hasEnded ? 'opacity-70 grayscale' : ''}`}
               priority
             />
 
