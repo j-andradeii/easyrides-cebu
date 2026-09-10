@@ -1,3 +1,5 @@
+import Script from 'next/script';
+
 import {
   Navigation,
   HeroSection,
@@ -90,6 +92,14 @@ export default async function Home() {
       </main>
 
       <Footer />
+
+      {/* Third-party chat widget. `lazyOnload` keeps it off the critical path —
+          it injects its own floating bubble, so nothing above depends on it and
+          it must not compete with the hero for bandwidth. */}
+      <Script
+        src="https://ai-saas-chatbot-gray.vercel.app/api/widget/68918182-e794-4c3e-9744-538ef0127b66"
+        strategy="lazyOnload"
+      />
     </>
   );
 }
